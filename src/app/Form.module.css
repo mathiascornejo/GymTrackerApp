@@ -1,0 +1,132 @@
+.page {
+  max-width: 560px;
+}
+
+.lead {
+  margin: 0 0 16px;
+  color: var(--ink-muted);
+}
+
+.group {
+  margin: 0 0 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-list);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+}
+
+.groupTitle {
+  margin: 24px 0 8px;
+  padding: 0 4px;
+  font: 600 13px/18px var(--font-ui);
+  color: var(--ink-muted);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 4px 16px;
+}
+
+.row + .row {
+  border-top: 1px solid var(--hairline);
+}
+
+.label {
+  flex: none;
+}
+
+.input {
+  min-height: 44px;
+  min-width: 0;
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--ground);
+  color: var(--ink);
+  font: inherit;
+}
+
+.row .input {
+  width: auto;
+  max-width: 55%;
+  text-align: right;
+}
+
+.toggle {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--accent);
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.stack label {
+  display: grid;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.button {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.quiet {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-muted);
+}
+
+.center {
+  min-height: 100dvh;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  padding: 24px var(--gutter);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 8px;
+  font: 700 34px/41px var(--font-display);
+}

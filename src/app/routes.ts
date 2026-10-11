@@ -9,10 +9,14 @@ export const TABS = [
 
 export type TabId = (typeof TABS)[number]["id"];
 
+// Settings opens from the header, not the tab bar.
+export const SETTINGS = { id: "settings", label: "Settings", hint: "" } as const;
+export type Route = (typeof TABS)[number] | typeof SETTINGS;
+
 /** "#/log" -> "log". Anything unknown falls back to the dashboard. */
-export function parseHash(hash: string): TabId {
+export function parseHash(hash: string): Route["id"] {
   const id = hash.replace(/^#\/?/, "").split("/")[0];
-  return TABS.find((t) => t.id === id)?.id ?? "dashboard";
+  return [...TABS, SETTINGS].find((t) => t.id === id)?.id ?? "dashboard";
 }
 
 const subscribe = (cb: () => void) => {
@@ -20,4 +24,4 @@ const subscribe = (cb: () => void) => {
   return () => window.removeEventListener("hashchange", cb);
 };
 
-export const useTab = (): TabId => parseHash(useSyncExternalStore(subscribe, () => location.hash));
+export const useRoute = () => parseHash(useSyncExternalStore(subscribe, () => location.hash));

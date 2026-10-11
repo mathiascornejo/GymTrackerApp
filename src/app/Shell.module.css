@@ -115,3 +115,22 @@
     padding: 24px 40px;
   }
 }
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--ink-muted);
+}
+
+.profile[aria-current="page"] {
+  color: var(--accent);
+}

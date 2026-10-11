@@ -7,12 +7,16 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 
 ## Commands
 - `npm run dev` / `npm run build` / `npm run preview`
-- `npm test` (Vitest, `src/**/*.test.ts`), `npm run e2e` (Playwright: phone + desktop viewports), `npm run typecheck`
+- `npm test` (Vitest, `src/**/*.test.ts`), `npm run typecheck`
+- `npx supabase start` (needs Docker) then `npx supabase test db` (RLS, pgTAP) and `npm run e2e` (Playwright, phone + desktop, signs in against the local stack)
+- Migrations live in `supabase/migrations/`; apply locally with `npx supabase db reset`
 
 ## Conventions
 - Phases per brief section 12: one commit per phase, stop for review after each. Mark unverified domain data `// UNVERIFIED` and list it in the phase summary.
 - Anything with math is a small pure function with a unit test (e1RM, rank, recommend, unit conversion).
 - No component talks to Supabase directly; go through `src/data/`.
+- Profile writes patch the query cache synchronously and do not refetch on success (a racing refetch undoes newer changes). Controlled inputs in Settings mirror their value locally; see `useMirror` in `src/app/Settings.tsx`.
+- New table checklist: `user_id`, composite FKs `(parent_id, user_id)`, add the table name to the RLS loop in a new migration, and seed one row in `supabase/tests/database/rls.test.sql`.
 - Sentence case, plain verbs; no streak guilt; no all-caps tracked labels, no monospace data labels, no arrow glyphs on buttons.
 - Only one tab's content is mounted at a time. Translucent blur only on the tab bar and sheets.
 - App name lives in one constant (rename is a one-line change); currently "Tempered".
