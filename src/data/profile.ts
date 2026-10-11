@@ -14,6 +14,9 @@ export type Profile = {
   auto_start_rest: boolean;
   /** exercise_ref -> progression step in kg. */
   increments: Record<string, number>;
+  rank_patterns: boolean;
+  /** exercise_ref -> seven bodyweight multiples (Bronze..Olympian) replacing the file's standards. */
+  standards_overrides: Record<string, number[]>;
 };
 
 export type ProfilePatch = Partial<Omit<Profile, "id">>;

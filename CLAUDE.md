@@ -36,6 +36,16 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - Rest timer stores an absolute `endsAt`; never count intervals. Audio needs the start tap to unlock.
 - `recommend()`, `findPRs()`, `epley()` are pure and tested; do not inline them in components.
 
+## Ranking
+- `src/ranking/standards.ts` is the only place standards live. Every number is `// UNVERIFIED`; users can override per lift in Settings (`profiles.standards_overrides`). Thresholds are bodyweight multiples to REACH Bronze..Olympian; Wood is the floor.
+- `computeRanks` is pure: best credited set per lift, best lift per muscle, median overall. Muscles with no data are absent (drawn neutral), never Wood. Sets over 5x bodyweight are `flagged` and excluded until `session_sets.confirmed`.
+- Rank-up ceremony compares current tiers with `localStorage["tempered.ranks.seen"]`; the first visit only records. Dashboard data is paged (PostgREST caps responses at 1000 rows).
+- Body map art lives in `src/app/bodyMapArt.ts` (original, 200x380 box). Materials are static SVG defs in `BodyMap.tsx`; the only animation is the one-shot sheen.
+
+## Local testing
+- `supabase/config.toml` raises auth rate limits for the local stack only; the e2e suite signs in once per test. Hosted projects keep their own limits.
+- After a profile edit, tests wait for the PATCH response (`profileSaved`) before reloading; reloading mid-save correctly shows the old value.
+
 ## Exercise data
 - Dataset is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
 - Refs are `ds:<id>` or `custom:<uuid>`. Do not bump the SHA without an old-id to new-id check: history stores refs.

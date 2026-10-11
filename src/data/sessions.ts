@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useSyncExternalStore } from "react";
 import { lastSessionSets } from "../session/history";
 import { supabase } from "./client";
@@ -29,6 +29,10 @@ export type SetRow = {
 };
 
 const SET_COLUMNS = "id,session_id,exercise_ref,block_id,round_index,set_number,weight_kg,reps,rpe,is_warmup,completed_at";
+/** Anything derived from logged sets (history, past list, dashboard) is stale after a set changes. */
+export const invalidateDerived = () => {
+  for (const k of ["past", "history", "dash"]) void queryClient.invalidateQueries({ queryKey: [k] });
+};
 const throwIf = (r: { error: Error | null }) => {
   if (r.error) throw r.error;
 };
@@ -177,8 +181,7 @@ export async function finishSession(id: string): Promise<SessionRow> {
   const { data, error } = await supabase.from("sessions").update({ ended_at: new Date().toISOString() }).eq("id", id).select().single();
   if (error) throw error;
   queryClient.setQueryData(["session", "open"], null);
-  void queryClient.invalidateQueries({ queryKey: ["past"] });
-  void queryClient.invalidateQueries({ queryKey: ["history"] });
+  invalidateDerived();
   return data;
 }
 
@@ -189,8 +192,7 @@ export async function discardSession(id: string) {
   throwIf(await supabase.from("session_sets").update({ deleted_at: now }).eq("session_id", id));
   throwIf(await supabase.from("sessions").update({ deleted_at: now }).eq("id", id));
   queryClient.setQueryData(["session", "open"], null);
-  void queryClient.invalidateQueries({ queryKey: ["past"] });
-  void queryClient.invalidateQueries({ queryKey: ["history"] });
+  invalidateDerived();
 }
 
 async function fetchSets(sessionId: string): Promise<SetRow[]> {
@@ -282,11 +284,7 @@ export const usePastSessions = () =>
   });
 
 export function usePastSessionActions() {
-  const qc = useQueryClient();
-  const refresh = () => {
-    void qc.invalidateQueries({ queryKey: ["past"] });
-    void qc.invalidateQueries({ queryKey: ["history"] });
-  };
+  const refresh = invalidateDerived;
   return {
     async updateSet(id: string, patch: { weight_kg?: number; reps?: number }) {
       throwIf(await supabase.from("session_sets").update(patch).eq("id", id));

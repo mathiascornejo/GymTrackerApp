@@ -11,6 +11,7 @@ import { mmss } from "../session/timer";
 import { fromKg, toKg, type Unit } from "../units";
 import { AddExerciseSheet } from "./AddExerciseSheet";
 import { RestBar, useRestTimer } from "./RestBar";
+import { epley, rankable } from "../ranking/e1rm";
 import { findPRs } from "../session/summary";
 import type { SummaryData } from "./SessionSummary";
 import f from "./Form.module.css";
@@ -64,17 +65,18 @@ type RowProps = {
   ghost: { weight_kg: number; reps: number } | null;
   unit: Unit;
   warm?: boolean;
+  pr?: boolean;
   error?: string;
   onChange: (v: { w: string; r: string }) => void;
   onDone: () => void;
 };
 
-function SetLine({ label, dataSlot, done, input, ghost, unit, warm, error, onChange, onDone }: RowProps) {
+function SetLine({ label, dataSlot, done, input, ghost, unit, warm, pr, error, onChange, onDone }: RowProps) {
   const w = done ? fmt(done.weight_kg, unit) : input.w;
   const r = done ? String(done.reps) : input.r;
   return (
     <div className={`${s.setRow} ${done ? s.setDone : ""} ${warm ? s.warm : ""}`} data-slot={dataSlot}>
-      <span className={s.setLabel}>{label}</span>
+      <span className={s.setLabel}>{label}{pr && <span className={s.prBadge} title="Personal best estimated 1RM">PR</span>}</span>
       <label>
         <span className={s.visuallyHidden}>{label} weight ({unit})</span>
         <input
@@ -267,6 +269,20 @@ export function SessionLog({
   const dayLabel = routine?.days.find((d) => d.id === session.routine_day_id)?.label;
   const title = weekday === null ? "Quick session" : dayLabel || new Date(2024, 0, 7 + weekday).toLocaleDateString(undefined, { weekday: "long" });
   const pr = useMemo(() => findPRs(sets, history.data ?? []), [sets, history.data]);
+  // A set is a record when it beats every earlier set of that lift, and there was earlier history to beat.
+  const prRows = useMemo(() => {
+    const best = new Map<string, number>();
+    for (const h of history.data ?? []) if (rankable(h.reps)) best.set(h.exercise_ref, Math.max(best.get(h.exercise_ref) ?? 0, epley(h.weight_kg, h.reps)));
+    const baseline = new Set(best.keys());
+    const out = new Set<string>();
+    [...sets].filter((x) => !x.is_warmup && rankable(x.reps)).sort((a, b) => a.completed_at.localeCompare(b.completed_at)).forEach((x) => {
+      const e = epley(x.weight_kg, x.reps);
+      const prev = best.get(x.exercise_ref) ?? 0;
+      if (baseline.has(x.exercise_ref) && e > prev + 1e-9) out.add(x.id);
+      best.set(x.exercise_ref, Math.max(prev, e));
+    });
+    return out;
+  }, [sets, history.data]);
 
   const renderBlock = (b: PlanBlock) => {
     const rounds = roundsOf(b);
@@ -302,7 +318,7 @@ export function SessionLog({
       return (
         <SetLine
           key={key} label={label} dataSlot={key} warm={warm} unit={unit}
-          done={rowFor(b, it, r, warm)} input={draft.inputs[key] ?? { w: "", r: "" }} ghost={warm ? null : ghostFor(it.ref, r)}
+          done={rowFor(b, it, r, warm)} pr={!warm && prRows.has(rowFor(b, it, r, warm)?.id ?? "")} input={draft.inputs[key] ?? { w: "", r: "" }} ghost={warm ? null : ghostFor(it.ref, r)}
           error={rowError?.key === key ? rowError.msg : undefined}
           onChange={(v) => setInput(key, v)} onDone={() => complete(b, itemIndex, r, warm)}
         />

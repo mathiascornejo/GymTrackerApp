@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "../data/auth";
 import { configured } from "../data/client";
 import { useProfile } from "../data/profile";
+import { Dashboard } from "./Dashboard";
 import { Library } from "./Library";
 import { Routines } from "./Routines";
 import { Session } from "./Session";
@@ -11,7 +12,6 @@ import { Shell } from "./Shell";
 import { SignIn } from "./SignIn";
 import { applyTheme } from "./theme";
 import f from "./Form.module.css";
-import s from "./Placeholder.module.css";
 
 const SKIP_KEY = "tempered.setup-skipped";
 const skipped = () => {
@@ -58,10 +58,25 @@ function Authed() {
       </div>
     );
 
-  // Tab content arrives in later phases; only the active route is mounted.
-  return <Shell>{(route) =>
-        route.id === "settings" ? <Settings profile={p} /> : route.id === "library" ? <Library /> : route.id === "routines" ? <Routines profile={p} /> : route.id === "log" ? <Session profile={p} /> : <p className={s.empty}>{route.hint}</p>
-      }</Shell>;
+  // Only the active route is mounted.
+  return (
+    <Shell>
+      {(route) => {
+        switch (route.id) {
+          case "dashboard":
+            return <Dashboard profile={p} />;
+          case "log":
+            return <Session profile={p} />;
+          case "routines":
+            return <Routines profile={p} />;
+          case "library":
+            return <Library />;
+          case "settings":
+            return <Settings profile={p} />;
+        }
+      }}
+    </Shell>
+  );
 }
 
 export function App() {

@@ -8,6 +8,7 @@
   --accent: #0a5cff;
   --done: #1f7a35; /* brief proposed #34C759: 2.2:1 on white, fails AA */
   --hairline: rgb(0 0 0 / 0.12);
+  --edge: rgb(0 0 0 / 0.55);
   --blur-bg: rgb(245 245 247 / 0.78);
 
   --rank-wood: #8a6a47;
@@ -41,6 +42,7 @@
     --accent: #4c8dff;
     --done: #30d158;
     --hairline: rgb(255 255 255 / 0.16);
+    --edge: rgb(255 255 255 / 0.6);
     --blur-bg: rgb(28 28 30 / 0.78);
   }
 }
@@ -53,6 +55,7 @@
   --accent: #4c8dff;
   --done: #30d158;
   --hairline: rgb(255 255 255 / 0.16);
+  --edge: rgb(255 255 255 / 0.6);
   --blur-bg: rgb(28 28 30 / 0.78);
 }
 

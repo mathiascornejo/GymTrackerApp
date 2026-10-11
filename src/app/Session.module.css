@@ -435,3 +435,13 @@
   gap: 8px;
   margin-top: 4px;
 }
+
+.prBadge {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--done);
+  border-radius: 999px;
+  color: var(--done);
+  font-size: 11px;
+  line-height: 16px;
+}

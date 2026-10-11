@@ -77,7 +77,7 @@ export function Session({ profile }: { profile: Profile }) {
 
   const active = (routines.data ?? []).find((r) => r.isActive && !r.archivedAt) ?? null;
 
-  if (summary) return <SessionSummary data={summary} info={info} onDone={() => setSummary(null)} />;
+  if (summary) return <SessionSummary data={summary} info={info} profile={profile} onDone={() => setSummary(null)} />;
 
   if (open.data) {
     const routine = (routines.data ?? []).find((r) => r.id === open.data!.routine_id) ?? null;

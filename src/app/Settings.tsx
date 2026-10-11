@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { auth } from "../data/auth";
 import { useUpdateProfile, type Profile } from "../data/profile";
+import { useExercises } from "../exercises/useExercises";
+import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
 import { RankingSetup } from "./RankingSetup";
 import f from "./Form.module.css";
 
@@ -42,6 +44,77 @@ function Select({ value, onChange, children }: { value: string | number; onChang
     >
       {children}
     </select>
+  );
+}
+
+const BOUNDS = TIERS.slice(1);
+
+/** Edits one lift's seven thresholds. Values must be positive and rising; a bad edit reverts with a reason. */
+function StandardsEditor({ profile }: { profile: Profile }) {
+  const { byRef } = useExercises();
+  const update = useUpdateProfile();
+  const [error, setError] = useState("");
+  const table = profile.standards_table ?? "male";
+  const overrides = profile.standards_overrides ?? {};
+  const save = (next: Record<string, number[]>) => update.mutate({ standards_overrides: next });
+
+  return (
+    <details className={f.group} style={{ padding: "0 16px" }}>
+      <summary style={{ minHeight: 52, display: "flex", alignItems: "center", cursor: "pointer" }}>Edit strength standards</summary>
+      <p className={f.note}>
+        Bodyweight multiples of estimated 1RM needed to reach each tier. The built-in numbers are approximate placeholders; change any you
+        trust a better source for.
+      </p>
+      {error && <p className={f.error} role="alert">{error}</p>}
+      {RANKING_LIFTS.map((lift) => {
+        const name = byRef.get(lift.ref)?.name ?? lift.ref;
+        const current = thresholds(lift, table, overrides);
+        const custom = Boolean(overrides[lift.ref]);
+        return (
+          <fieldset key={lift.ref} style={{ border: 0, padding: 0, margin: "0 0 16px" }}>
+            <legend style={{ fontWeight: 600, marginBottom: 4 }}>
+              {name} <span className={f.note}>({lift.muscle}{custom ? ", edited" : ""})</span>
+            </legend>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 8 }}>
+              {current.map((v, i) => (
+                <label key={`${lift.ref}-${i}-${v}`} style={{ display: "grid", gap: 2, fontSize: 13 }}>
+                  {BOUNDS[i]}
+                  <input
+                    className={f.input} inputMode="decimal" defaultValue={v} style={{ textAlign: "center" }}
+                    aria-label={`${name} ${BOUNDS[i]} multiple`}
+                    onBlur={(e) => {
+                      const n = Number(e.target.value.replace(",", "."));
+                      if (n === v) return;
+                      const next = [...current];
+                      next[i] = n;
+                      const rising = next.every((x, k) => Number.isFinite(x) && x > 0 && (k === 0 || x > next[k - 1]));
+                      if (!rising) {
+                        setError(`${name}: each tier must be a positive multiple higher than the one before.`);
+                        e.target.value = String(v);
+                        return;
+                      }
+                      setError("");
+                      save({ ...overrides, [lift.ref]: next });
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+            {custom && (
+              <button
+                type="button" className={f.quiet}
+                onClick={() => {
+                  const { [lift.ref]: _removed, ...rest } = overrides;
+                  save(rest);
+                }}
+              >
+                Reset {name}
+              </button>
+            )}
+          </fieldset>
+        );
+      })}
+    </details>
   );
 }
 
@@ -87,6 +160,13 @@ export function Settings({ profile }: { profile: Profile }) {
         </label>
       </div>
       <p className={f.note}>Standards are approximate.</p>
+      <StandardsEditor profile={profile} />
+      <div className={f.group}>
+        <label className={f.row}>
+          <span className={f.label}>Rank patterns on the body map</span>
+          <Toggle checked={profile.rank_patterns} onChange={(v) => set({ rank_patterns: v })} />
+        </label>
+      </div>
 
       <h2 className={f.groupTitle}>Rest timer</h2>
       <div className={f.group}>

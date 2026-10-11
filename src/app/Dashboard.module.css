@@ -1,0 +1,352 @@
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.sub {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-muted);
+}
+
+.page {
+  max-width: 960px;
+}
+
+.section {
+  margin-top: 40px;
+}
+
+.h2 {
+  margin: 0 0 12px;
+  font: 700 22px/28px var(--font-display);
+}
+
+.hero {
+  position: relative;
+}
+
+.heroTop,
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.segBtn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.segBtn[aria-checked="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mapWrap {
+  display: grid;
+  grid-template-columns: minmax(150px, 52%) 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+@media (min-width: 640px) {
+  .mapWrap {
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    gap: 32px;
+  }
+}
+
+.map {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  color: var(--ink);
+}
+
+.silhouette {
+  fill: var(--hairline);
+  stroke: var(--hairline);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.decor {
+  fill: var(--hairline);
+  stroke: none;
+}
+
+.region {
+  cursor: pointer;
+  outline: none;
+}
+
+.region:focus-visible .filled,
+.region:focus-visible .neutral {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  pointer-events: stroke;
+}
+
+.filled {
+  stroke: var(--edge);
+  stroke-width: 1.5;
+}
+
+.neutral {
+  fill: var(--surface);
+  stroke: var(--edge);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+.pattern {
+  opacity: 0.45;
+  pointer-events: none;
+  stroke: none;
+}
+
+.sheenShape {
+  pointer-events: none;
+  stroke: none;
+}
+
+.overall {
+  display: grid;
+  gap: 2px;
+}
+
+.overallLabel {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.overallTier {
+  font: 800 26px/32px var(--font-display);
+}
+
+@media (min-width: 640px) {
+  .overallTier {
+    font-size: 34px;
+    line-height: 41px;
+  }
+}
+
+.overallPct {
+  color: var(--ink-muted);
+}
+
+.prompt {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-list);
+  background: var(--surface);
+}
+
+.promptTitle {
+  margin: 0 0 4px;
+  font: 600 17px/22px var(--font-ui);
+}
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.muscleList {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  max-width: 520px;
+}
+
+.muscleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ceremony {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.flagList {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flagList li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.weekRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.weekText {
+  margin: 0;
+  font: 600 17px/22px var(--font-ui);
+}
+
+.ringText {
+  font: 800 28px var(--font-display);
+  fill: var(--ink);
+}
+
+.chart {
+  margin: 12px 0 0;
+}
+
+.chart svg {
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+}
+
+.axis {
+  font: 400 12px var(--font-ui);
+  fill: var(--ink-muted);
+}
+
+.bars {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  max-width: 560px;
+}
+
+.bars li {
+  display: grid;
+  grid-template-columns: 112px 1fr 32px;
+  align-items: center;
+  gap: 12px;
+}
+
+.barTrack {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.barValue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.freq {
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+}
+
+.prs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 560px;
+}
+
+.prs li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.sheetHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.sheetTitle {
+  margin: 12px 0;
+  font: 700 28px/34px var(--font-display);
+}
+
+.tierName {
+  margin: 0;
+  font: 800 34px/41px var(--font-display);
+}
+
+.meter {
+  height: 10px;
+  margin: 8px 0;
+  border-radius: 999px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}

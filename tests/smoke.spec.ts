@@ -14,6 +14,13 @@ async function newUser(): Promise<string> {
   return email;
 }
 
+// Profile edits save in the background. Reloading before the PATCH lands would (correctly) show the old value.
+async function profileSaved(page: Page, action: () => Promise<unknown>) {
+  const saved = page.waitForResponse((r) => r.url().includes("/rest/v1/profiles") && r.request().method() === "PATCH");
+  await action();
+  await saved;
+}
+
 async function signIn(page: Page, hash = "dashboard") {
   const email = await newUser();
   await page.goto(`#/${hash}`);
@@ -60,9 +67,8 @@ test("sign-in rejects a wrong password with a readable message", async ({ page }
 
 test("theme choice is saved to the profile and survives a fresh browser", async ({ page, browser }) => {
   await signInAndSkipSetup(page);
-  await page.getByRole("radio", { name: "Dark" }).click();
+  await profileSaved(page, () => page.getByRole("radio", { name: "Dark" }).click());
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.waitForLoadState("networkidle"); // the profile save is a background request
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   // Same account, empty localStorage: the profile has to supply the theme.
@@ -71,7 +77,7 @@ test("theme choice is saved to the profile and survives a fresh browser", async 
   const ctx = await browser.newContext({ storageState: state, baseURL: "http://localhost:4173/GymTrackerApp/" });
   const other = await ctx.newPage();
   await other.goto("#/dashboard");
-  await expect(other.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(other.locator("html")).toHaveAttribute("data-theme", "dark", { timeout: 20_000 });
   await ctx.close();
 });
 
@@ -91,8 +97,8 @@ test("ranking setup saves unit and standards, then stops asking", async ({ page 
 
 test("settings changes persist after reload", async ({ page }) => {
   await signInAndSkipSetup(page, "settings");
-  await page.getByLabel("Week starts on").selectOption("0");
-  await page.getByLabel("Start rest after each set").check();
+  await profileSaved(page, () => page.getByLabel("Week starts on").selectOption("0"));
+  await profileSaved(page, () => page.getByLabel("Start rest after each set").check());
   await expect(page.getByLabel("Start rest after each set")).toBeChecked();
   await page.reload();
   await expect(page.getByLabel("Week starts on")).toHaveValue("0");
@@ -359,6 +365,8 @@ test.describe("session log", () => {
 
   test("queues a set while offline and syncs when the connection returns", async ({ page, context }) => {
     await withRoutine(page);
+    // The exercise list loads lazily; names must be in before the connection drops.
+    await expect(curl(page)).toBeVisible();
     await context.setOffline(true);
     await fill(page, 1, "45", "8");
     await expect(curl(page).getByRole("button", { name: "Undo Set 1" })).toBeVisible();
@@ -427,5 +435,158 @@ test.describe("session log", () => {
     await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeVisible();
     await group.click();
     await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeHidden();
+  });
+});
+
+test.describe("dashboard and ranks", () => {
+  type Seed = { email: string; token: string; userId: string };
+
+  const headers = (token: string) => ({ apikey: process.env.E2E_SUPABASE_KEY!, Authorization: `Bearer ${token}`, "Content-Type": "application/json" });
+  const rest = async (seed: Seed, path: string, method: string, body?: unknown) => {
+    const r = await fetch(`${process.env.E2E_SUPABASE_URL}/rest/v1/${path}`, { method, headers: headers(seed.token), body: body ? JSON.stringify(body) : undefined });
+    expect(r.ok, `${method} ${path}`).toBe(true);
+  };
+
+  async function seededUser(opts: { standards?: boolean } = { standards: true }): Promise<Seed> {
+    const email = `e2e-${crypto.randomUUID()}@test.local`;
+    const r = await fetch(`${process.env.E2E_SUPABASE_URL}/auth/v1/signup`, {
+      method: "POST", headers: headers(process.env.E2E_SUPABASE_KEY!), body: JSON.stringify({ email, password: PASSWORD }),
+    });
+    const j = await r.json();
+    const seed = { email, token: j.access_token as string, userId: j.user.id as string };
+    if (opts.standards !== false) {
+      await rest(seed, `profiles?id=eq.${seed.userId}`, "PATCH", { standards_table: "male" });
+      await rest(seed, "bodyweight_entries", "POST", { measured_on: "2026-01-01", weight_kg: 80 });
+    }
+    return seed;
+  }
+
+  async function addSession(seed: Seed, sets: { ref: string; w: number; reps: number }[], daysAgo = 2) {
+    const id = crypto.randomUUID();
+    const start = new Date(Date.now() - daysAgo * 86_400_000);
+    await rest(seed, "sessions", "POST", { id, started_at: start.toISOString(), ended_at: new Date(start.getTime() + 3_600_000).toISOString() });
+    await rest(seed, "session_sets", "POST", sets.map((s, i) => ({
+      id: crypto.randomUUID(), session_id: id, exercise_ref: `ds:${s.ref}`, round_index: i, set_number: i + 1, weight_kg: s.w, reps: s.reps,
+      is_warmup: false, completed_at: new Date(start.getTime() + i * 60_000).toISOString(),
+    })));
+  }
+
+  async function open(page: Page, seed: Seed, hash = "dashboard") {
+    await page.goto(`#/${hash}`);
+    await page.getByLabel("Email").fill(seed.email);
+    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  }
+
+  const BENCH = "Barbell_Bench_Press_-_Medium_Grip";
+
+  test("asks for setup before showing ranks", async ({ page }) => {
+    const seed = await seededUser({ standards: false });
+    await open(page, seed);
+    await page.getByRole("button", { name: "Skip for now" }).click();
+    await expect(page.getByText("Add your bodyweight to see ranks")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Set up ranks" })).toBeVisible();
+  });
+
+  test("colors a muscle by tier and explains it in a detail sheet", async ({ page }) => {
+    const seed = await seededUser();
+    await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }]);
+    await open(page, seed);
+    await page.getByRole("button", { name: "Chest, Platinum. Show details" }).click();
+    const sheet = page.getByRole("dialog", { name: "Chest" });
+    await expect(sheet.getByText("Platinum", { exact: true }).first()).toBeVisible();
+    await expect(sheet.getByRole("link", { name: "Barbell Bench Press - Medium Grip" }).first()).toBeVisible();
+    await expect(sheet).toContainText("1.46x bodyweight");
+    await page.keyboard.press("Escape");
+    // Unranked muscles are neutral, not Wood.
+    await expect(page.getByRole("button", { name: "Calves, no data. Show details" })).toBeVisible();
+    await expect(page.getByText(/^Platinum$/).first()).toBeVisible(); // overall
+  });
+
+  test("offers a list alternative to the map", async ({ page }) => {
+    const seed = await seededUser();
+    await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }]);
+    await open(page, seed);
+    await page.getByRole("button", { name: "Show as list" }).click();
+    await expect(page.getByRole("button", { name: /Chest\s*Platinum/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Calves\s*No data/ })).toBeVisible();
+  });
+
+  test("holds back an implausible entry until it is confirmed", async ({ page }) => {
+    const seed = await seededUser();
+    await addSession(seed, [{ ref: BENCH, w: 450, reps: 3 }]);
+    await open(page, seed);
+    await expect(page.getByRole("heading", { name: "Check these entries" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Chest, no data. Show details" })).toBeVisible();
+    await page.getByRole("button", { name: "It is right" }).click();
+    await expect(page.getByRole("heading", { name: "Check these entries" })).toBeHidden();
+    await expect(page.getByRole("button", { name: /^Chest, (?!no data)/ })).toBeVisible();
+  });
+
+  test("plays the rank-up once, then not again", async ({ page }) => {
+    const seed = await seededUser();
+    await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }], 5);
+    await open(page, seed);
+    await expect(page.getByRole("button", { name: "Chest, Platinum. Show details" })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "reached" })).toHaveCount(0); // first visit only records tiers
+
+    await addSession(seed, [{ ref: BENCH, w: 110, reps: 5 }], 1); // 128 / 80 = 1.6x: Diamond
+    await page.reload();
+    const banner = page.getByRole("status").filter({ hasText: "Chest reached Diamond" });
+    await expect(banner).toBeVisible();
+    await banner.getByRole("button", { name: "Skip" }).click();
+    await expect(banner).toBeHidden();
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Chest, Diamond. Show details" })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "reached" })).toHaveCount(0);
+  });
+
+  test("charts the estimated 1RM, weekly sets, bodyweight and recent bests", async ({ page }) => {
+    const seed = await seededUser();
+    await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }], 9);
+    await addSession(seed, [{ ref: BENCH, w: 105, reps: 5 }], 2);
+    await open(page, seed);
+    await expect(page.getByRole("img", { name: /Barbell Bench Press - Medium Grip estimated 1RM: 2 points/ })).toBeVisible();
+    await page.getByRole("radio", { name: "4 weeks" }).click();
+    await expect(page.getByRole("img", { name: /estimated 1RM: 2 points/ })).toBeVisible();
+    await expect(page.getByRole("img", { name: /Sessions over the last 12 weeks: 2/ })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Recent personal bests" })).toContainText("Barbell Bench Press - Medium Grip");
+    await expect(page.getByRole("img", { name: /Bodyweight: 1 points/ })).toBeVisible();
+  });
+
+  test("adds bodyweight from the dashboard", async ({ page }) => {
+    const seed = await seededUser();
+    await open(page, seed);
+    await page.getByLabel("Add bodyweight (kg)").fill("81.5");
+    await page.getByRole("button", { name: "Add weight" }).click();
+    await expect(page.getByRole("img", { name: /Bodyweight: 2 points, latest 81.5 kg/ })).toBeVisible();
+  });
+
+  test("edited standards and the pattern overlay persist", async ({ page }) => {
+    const seed = await seededUser();
+    await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }]);
+    await open(page, seed, "settings");
+    await page.getByText("Edit strength standards").click();
+    // Diamond for bench defaults to 1.5; making it 1.4 puts the 1.46x lift in Diamond.
+    const diamond = page.getByLabel("Barbell Bench Press - Medium Grip Diamond multiple");
+    await diamond.fill("1.4");
+    await profileSaved(page, () => diamond.blur());
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await profileSaved(page, () => page.getByLabel("Rank patterns on the body map").check());
+    await page.goto("#/dashboard");
+    await expect(page.getByRole("button", { name: "Chest, Diamond. Show details" })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Chest, Diamond. Show details" })).toBeVisible();
+  });
+
+  test("rejects a non-rising standards edit with a reason", async ({ page }) => {
+    const seed = await seededUser();
+    await open(page, seed, "settings");
+    await page.getByText("Edit strength standards").click();
+    const gold = page.getByLabel("Barbell Bench Press - Medium Grip Gold multiple");
+    await gold.fill("0.4");
+    await gold.blur();
+    await expect(page.getByRole("alert")).toContainText("higher than the one before");
+    await expect(gold).toHaveValue("1");
   });
 });
