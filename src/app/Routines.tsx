@@ -175,7 +175,9 @@ export function Routines({ profile }: { profile: Profile }) {
     } catch {
       return setImportErrors(["This file is not valid JSON."]);
     }
-    const out = importRoutine(json, (ref) => byRef.has(ref));
+    // The dataset loads lazily; wait for it so a fast import never reports real exercises as unknown.
+    const known = new Set([...(dataset.data ?? (await loadDataset())).map((e) => e.ref), ...(custom.data ?? []).map((e) => e.ref)]);
+    const out = importRoutine(json, (ref) => known.has(ref));
     if ("errors" in out) return setImportErrors(out.errors);
     setPickedId(actions.addImported(out.routine));
   };

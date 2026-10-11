@@ -28,6 +28,14 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - Weekdays are 0 = Sunday. Bank blocks are blocks with `routine_day_id = null`; bank schedule is `weekdays` (daily = all seven) or `weeklyTarget`.
 - Superset strips and keyboard drags: keyboard drags hide the strips because Arrow keys would target them. dnd-kit needs about 400 ms after pick-up before Arrow keys register (tests wait for it).
 
+## Sessions
+- Completed sets go through an outbox (`src/data/sessions.ts`): written to localStorage first, then sent in order with backoff. Never write `session_sets` directly from a component. A rejected set (server error code) is dropped and surfaced; a network failure is kept and retried.
+- Typed-but-unlogged values, extra rounds, warm-ups, skips and ad hoc exercises live in a per-session draft (`src/session/draft.ts`). A logged set is a `session_sets` row; planned sets exist only in the UI.
+- A set row maps to a slot by `(block_id, exercise_ref, round_index, is_warmup)`. Ad hoc exercises have `block_id = null`.
+- Tapping done with empty fields logs the grey ghost values from the last session; with no ghost it asks for input.
+- Rest timer stores an absolute `endsAt`; never count intervals. Audio needs the start tap to unlock.
+- `recommend()`, `findPRs()`, `epley()` are pure and tested; do not inline them in components.
+
 ## Exercise data
 - Dataset is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
 - Refs are `ds:<id>` or `custom:<uuid>`. Do not bump the SHA without an old-id to new-id check: history stores refs.

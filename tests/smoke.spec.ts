@@ -164,7 +164,7 @@ test.describe("routine builder", () => {
       await page.getByRole("button", { name: "Add exercise" }).click();
       await page.getByLabel("Search the picker").fill(name);
       await page.getByLabel(`Add ${name} to`, { exact: true }).selectOption({ label: to });
-      await page.getByRole("button", { name: "Done" }).click();
+      await page.getByRole("button", { name: "Done", exact: true }).click();
     } else {
       await page.getByLabel("Search the picker").fill(name);
       await page.getByLabel(`Add ${name} to`, { exact: true }).selectOption({ label: to });
@@ -283,5 +283,149 @@ test.describe("routine builder", () => {
     await page.mouse.move(b.x + b.width / 2, b.y + 60, { steps: 12 });
     await page.mouse.up();
     await expect(target.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
+  });
+});
+
+test.describe("session log", () => {
+  const routineJson = JSON.stringify({
+    format: "tempered-routine", version: 1, name: "Push pull",
+    days: [{ weekday: 1, label: "Upper 1", blocks: [
+      { sets: 3, restS: 90, transitionRestS: 0, items: [{ ref: "ds:Barbell_Curl", repMin: 8, repMax: 10 }] },
+      { sets: 2, restS: 60, transitionRestS: 0, items: [{ ref: "ds:Barbell_Bench_Press_-_Medium_Grip", repMin: 8, repMax: 12 }, { ref: "ds:Bent_Over_Barbell_Row", repMin: 8, repMax: 12 }] },
+    ] }],
+    bank: [{ sets: 2, restS: 45, transitionRestS: 0, weekdays: [0, 1, 2, 3, 4, 5, 6], weeklyTarget: null, items: [{ ref: "ds:Standing_Calf_Raises", repMin: 10, repMax: 15 }] }],
+  });
+
+  async function withRoutine(page: Page) {
+    await signInAndSkipSetup(page, "routines");
+    await page.locator('input[type="file"]').setInputFiles({ name: "r.json", mimeType: "application/json", buffer: Buffer.from(routineJson) });
+    await page.getByRole("button", { name: "Make active" }).click();
+    await expect(page.getByText("All changes saved")).toBeVisible();
+    await page.goto("#/log");
+    await page.getByLabel("Day").selectOption("1");
+    await page.getByRole("button", { name: "Start session" }).click();
+  }
+
+  const curl = (page: Page) => page.getByRole("article", { name: "Barbell Curl" });
+  const fill = async (page: Page, set: number, weight: string, reps: string) => {
+    await curl(page).getByLabel(`Set ${set} weight (kg)`).fill(weight);
+    await curl(page).getByLabel(`Set ${set} reps`).fill(reps);
+    await curl(page).getByRole("button", { name: `Mark Set ${set} done` }).click();
+  };
+
+  test("logs a quick session, shows the summary, and lists it in past sessions", async ({ page }) => {
+    await signInAndSkipSetup(page, "log");
+    await page.getByRole("button", { name: "Start quick session" }).click();
+    await page.getByRole("button", { name: "Add exercise" }).click();
+    await page.getByLabel("Search exercises to add").fill("Barbell Curl");
+    await page.getByRole("button", { name: /^Barbell Curl/ }).first().click();
+    await expect(curl(page)).toBeVisible();
+    await fill(page, 1, "40", "10");
+    await fill(page, 2, "40", "8");
+    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+    await page.getByRole("button", { name: "Finish session" }).click();
+    await expect(page.getByRole("heading", { name: "Session saved" })).toBeVisible();
+    await expect(page.getByText("720 kg")).toBeVisible();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await expect(page.getByRole("region", { name: "Past sessions" }).locator("summary")).toContainText("2 sets");
+  });
+
+  test("shows ghost values and a recommendation from the last session", async ({ page }) => {
+    await withRoutine(page);
+    for (const n of [1, 2, 3]) await fill(page, n, "40", "10");
+    await page.getByRole("button", { name: "Finish session" }).click();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+
+    await page.getByLabel("Day").selectOption("1");
+    await page.getByRole("button", { name: "Start session" }).click();
+    await expect(curl(page).getByLabel("Set 1 weight (kg)")).toHaveAttribute("placeholder", "40");
+    await expect(curl(page).getByLabel("Set 1 reps")).toHaveAttribute("placeholder", "10");
+    await curl(page).getByRole("button", { name: "Try 42.5 x 8" }).click();
+    await expect(curl(page).getByLabel("Set 2 weight (kg)")).toHaveValue("42.5");
+    await expect(curl(page).getByLabel("Set 3 reps")).toHaveValue("8");
+    await expect(curl(page).getByText("Hit 10, 10, 10 at 40 kg last time")).toBeVisible();
+  });
+
+  test("keeps logged sets and typed values across a reload", async ({ page }) => {
+    await withRoutine(page);
+    await fill(page, 1, "50", "9");
+    await curl(page).getByLabel("Set 2 weight (kg)").fill("52.5");
+    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+    await page.reload();
+    await expect(curl(page).getByLabel("Set 1 weight (kg)")).toHaveValue("50");
+    await expect(curl(page).getByRole("button", { name: "Undo Set 1" })).toBeVisible();
+    await expect(curl(page).getByLabel("Set 2 weight (kg)")).toHaveValue("52.5");
+  });
+
+  test("queues a set while offline and syncs when the connection returns", async ({ page, context }) => {
+    await withRoutine(page);
+    await context.setOffline(true);
+    await fill(page, 1, "45", "8");
+    await expect(curl(page).getByRole("button", { name: "Undo Set 1" })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Will retry" })).toBeVisible();
+    await context.setOffline(false);
+    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible({ timeout: 15_000 });
+    await page.reload();
+    await expect(curl(page).getByLabel("Set 1 weight (kg)")).toHaveValue("45");
+  });
+
+  test("moves focus through a superset and labels the rest button with the block's rest", async ({ page }) => {
+    await withRoutine(page);
+    const ss = page.getByRole("article", { name: /Barbell Bench Press - Medium Grip and Bent Over Barbell Row/ });
+    await ss.getByLabel("Barbell Bench Press - Medium Grip round 1 weight (kg)").fill("60");
+    await ss.getByLabel("Barbell Bench Press - Medium Grip round 1 reps").fill("8");
+    await ss.getByRole("button", { name: "Mark Barbell Bench Press - Medium Grip round 1 done" }).click();
+    await expect(ss.getByLabel("Bent Over Barbell Row round 1 weight (kg)")).toBeFocused();
+    // The last logged item sits mid-round with no transition rest, so the block's rest applies.
+    await expect(page.getByRole("button", { name: "Rest 1:00" })).toBeVisible();
+  });
+
+  test("rest timer counts down, adjusts, and can be skipped", async ({ page }) => {
+    await withRoutine(page);
+    await page.getByRole("button", { name: "Rest 1:30" }).click();
+    const timer = page.getByRole("timer");
+    await expect(timer).toContainText(/1:(29|30)/);
+    await page.getByRole("button", { name: "Add 15 seconds" }).click();
+    await expect(timer).toContainText(/1:(4\d)/);
+    await page.getByRole("button", { name: "Skip" }).click();
+    await expect(page.getByRole("button", { name: /^Rest \d/ })).toBeVisible();
+  });
+
+  test("warm-ups are excluded from volume, and a past session can be corrected", async ({ page }) => {
+    await withRoutine(page);
+    await curl(page).getByText("More").click();
+    await curl(page).getByRole("button", { name: "Add warm-up" }).click();
+    await curl(page).getByLabel("Warm-up 1 weight (kg)").fill("20");
+    await curl(page).getByLabel("Warm-up 1 reps").fill("12");
+    await curl(page).getByRole("button", { name: "Mark Warm-up 1 done" }).click();
+    await fill(page, 1, "40", "10");
+    await page.getByRole("button", { name: "Finish session" }).click();
+    await expect(page.getByText("400 kg")).toBeVisible();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+
+    const past = page.getByRole("region", { name: "Past sessions" });
+    await past.locator("summary").click();
+    await past.getByLabel("Reps").nth(1).fill("12");
+    await past.getByLabel("Reps").nth(1).blur();
+    await expect(past.locator("summary")).toContainText("480 kg");
+  });
+
+  test("skipping an exercise and adding a set work", async ({ page }) => {
+    await withRoutine(page);
+    await curl(page).getByText("More").click();
+    await curl(page).getByRole("button", { name: "Add set" }).click();
+    await expect(curl(page).getByLabel("Set 4 weight (kg)")).toBeVisible();
+    await curl(page).getByRole("button", { name: "Skip exercise" }).click();
+    await expect(curl(page).getByText("Skipped")).toBeVisible();
+    await expect(curl(page).getByLabel("Set 1 weight (kg)")).toHaveCount(0);
+  });
+
+  test("accessory bank blocks scheduled today sit in a collapsible group", async ({ page }) => {
+    await withRoutine(page);
+    const group = page.getByText("Accessories (1)");
+    await expect(group).toBeVisible();
+    await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeVisible();
+    await group.click();
+    await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeHidden();
   });
 });

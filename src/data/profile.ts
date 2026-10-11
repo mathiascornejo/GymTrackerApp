@@ -12,6 +12,8 @@ export type Profile = {
   default_rest_s: number;
   wake_lock_enabled: boolean;
   auto_start_rest: boolean;
+  /** exercise_ref -> progression step in kg. */
+  increments: Record<string, number>;
 };
 
 export type ProfilePatch = Partial<Omit<Profile, "id">>;
