@@ -22,6 +22,11 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - App name lives in one constant (rename is a one-line change); currently "Tempered".
 - CSP is a build-time `<meta>` (vite.config.ts). Scripts must be external files, no inline `<script>`.
 
+## Exercise data
+- Dataset is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
+- Refs are `ds:<id>` or `custom:<uuid>`. Do not bump the SHA without an old-id to new-id check: history stores refs.
+- Muscle vocabulary is derived from the data (17 groups). Dataset labels are lower-case; show them through `cap()`.
+
 ## Units and time
 - **Kilograms are canonical** (`numeric(8,4)`). Convert at the edges, round for display to 0.1. Never store pounds.
 - Timestamps UTC `timestamptz`; "today's weekday" is computed on-device. Default week start Monday.

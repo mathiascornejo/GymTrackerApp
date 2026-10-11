@@ -1,0 +1,242 @@
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.search {
+  flex: 1 1 220px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.filters label {
+  display: grid;
+  gap: 4px;
+}
+
+/* Rows are absolutely positioned by the window virtualizer. */
+.list {
+  position: relative;
+  max-width: 720px;
+}
+
+.header,
+.row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 4px 8px;
+  font: 600 13px/18px var(--font-ui);
+  color: var(--ink-muted);
+  text-transform: none;
+}
+
+.header span {
+  font-weight: 400;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 16px;
+  background: var(--surface);
+  border-inline: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  color: inherit;
+  text-decoration: none;
+}
+
+.first {
+  border-top: 1px solid var(--hairline);
+  border-radius: var(--radius-list) var(--radius-list) 0 0;
+}
+
+.last {
+  border-radius: 0 0 var(--radius-list) var(--radius-list);
+}
+
+.first.last {
+  border-radius: var(--radius-list);
+}
+
+.name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub {
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--ink-muted);
+}
+
+/* Sheet: bottom sheet on phone, centered panel on desktop. The only blur besides the tab bar. */
+.sheet {
+  width: min(640px, 100%);
+  max-height: 92dvh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 -8px 40px rgb(0 0 0 / 0.25);
+}
+
+.sheet::backdrop {
+  background: rgb(0 0 0 / 0.4);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+@media (min-width: 1024px) {
+  .sheet {
+    margin: auto;
+    border-radius: var(--radius-sheet);
+  }
+}
+
+.sheetBody {
+  padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
+}
+
+.sheetHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sheetTitle {
+  margin: 12px 0;
+  font: 700 28px/34px var(--font-display);
+}
+
+.sheetHead .sheetTitle {
+  margin: 12px 0 0;
+}
+
+.muscles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.musclePrimary,
+.muscleSecondary {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.musclePrimary {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.muscleSecondary {
+  border: 1px solid var(--hairline);
+  color: var(--ink-muted);
+}
+
+.steps {
+  margin: 0;
+  padding-left: 24px;
+  display: grid;
+  gap: 8px;
+  max-width: 70ch;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.form label {
+  display: grid;
+  gap: 4px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chips legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.chips .chip {
+  display: inline-grid;
+}
+
+.chip input {
+  position: absolute;
+  opacity: 0;
+}
+
+.chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.chip input:checked + span {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.chip input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}

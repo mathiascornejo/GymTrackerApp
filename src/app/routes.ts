@@ -25,3 +25,14 @@ const subscribe = (cb: () => void) => {
 };
 
 export const useRoute = () => parseHash(useSyncExternalStore(subscribe, () => location.hash));
+
+/** Second hash segment, decoded: "#/library/ds%3ABarbell_Curl" -> "ds:Barbell_Curl". */
+export const useRouteArg = (): string | null => {
+  const hash = useSyncExternalStore(subscribe, () => location.hash);
+  const arg = hash.replace(/^#\/?/, "").split("/")[1];
+  try {
+    return arg ? decodeURIComponent(arg) : null;
+  } catch {
+    return null;
+  }
+};
