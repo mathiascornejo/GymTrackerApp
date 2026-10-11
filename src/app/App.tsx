@@ -3,6 +3,7 @@ import { useSession } from "../data/auth";
 import { configured } from "../data/client";
 import { useProfile } from "../data/profile";
 import { Library } from "./Library";
+import { Routines } from "./Routines";
 import { RankingSetup } from "./RankingSetup";
 import { Settings } from "./Settings";
 import { Shell } from "./Shell";
@@ -58,7 +59,7 @@ function Authed() {
 
   // Tab content arrives in later phases; only the active route is mounted.
   return <Shell>{(route) =>
-        route.id === "settings" ? <Settings profile={p} /> : route.id === "library" ? <Library /> : <p className={s.empty}>{route.hint}</p>
+        route.id === "settings" ? <Settings profile={p} /> : route.id === "library" ? <Library /> : route.id === "routines" ? <Routines profile={p} /> : <p className={s.empty}>{route.hint}</p>
       }</Shell>;
 }
 

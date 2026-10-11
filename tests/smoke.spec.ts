@@ -62,6 +62,7 @@ test("theme choice is saved to the profile and survives a fresh browser", async 
   await signInAndSkipSetup(page);
   await page.getByRole("radio", { name: "Dark" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.waitForLoadState("networkidle"); // the profile save is a background request
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   // Same account, empty localStorage: the profile has to supply the theme.
@@ -145,5 +146,142 @@ test.describe("exercise library", () => {
     await page.getByRole("button", { name: "Delete exercise" }).click();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("link", { name: /Neck harness curl/ })).toHaveCount(0);
+  });
+});
+
+test.describe("routine builder", () => {
+  const isPhone = () => test.info().project.name === "phone";
+
+  async function openBuilder(page: Page) {
+    await signInAndSkipSetup(page, "routines");
+    await page.getByRole("button", { name: "New routine" }).click();
+    await expect(page.getByLabel("Name")).toHaveValue("New routine");
+  }
+
+  // The picker is docked on desktop and a bottom sheet on phone; either way it exposes the same "Add to" menu.
+  async function addExercise(page: Page, name: string, to: string) {
+    if (isPhone()) {
+      await page.getByRole("button", { name: "Add exercise" }).click();
+      await page.getByLabel("Search the picker").fill(name);
+      await page.getByLabel(`Add ${name} to`, { exact: true }).selectOption({ label: to });
+      await page.getByRole("button", { name: "Done" }).click();
+    } else {
+      await page.getByLabel("Search the picker").fill(name);
+      await page.getByLabel(`Add ${name} to`, { exact: true }).selectOption({ label: to });
+    }
+  }
+
+  const showDay = async (page: Page, day: string) => {
+    if (isPhone()) await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
+  };
+
+  test("adds an exercise, edits sets, and keeps it after reload", async ({ page }) => {
+    await openBuilder(page);
+    await addExercise(page, "Barbell Curl", "Monday");
+    await showDay(page, "Monday");
+    const card = page.getByRole("article", { name: "Barbell Curl" });
+    await expect(card).toBeVisible();
+    await card.getByRole("button", { name: "Increase Sets" }).click();
+    await expect(card.getByRole("group", { name: "Sets" }).getByRole("status")).toHaveText("4");
+    await card.getByRole("button", { name: "Increase Rest" }).click();
+    await expect(card.getByRole("group", { name: "Rest" }).getByRole("status")).toHaveText("1:45");
+
+    await expect(page.getByText("All changes saved")).toBeVisible();
+    await page.reload();
+    await showDay(page, "Monday");
+    const again = page.getByRole("article", { name: "Barbell Curl" });
+    await expect(again.getByRole("group", { name: "Sets" }).getByRole("status")).toHaveText("4");
+    await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText("Biceps");
+  });
+
+  test("links a push/pull superset, then unlinks it", async ({ page }) => {
+    await openBuilder(page);
+    await addExercise(page, "Barbell Curl", "Monday");
+    await addExercise(page, "Barbell Bench Press - Medium Grip", "Monday");
+    await showDay(page, "Monday");
+    await page.getByLabel("Select Barbell Curl to link").check();
+    await page.getByLabel("Select Barbell Bench Press - Medium Grip to link").check();
+    await page.getByRole("button", { name: "Link as superset" }).click();
+    const card = page.getByRole("article", { name: /Barbell Curl and Barbell Bench Press|Barbell Bench Press - Medium Grip and Barbell Curl/ });
+    await expect(card.getByText("Superset", { exact: true })).toBeVisible();
+    await expect(card.getByText("Push/pull pair")).toBeVisible();
+    await card.getByRole("button", { name: "Unlink" }).click();
+    await expect(page.getByRole("article")).toHaveCount(2);
+  });
+
+  test("bank blocks count seven days of volume and Move to relocates a card", async ({ page }) => {
+    await openBuilder(page);
+    await addExercise(page, "Standing Calf Raises", "Accessory bank");
+    await showDay(page, "Bank");
+    await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*21/);
+    const card = page.getByRole("article", { name: "Standing Calf Raises" });
+    await card.getByLabel("Schedule").selectOption("week");
+    await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*6/);
+    await card.getByLabel("Move Standing Calf Raises to").selectOption({ label: "Wednesday" });
+    await showDay(page, "Wednesday");
+    await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*3/);
+  });
+
+  test("exports a routine and imports it back, and rejects a bad file with reasons", async ({ page }) => {
+    await openBuilder(page);
+    await addExercise(page, "Barbell Curl", "Monday");
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export JSON" }).click();
+    const file = await download;
+    const path = await file.path();
+    const fs = await import("node:fs/promises");
+    const text = await fs.readFile(path!, "utf8");
+    expect(JSON.parse(text)).toMatchObject({ format: "tempered-routine", version: 1 });
+
+    await page.locator('input[type="file"]').setInputFiles({ name: "routine.json", mimeType: "application/json", buffer: Buffer.from(text) });
+    await expect(page.getByLabel("Routine", { exact: true }).locator("option")).toHaveCount(2);
+
+    const bad = JSON.stringify({ format: "tempered-routine", version: 1, name: "Bad", days: [{ weekday: 1, label: "", blocks: [{ sets: 0, restS: 60, items: [{ ref: "ds:Nope", repMin: 10, repMax: 8 }] }] }], bank: [] });
+    await page.locator('input[type="file"]').setInputFiles({ name: "bad.json", mimeType: "application/json", buffer: Buffer.from(bad) });
+    await expect(page.getByRole("alert")).toContainText("unknown exercise ds:Nope");
+  });
+
+  test("only one routine is active", async ({ page }) => {
+    await openBuilder(page);
+    await expect(page.getByLabel("Routine", { exact: true })).toContainText("(active)");
+    await page.getByRole("button", { name: "New routine" }).click();
+    await page.getByRole("button", { name: "Make active" }).click();
+    await expect(page.getByText("All changes saved")).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel("Routine", { exact: true }).locator("option", { hasText: "(active)" })).toHaveCount(1);
+  });
+
+  test("reorders cards with the keyboard", async ({ page }) => {
+    await openBuilder(page);
+    await addExercise(page, "Barbell Curl", "Monday");
+    await addExercise(page, "Barbell Bench Press - Medium Grip", "Monday");
+    await showDay(page, "Monday");
+    const names = () => page.getByRole("region", { name: "Monday" }).getByRole("article").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
+    expect(await names()).toEqual(["Barbell Curl", "Barbell Bench Press - Medium Grip"]);
+    await page.getByRole("button", { name: "Reorder Barbell Curl" }).focus();
+    await page.keyboard.press("Space");
+    await expect(page.locator("[aria-live]")).toContainText("Draggable item");
+    await page.waitForTimeout(400); // dnd-kit measures drop targets just after pick-up; Arrow before that is ignored
+    await page.keyboard.press("ArrowDown");
+    await page.waitForTimeout(400);
+    await page.keyboard.press("Space");
+    await expect.poll(names).toEqual(["Barbell Bench Press - Medium Grip", "Barbell Curl"]);
+  });
+
+  test("drags an exercise from the picker onto a day", async ({ page }) => {
+    test.skip(isPhone(), "Drag from the docked picker is a desktop interaction; phone uses the Add to menu.");
+    await openBuilder(page);
+    await page.getByLabel("Search the picker").fill("Barbell Curl");
+    const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
+    const target = page.getByRole("region", { name: "Tuesday" });
+    const a = (await source.boundingBox())!;
+    const b = (await target.boundingBox())!;
+    await page.mouse.move(a.x + 20, a.y + a.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(a.x + 40, a.y + a.height / 2 - 20, { steps: 5 });
+    await page.mouse.move(b.x + b.width / 2, b.y + 60, { steps: 12 });
+    await page.mouse.up();
+    await expect(target.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
   });
 });

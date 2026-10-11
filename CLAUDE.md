@@ -22,6 +22,12 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - App name lives in one constant (rename is a one-line change); currently "Tempered".
 - CSP is a build-time `<meta>` (vite.config.ts). Scripts must be external files, no inline `<script>`.
 
+## Routines
+- A routine is one nested document (`src/routines/model.ts`: pure, tested operations). The repository (`src/data/routines.ts`) diffs it into rows, upserts only changed rows, soft-deletes removed ones, and serializes saves in a queue.
+- Edit through `actions.update(id, fn)`, which reads the latest cache: a component's rendered copy can be a tap behind.
+- Weekdays are 0 = Sunday. Bank blocks are blocks with `routine_day_id = null`; bank schedule is `weekdays` (daily = all seven) or `weeklyTarget`.
+- Superset strips and keyboard drags: keyboard drags hide the strips because Arrow keys would target them. dnd-kit needs about 400 ms after pick-up before Arrow keys register (tests wait for it).
+
 ## Exercise data
 - Dataset is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
 - Refs are `ds:<id>` or `custom:<uuid>`. Do not bump the SHA without an old-id to new-id check: history stores refs.

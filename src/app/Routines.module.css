@@ -1,0 +1,466 @@
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.toolbar {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  align-items: end;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.toolbar label {
+  display: grid;
+  gap: 4px;
+}
+
+.toolbarButtons {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.fileBtn {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.fileBtn input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.fileBtn:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.pager {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0 8px;
+  overflow-x: auto;
+}
+
+.pagerBtn {
+  flex: none;
+  min-width: 56px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pagerBtn[aria-selected="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.linkBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.board {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (min-width: 1024px) {
+  .board {
+    grid-template-columns: repeat(7, minmax(150px, 1fr));
+    overflow-x: auto;
+    align-items: start;
+  }
+}
+
+.column {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-list);
+  background: var(--surface);
+  min-height: 120px;
+}
+
+.columnOver {
+  border-color: var(--accent);
+}
+
+.columnHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 4px 8px;
+  font: 600 15px/20px var(--font-ui);
+}
+
+.dayLabel {
+  width: 100%;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 13px/18px var(--font-ui);
+}
+
+.columnBody {
+  display: grid;
+  gap: 8px;
+}
+
+.empty {
+  margin: 8px 4px;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.bankLane {
+  margin-top: 12px;
+}
+
+.bank .columnBody {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--ground);
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.cardSelected {
+  border-color: var(--accent);
+}
+
+.cardDragging {
+  opacity: 0.4;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kind {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0 -8px -10px;
+}
+
+.check input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+
+.grip,
+.iconBtn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.grip {
+  cursor: grab;
+  touch-action: none;
+}
+
+.items {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itemName {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.itemName a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.repRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--ink-muted);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-muted);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.stepper button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.stepper output {
+  min-width: 36px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.schedule {
+  display: grid;
+  gap: 8px;
+}
+
+.schedule label,
+.cardFoot label {
+  display: grid;
+  gap: 4px;
+}
+
+.schedule select,
+.cardFoot select,
+.pickRow select {
+  min-height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  padding: 0 8px;
+}
+
+.dayChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.dayChip input {
+  position: absolute;
+  opacity: 0;
+}
+
+.dayChip span {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.dayChip input:checked + span {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.dayChip input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.textBtn {
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* An overlay on the lower part of the card, so starting a drag never shifts the layout. */
+.join {
+  position: absolute;
+  inset: auto 6px 6px 6px;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  background: var(--surface);
+  border: 1px dashed var(--ink-muted);
+  border-radius: var(--radius-control);
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.joinOver {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.overlay {
+  padding: 8px 12px;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  max-width: 260px;
+}
+
+.picker {
+  margin-top: 24px;
+}
+
+.pickerControls {
+  display: flex;
+  gap: 8px;
+}
+
+.grow {
+  flex: 1;
+}
+
+.pickList {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.pickRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.pickName {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  align-content: center;
+  cursor: grab;
+}
+
+.sub {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-muted);
+}
+
+.addFab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+  z-index: 5;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.sheetTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sheetTitle {
+  margin: 12px 0;
+  font: 700 28px/34px var(--font-display);
+}
+
+.volume ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 720px;
+}
+
+.volume li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
