@@ -275,8 +275,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 64px;
-  padding: 6px var(--gutter);
+  min-height: 72px;
+  padding: 16px var(--gutter) 6px;
   background: var(--surface);
   border-top: 1px solid var(--hairline);
   color: var(--accent);
@@ -287,6 +287,21 @@
     left: var(--rail-w);
     bottom: 0;
   }
+}
+
+.alarmState {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink-muted);
+}
+
+.restDone .alarmState {
+  color: #fff;
 }
 
 .restDone {

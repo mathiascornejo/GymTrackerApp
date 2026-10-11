@@ -14,3 +14,12 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </StrictMode>,
 );
+
+// The worker precaches the app and carries the push handler. Production only: it would fight the dev server.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {
+      /* unsupported or blocked: the app works without it, just not offline or with background alarms */
+    });
+  });
+}

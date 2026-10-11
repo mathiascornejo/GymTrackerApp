@@ -46,6 +46,13 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - `supabase/config.toml` raises auth rate limits for the local stack only; the e2e suite signs in once per test. Hosted projects keep their own limits.
 - After a profile edit, tests wait for the PATCH response (`profileSaved`) before reloading; reloading mid-save correctly shows the old value.
 
+## Background alarm
+- Client: `src/data/push.ts` (permission, subscription, state), `src/data/restTimers.ts` (arm = cancel the old pending row, insert a new one; serialized). `useRestTimer(pushState)` arms on start/adjust and cancels on skip and on foreground completion.
+- Server: `pg_cron` every 5 s calls `send-rest-push` only when a timer is due within 6 s. The function sleeps until `fire_at`, THEN claims the row with an atomic update, so a Skip pressed during the wait still cancels it. One pending timer per user is enforced by a unique partial index.
+- Decision logic is `supabase/functions/send-rest-push/handler.ts` with injected dependencies, tested in Vitest. `index.ts` is only wiring and runs on Deno.
+- The service worker (`src/sw.ts`) must show a notification for every push (iOS requires it) and never suppresses one while the app is open.
+- Secrets: VAPID private key and service-role key live only in function secrets and Vault. `supabase/functions/.env.local` is git-ignored.
+
 ## Exercise data
 - Dataset is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
 - Refs are `ds:<id>` or `custom:<uuid>`. Do not bump the SHA without an old-id to new-id check: history stores refs.

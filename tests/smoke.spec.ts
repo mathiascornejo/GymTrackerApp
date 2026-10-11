@@ -590,3 +590,120 @@ test.describe("dashboard and ranks", () => {
     await expect(gold).toHaveValue("1");
   });
 });
+
+test.describe("pwa and background alarm", () => {
+  const stubPush = `
+    (() => {
+      const endpoint = "https://push-test.invalid/e2e-" + Math.random().toString(36).slice(2);
+      const fake = { endpoint, toJSON: () => ({ endpoint, keys: { p256dh: "BAAA", auth: "AAAA" } }), unsubscribe: async () => { window.__pushSub = null; return true; } };
+      PushManager.prototype.subscribe = async function () { window.__pushSub = fake; return fake; };
+      PushManager.prototype.getSubscription = async function () { return window.__pushSub ?? null; };
+      // Headless Chromium reports notifications as denied; model the permission prompt instead.
+      let permission = "default";
+      Object.defineProperty(Notification, "permission", { get: () => permission, configurable: true });
+      Notification.requestPermission = async () => (permission = "granted");
+    })();`;
+
+  const hdr = (token: string) => ({ apikey: process.env.E2E_SUPABASE_KEY!, Authorization: `Bearer ${token}` });
+
+  async function userWithToken() {
+    const email = `e2e-${crypto.randomUUID()}@test.local`;
+    const r = await fetch(`${process.env.E2E_SUPABASE_URL}/auth/v1/signup`, {
+      method: "POST", headers: { apikey: process.env.E2E_SUPABASE_KEY!, "Content-Type": "application/json" }, body: JSON.stringify({ email, password: PASSWORD }),
+    });
+    const j = await r.json();
+    return { email, token: j.access_token as string };
+  }
+
+  async function login(page: Page, email: string, hash: string) {
+    await page.goto(`#/${hash}`);
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.getByRole("button", { name: "Skip for now" }).click();
+  }
+
+  test("serves a web app manifest with icons and registers a service worker", async ({ page }) => {
+    await page.goto("");
+    const manifest = await page.evaluate(async () => {
+      const href = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')!.href;
+      return (await fetch(href)).json();
+    });
+    expect(manifest).toMatchObject({ name: "Tempered", display: "standalone" });
+    expect(manifest.icons.map((i: { sizes: string }) => i.sizes)).toContain("512x512");
+    expect(await page.evaluate(() => navigator.serviceWorker.ready.then((r) => Boolean(r.active)))).toBe(true);
+  });
+
+  test("loads the app shell with no connection", async ({ page, context }) => {
+    await page.goto("");
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Tempered" })).toBeVisible();
+  });
+
+  test("turns notifications on, stores the subscription, and can turn them off", async ({ page }) => {
+    await page.addInitScript(stubPush);
+    const u = await userWithToken();
+    await login(page, u.email, "settings");
+    await page.getByRole("button", { name: "Turn on notifications" }).click();
+    await expect(page.getByText("Notifications are on.")).toBeVisible();
+    const rows = await (await fetch(`${process.env.E2E_SUPABASE_URL}/rest/v1/push_subscriptions?select=endpoint,deleted_at`, { headers: hdr(u.token) })).json();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].endpoint).toContain("push-test.invalid");
+    expect(rows[0].deleted_at).toBeNull();
+
+    await page.getByRole("button", { name: "Turn off notifications" }).click();
+    await expect(page.getByRole("button", { name: "Turn on notifications" })).toBeVisible();
+    const after = await (await fetch(`${process.env.E2E_SUPABASE_URL}/rest/v1/push_subscriptions?select=deleted_at`, { headers: hdr(u.token) })).json();
+    expect(after[0].deleted_at).not.toBeNull();
+  });
+
+  test("arms a server alarm when rest starts and cancels it on skip", async ({ page }) => {
+    await page.addInitScript(stubPush);
+    const u = await userWithToken();
+    await login(page, u.email, "settings");
+    await page.getByRole("button", { name: "Turn on notifications" }).click();
+    await expect(page.getByText("Notifications are on.")).toBeVisible();
+
+    await page.goto("#/log");
+    await page.getByRole("button", { name: "Start quick session" }).click();
+    await page.getByRole("button", { name: "Rest 1:30" }).click();
+    await expect(page.getByText("Background alarm on")).toBeVisible();
+
+    const timers = async () =>
+      (await (await fetch(`${process.env.E2E_SUPABASE_URL}/rest/v1/rest_timers?select=fire_at,cancelled_at,sent_at&order=created_at`, { headers: hdr(u.token) })).json()) as { fire_at: string; cancelled_at: string | null }[];
+    await expect.poll(async () => (await timers()).length).toBe(1);
+    const [armed] = await timers();
+    const ahead = (Date.parse(armed.fire_at) - Date.now()) / 1000;
+    expect(ahead).toBeGreaterThan(70);
+    expect(ahead).toBeLessThan(95);
+    expect(armed.cancelled_at).toBeNull();
+
+    await page.getByRole("button", { name: "Add 15 seconds" }).click();
+    await expect.poll(async () => (await timers()).length).toBe(2); // the old row is cancelled, a new one armed
+    expect((await timers())[0].cancelled_at).not.toBeNull();
+
+    await page.getByRole("button", { name: "Skip" }).click();
+    await expect.poll(async () => (await timers()).every((t) => t.cancelled_at !== null)).toBe(true);
+  });
+
+  test("says the background alarm is off when notifications are not enabled", async ({ page }) => {
+    const u = await userWithToken();
+    await login(page, u.email, "log");
+    await page.getByRole("button", { name: "Start quick session" }).click();
+    await page.getByRole("button", { name: "Rest 1:30" }).click();
+    await expect(page.getByText("Background alarm off. Turn on notifications in Settings.")).toBeVisible();
+  });
+});
+
+test.describe("iPhone in Safari", () => {
+  test.use({ userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" });
+
+  test("shows the Home Screen install guide instead of a permission button", async ({ page }) => {
+    await signInAndSkipSetup(page, "settings");
+    await expect(page.getByText("notifications only work once Tempered is on your Home Screen")).toBeVisible();
+    await expect(page.getByText("Tap the Share button, then Add to Home Screen.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Turn on notifications" })).toHaveCount(0);
+  });
+});

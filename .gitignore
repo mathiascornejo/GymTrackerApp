@@ -5,3 +5,6 @@ dist
 test-results
 playwright-report
 .claude/
+
+# local function secrets (VAPID private key)
+supabase/functions/.env.local

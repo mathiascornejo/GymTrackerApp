@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { usePushState } from "../data/push";
 import type { Profile } from "../data/profile";
 import { useUpdateProfile } from "../data/profile";
 import { discardSession, finishSession, logSet, unlogSet, useBankCounts, useHistory, useOutbox, useSessionSets, lastSets, type SessionRow, type SetRow } from "../data/sessions";
@@ -120,7 +121,8 @@ export function SessionLog({
   const { sets } = useSessionSets(session.id);
   const outbox = useOutbox();
   const updateProfile = useUpdateProfile();
-  const rest = useRestTimer();
+  const [pushState] = usePushState();
+  const rest = useRestTimer(pushState);
   const now = useNow(1000);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");

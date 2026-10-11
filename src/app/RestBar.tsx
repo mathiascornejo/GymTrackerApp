@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { armAlarm, cancelAlarm } from "../data/restTimers";
 import { adjustTimer, mmss, remainingS, startTimer, type RestTimer } from "../session/timer";
+import type { PushState } from "../data/push";
 import s from "./Session.module.css";
 
 const KEY = "tempered.rest";
@@ -43,8 +45,11 @@ function beep() {
   }
 }
 
-export function useRestTimer() {
+type Armed = "idle" | "on" | "failed";
+
+export function useRestTimer(push: PushState | null) {
   const [timer, setTimer] = useState<RestTimer>(load);
+  const [armed, setArmed] = useState<Armed>("idle");
   const [now, setNow] = useState(() => Date.now());
   const alarmed = useRef<number | null>(null);
 
@@ -71,29 +76,56 @@ export function useRestTimer() {
   const remaining = remainingS(timer, now);
   const finished = timer !== null && remaining === 0;
 
+  const arm = (endsAt: number) => {
+    if (push !== "on") return;
+    void armAlarm(endsAt, "Rest").then((ok) => setArmed(ok ? "on" : "failed"));
+  };
+  const disarm = () => {
+    setArmed("idle");
+    if (push === "on") void cancelAlarm();
+  };
+
   useEffect(() => {
     if (!timer || remaining > 0 || alarmed.current === timer.endsAt) return;
     alarmed.current = timer.endsAt;
     beep();
     navigator.vibrate?.([300, 150, 300, 150, 300]);
-  }, [timer, remaining]);
+    disarm(); // the on-screen alarm fired, so stop the background push from doubling it
+  }, [timer, remaining]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const alarm =
+    push === "on"
+      ? armed === "failed"
+        ? "Background alarm off. Could not reach the server."
+        : "Background alarm on"
+      : push === null
+        ? ""
+        : "Background alarm off. Turn on notifications in Settings.";
 
   return {
     timer,
     remaining,
     finished,
+    alarm,
     start(seconds: number) {
       unlockAudio();
       const t = Date.now();
       setNow(t);
-      setTimer(startTimer(seconds, t));
+      const next = startTimer(seconds, t);
+      setTimer(next);
+      if (next) arm(next.endsAt);
     },
     adjust(deltaS: number) {
       const t = Date.now();
       setNow(t);
-      setTimer((cur) => (cur ? adjustTimer(cur, deltaS, t) : cur));
+      const next = timer ? adjustTimer(timer, deltaS, t) : null;
+      setTimer(next);
+      if (next) arm(next.endsAt);
     },
-    clear: () => setTimer(null),
+    clear() {
+      setTimer(null);
+      disarm();
+    },
   };
 }
 
@@ -108,6 +140,7 @@ export function RestBar({ rest, suggestedS }: { rest: Rest; suggestedS: number }
   const fraction = rest.timer ? rest.remaining / rest.timer.totalS : 0;
   return (
     <div className={`${s.restBar} ${rest.finished ? s.restDone : ""}`} role="region" aria-label="Rest timer">
+      {rest.alarm && <span className={s.alarmState}>{rest.alarm}</span>}
       {!rest.timer && (
         <button type="button" className={s.restStart} onClick={() => rest.start(suggestedS)}>
           Rest {mmss(suggestedS)}

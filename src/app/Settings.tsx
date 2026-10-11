@@ -3,6 +3,7 @@ import { auth } from "../data/auth";
 import { useUpdateProfile, type Profile } from "../data/profile";
 import { useExercises } from "../exercises/useExercises";
 import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
+import { AlarmSettings } from "./AlarmSettings";
 import { RankingSetup } from "./RankingSetup";
 import f from "./Form.module.css";
 
@@ -193,6 +194,8 @@ export function Settings({ profile }: { profile: Profile }) {
         </label>
       </div>
       {update.error && <p className={f.error} role="alert">{update.error.message}</p>}
+
+      <AlarmSettings />
 
       <h2 className={f.groupTitle}>Account</h2>
       <div className={f.group}>

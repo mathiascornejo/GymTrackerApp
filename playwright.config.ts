@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { createECDH } from "node:crypto";
 import { defineConfig } from "@playwright/test";
 
 // e2e runs against the local Supabase stack (`npx supabase start`).
@@ -9,6 +10,10 @@ const status = Object.fromEntries(
     .filter((m): m is RegExpMatchArray => Boolean(m))
     .map((m) => [m[1], m[2]]),
 );
+// Any valid P-256 public key works: the tests stub the browser's push service.
+const ecdh = createECDH("prime256v1");
+ecdh.generateKeys();
+const vapidPublic = ecdh.getPublicKey().toString("base64url");
 process.env.E2E_SUPABASE_URL = status.API_URL;
 process.env.E2E_SUPABASE_KEY = status.PUBLISHABLE_KEY;
 
@@ -19,7 +24,7 @@ export default defineConfig({
     url: "http://localhost:4173/GymTrackerApp/",
     reuseExistingServer: false,
     timeout: 120_000,
-    env: { VITE_SUPABASE_URL: status.API_URL, VITE_SUPABASE_PUBLISHABLE_KEY: status.PUBLISHABLE_KEY },
+    env: { VITE_SUPABASE_URL: status.API_URL, VITE_SUPABASE_PUBLISHABLE_KEY: status.PUBLISHABLE_KEY, VITE_VAPID_PUBLIC_KEY: vapidPublic },
   },
   use: { baseURL: "http://localhost:4173/GymTrackerApp/" },
   projects: [
