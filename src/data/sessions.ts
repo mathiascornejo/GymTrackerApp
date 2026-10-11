@@ -86,17 +86,15 @@ function patchServerCache(op: Op) {
   });
 }
 
-let flushing = false;
 let attempt = 0;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
+let inflight: Promise<void> | null = null;
 
-/** Sends queued ops in order. Network failures back off (1s, 2s, 4s ... 30s); a server rejection drops that op and reports it. */
-export async function flushOutbox() {
-  if (flushing) return;
-  flushing = true;
+async function drain() {
   clearTimeout(retryTimer);
   if (state.ops.length) setState({ status: "saving" });
   try {
+    // Ops queued while this loop runs are picked up by the same pass.
     while (state.ops.length) {
       const op = state.ops[0];
       try {
@@ -116,9 +114,16 @@ export async function flushOutbox() {
     attempt += 1;
     setState({ status: "retry" });
     retryTimer = setTimeout(() => void flushOutbox(), Math.min(30_000, 1000 * 2 ** attempt));
-  } finally {
-    flushing = false;
   }
+}
+
+/**
+ * Sends queued ops in order. Network failures back off (1s, 2s, 4s ... 30s); a server rejection drops that op and reports it.
+ * A call while a flush is running returns that flush, so callers (finishing a session) wait for it instead of skipping it.
+ */
+export function flushOutbox(): Promise<void> {
+  if (!inflight) inflight = drain().finally(() => (inflight = null));
+  return inflight;
 }
 
 const enqueue = (op: Op) => {

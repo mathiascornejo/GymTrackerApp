@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
 import { useCustomExercises } from "../data/customExercises";
+import type { Profile } from "../data/profile";
 import { loadDataset } from "../exercises/dataset";
 import { applyFilters, cap, facets, search, toRows } from "../exercises/query";
 import type { Exercise, Filters } from "../exercises/types";
@@ -23,7 +24,7 @@ const LABELS: Record<(typeof FILTERS)[number], string> = {
 
 const href = (ref: string) => `#/library/${encodeURIComponent(ref)}`;
 
-export function Library() {
+export function Library({ profile }: { profile: Profile }) {
   const dataset = useQuery({ queryKey: ["dataset"], queryFn: loadDataset, staleTime: Infinity });
   const custom = useCustomExercises();
   const arg = useRouteArg();
@@ -125,7 +126,7 @@ export function Library() {
       </div>
 
       <Sheet open={Boolean(selected)} onClose={() => arg && close()} label={selected?.name ?? "Exercise"}>
-        {selected && <ExerciseDetail exercise={selected} onClose={close} onEdit={() => setEditing(selected)} />}
+        {selected && <ExerciseDetail exercise={selected} profile={profile} onClose={close} onEdit={() => setEditing(selected)} />}
       </Sheet>
 
       <Sheet open={editing !== null} onClose={() => setEditing(null)} label="Custom exercise">

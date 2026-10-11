@@ -68,7 +68,7 @@
 .pagerBtn[aria-selected="true"] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .linkBar {
@@ -328,7 +328,7 @@
 .dayChip input:checked + span {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .dayChip input:focus-visible + span {
@@ -375,7 +375,7 @@
   padding: 8px 12px;
   border-radius: var(--radius-control);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 600;
   max-width: 260px;
 }

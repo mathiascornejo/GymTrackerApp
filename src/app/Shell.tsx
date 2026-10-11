@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { useUpdateProfile } from "../data/profile";
 import { TabIcon } from "./icons";
-import { SETTINGS, TABS, useRoute, type Route } from "./routes";
+import { ABOUT, SETTINGS, TABS, useRoute, type Route } from "./routes";
+import { OfflineNotice } from "./OfflineNotice";
 import { useTheme, type Theme } from "./theme";
 import s from "./Shell.module.css";
 
@@ -31,7 +32,7 @@ function ThemeControl() {
 
 export function Shell({ children }: { children: (route: Route) => ReactNode }) {
   const active = useRoute();
-  const route = [...TABS, SETTINGS].find((t) => t.id === active)!;
+  const route = [...TABS, SETTINGS, ABOUT].find((t) => t.id === active)!;
   return (
     <div className={s.shell}>
       <nav className={s.nav} aria-label="Main">
@@ -55,7 +56,10 @@ export function Shell({ children }: { children: (route: Route) => ReactNode }) {
             </a>
           </div>
         </header>
-        <main className={s.main}>{children(route)}</main>
+        <main className={s.main}>
+          <OfflineNotice />
+          {children(route)}
+        </main>
       </div>
     </div>
   );

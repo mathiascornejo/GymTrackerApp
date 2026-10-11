@@ -6,6 +6,7 @@ describe("parseHash", () => {
     expect(parseHash("#/log")).toBe("log");
     expect(parseHash("#/library/ds:abc")).toBe("library");
     expect(parseHash("#/settings")).toBe("settings");
+    expect(parseHash("#/about")).toBe("about");
   });
   it("falls back to dashboard", () => {
     expect(parseHash("")).toBe("dashboard");

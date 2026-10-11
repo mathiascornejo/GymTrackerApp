@@ -5,7 +5,7 @@ import { invalidateDerived } from "./sessions";
 
 const PAGE = 1000; // PostgREST returns at most 1000 rows per request
 
-async function all<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: Error | null }>): Promise<T[]> {
+export async function fetchAllPages<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: Error | null }>): Promise<T[]> {
   const out: T[] = [];
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await page(from, from + PAGE - 1);
@@ -24,7 +24,7 @@ export function useDashboardData() {
     queryKey: ["dash"],
     queryFn: async () => {
       const [sets, sessions, bodyweights] = await Promise.all([
-        all<RankSet & { session_id: string }>((a, b) =>
+        fetchAllPages<RankSet & { session_id: string }>((a, b) =>
           supabase
             .from("session_sets")
             .select("id,session_id,exercise_ref,weight_kg,reps,is_warmup,completed_at,confirmed")
@@ -33,10 +33,10 @@ export function useDashboardData() {
             .order("completed_at")
             .range(a, b),
         ),
-        all<DashSession>((a, b) =>
+        fetchAllPages<DashSession>((a, b) =>
           supabase.from("sessions").select("id,started_at,ended_at").is("deleted_at", null).not("ended_at", "is", null).order("started_at").range(a, b),
         ),
-        all<BodyweightRow>((a, b) =>
+        fetchAllPages<BodyweightRow>((a, b) =>
           supabase.from("bodyweight_entries").select("id,measured_on,weight_kg").is("deleted_at", null).order("measured_on").range(a, b),
         ),
       ]);

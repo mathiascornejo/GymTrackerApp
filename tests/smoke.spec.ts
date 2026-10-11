@@ -707,3 +707,115 @@ test.describe("iPhone in Safari", () => {
     await expect(page.getByRole("button", { name: "Turn on notifications" })).toHaveCount(0);
   });
 });
+
+test.describe("polish and account", () => {
+  const rest = async (token: string, path: string, method = "GET", body?: unknown) => {
+    const r = await fetch(`${process.env.E2E_SUPABASE_URL}/rest/v1/${path}`, {
+      method, headers: { apikey: process.env.E2E_SUPABASE_KEY!, Authorization: `Bearer ${token}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return r;
+  };
+
+  async function user() {
+    const email = `e2e-${crypto.randomUUID()}@test.local`;
+    const r = await fetch(`${process.env.E2E_SUPABASE_URL}/auth/v1/signup`, {
+      method: "POST", headers: { apikey: process.env.E2E_SUPABASE_KEY!, "Content-Type": "application/json" }, body: JSON.stringify({ email, password: PASSWORD }),
+    });
+    const j = await r.json();
+    return { email, token: j.access_token as string, id: j.user.id as string };
+  }
+
+  async function login(page: Page, email: string, hash: string, skip = true) {
+    await page.goto(`#/${hash}`);
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    if (skip) await page.getByRole("button", { name: "Skip for now" }).click();
+  }
+
+  async function withHistory(u: { token: string }) {
+    await rest(u.token, "bodyweight_entries", "POST", { measured_on: "2026-01-01", weight_kg: 80 });
+    const sid = crypto.randomUUID();
+    const t0 = Date.now() - 3 * 86_400_000;
+    await rest(u.token, "sessions", "POST", { id: sid, started_at: new Date(t0).toISOString(), ended_at: new Date(t0 + 3_600_000).toISOString() });
+    await rest(u.token, "session_sets", "POST", [
+      { id: crypto.randomUUID(), session_id: sid, exercise_ref: "ds:Barbell_Curl", round_index: 0, set_number: 1, weight_kg: 40, reps: 10, is_warmup: false, completed_at: new Date(t0).toISOString() },
+      { id: crypto.randomUUID(), session_id: sid, exercise_ref: "ds:Barbell_Curl", round_index: 1, set_number: 2, weight_kg: 42.5, reps: 8, is_warmup: false, completed_at: new Date(t0 + 60_000).toISOString() },
+    ]);
+  }
+
+  test("exercise sheet shows muscles on a figure, your history, and adds to the active routine", async ({ page }) => {
+    const u = await user();
+    await withHistory(u);
+    const rid = crypto.randomUUID();
+    await rest(u.token, "routines", "POST", { id: rid, name: "Plan", is_active: true });
+    await rest(u.token, "routine_days", "POST", Array.from({ length: 7 }, (_, d) => ({ id: crypto.randomUUID(), routine_id: rid, weekday: d, sort: d })));
+    await login(page, u.email, "library/ds%3ABarbell_Curl");
+    const sheet = page.getByRole("dialog", { name: "Barbell Curl" });
+    await expect(sheet.getByRole("img", { name: /Muscles worked: Biceps \(primary\)/ })).toBeVisible();
+    await expect(sheet.getByText(/Best estimated 1RM:/)).toBeVisible();
+    await expect(sheet).toContainText("53.8 kg"); // 42.5 x 8 -> 53.8, above 40 x 10 -> 53.3
+    await sheet.getByLabel("Add to Plan").selectOption({ label: "Monday" });
+    await expect(sheet.getByText("Added to Monday")).toBeVisible();
+    await expect.poll(async () => (await (await rest(u.token, "routine_blocks?select=id,routine_day_id")).json()).length).toBe(1);
+  });
+
+  test("tells you when you are offline and what still works", async ({ page, context }) => {
+    const u = await user();
+    await login(page, u.email, "dashboard");
+    await expect(page.getByText("You're offline")).toHaveCount(0);
+    await context.setOffline(true);
+    await expect(page.getByText(/You're offline\. Sets you log are saved on this device/)).toBeVisible();
+    await context.setOffline(false);
+    await expect(page.getByText("You're offline")).toHaveCount(0);
+  });
+
+  test("About credits the exercise dataset", async ({ page }) => {
+    const u = await user();
+    await login(page, u.email, "settings");
+    await page.getByRole("link", { name: "About Tempered" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "About" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "free-exercise-db" })).toHaveAttribute("href", "https://github.com/yuhonas/free-exercise-db");
+    await expect(page.getByText("Unlicense")).toBeVisible();
+  });
+
+  test("exports sets as CSV in kilograms", async ({ page }) => {
+    const u = await user();
+    await withHistory(u);
+    await login(page, u.email, "settings");
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Export sets (CSV)" }).click();
+    const file = await download;
+    const fs = await import("node:fs/promises");
+    const text = await fs.readFile((await file.path())!, "utf8");
+    const lines = text.trim().split("\r\n");
+    expect(lines[0]).toContain("exercise,round,set_number,weight_kg,reps");
+    expect(lines).toHaveLength(3);
+    expect(lines[1]).toContain("Barbell Curl,1,1,40,10");
+    expect(file.suggestedFilename()).toMatch(/^tempered-sets-\d{4}-\d{2}-\d{2}\.csv$/);
+  });
+
+  test("deleting the account needs the email typed back, then removes everything", async ({ page }) => {
+    const u = await user();
+    await withHistory(u);
+    await login(page, u.email, "settings");
+    await page.getByText("Delete my account and data").click();
+    const del = page.getByRole("button", { name: "Delete account and all data" });
+    await expect(del).toBeDisabled();
+    await page.getByLabel(/Type your email/).fill("someone@else.com");
+    await expect(del).toBeDisabled();
+    await page.getByLabel(/Type your email/).fill(u.email.toUpperCase());
+    await expect(del).toBeEnabled();
+    await del.click();
+    await expect(page.getByRole("heading", { name: "Tempered" })).toBeVisible(); // signed out
+    await page.getByLabel("Email").fill(u.email);
+    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText(/invalid/i);
+    // The old token no longer reads anything.
+    const r = await rest(u.token, "session_sets?select=id");
+    expect([401, 403, 200]).toContain(r.status);
+    if (r.status === 200) expect(await r.json()).toEqual([]);
+  });
+});

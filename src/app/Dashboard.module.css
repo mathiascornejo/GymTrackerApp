@@ -58,7 +58,7 @@
 
 .segBtn[aria-checked="true"] {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .mapWrap {
@@ -109,7 +109,9 @@
 .hit {
   fill: none;
   stroke: transparent;
-  stroke-width: 14;
+  /* Wider is better for thumbs, but a thin region padded to 44px would steal taps from its neighbours.
+     The list view is the full-size alternative. */
+  stroke-width: 20;
   pointer-events: stroke;
 }
 
@@ -349,4 +351,35 @@
   display: block;
   height: 100%;
   background: var(--accent);
+}
+
+.miniMaps {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.miniMap {
+  width: 38%;
+  max-width: 120px;
+  height: auto;
+}
+
+.hlPrimary {
+  fill: var(--accent);
+  stroke: var(--edge);
+  stroke-width: 1.5;
+}
+
+.hlSecondary {
+  fill: var(--accent);
+  fill-opacity: 0.35;
+  stroke: var(--edge);
+  stroke-width: 1;
+}
+
+.hlOff {
+  fill: var(--surface);
+  stroke: var(--hairline);
+  stroke-width: 1;
 }

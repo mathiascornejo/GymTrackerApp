@@ -205,7 +205,7 @@
 .doneOn {
   background: var(--done);
   border-color: var(--done);
-  color: #fff;
+  color: var(--on-done);
 }
 
 .rowError {
@@ -301,17 +301,17 @@
 }
 
 .restDone .alarmState {
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .restDone {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .restDone .restBtn {
-  color: #fff;
-  border-color: rgb(255 255 255 / 0.6);
+  color: var(--on-accent);
+  border-color: currentColor;
 }
 
 .restStart {
@@ -321,7 +321,7 @@
   border: 0;
   border-radius: var(--radius-control);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 600;
   font-size: 17px;
   cursor: pointer;

@@ -83,7 +83,7 @@
   border: 0;
   border-radius: var(--radius-control);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 600;
   cursor: pointer;
 }

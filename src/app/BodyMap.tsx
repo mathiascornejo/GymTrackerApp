@@ -149,3 +149,29 @@ export function BodyMap({
     </svg>
   );
 }
+
+/** Small front and back figures with an exercise's muscles highlighted. Decorative: the muscles are listed as chips beside it. */
+export function MuscleMap({ primary, secondary }: { primary: string[]; secondary: string[] }) {
+  const p = new Set(primary);
+  const sec = new Set(secondary.filter((m) => !p.has(m)));
+  const names = [...primary.map((m) => `${cap(m)} (primary)`), ...[...sec].map((m) => cap(m))];
+  const figure = (regions: Region[], label: string) => (
+    <svg viewBox={VIEWBOX} className={s.miniMap} aria-hidden="true">
+      <title>{label}</title>
+      <path d={SILHOUETTE} className={s.silhouette} />
+      {regions.map((r) => (
+        <Shape
+          key={r.muscle}
+          region={r}
+          className={p.has(r.muscle) ? s.hlPrimary : sec.has(r.muscle) ? s.hlSecondary : s.hlOff}
+        />
+      ))}
+    </svg>
+  );
+  return (
+    <div className={s.miniMaps} role="img" aria-label={names.length ? `Muscles worked: ${names.join(", ")}` : "No muscles set"}>
+      {figure(FRONT, "Front")}
+      {figure(BACK, "Back")}
+    </div>
+  );
+}

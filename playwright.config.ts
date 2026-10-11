@@ -19,13 +19,22 @@ process.env.E2E_SUPABASE_KEY = status.PUBLISHABLE_KEY;
 
 export default defineConfig({
   testDir: "tests",
-  webServer: {
-    command: "npm run build && npm run preview",
-    url: "http://localhost:4173/GymTrackerApp/",
-    reuseExistingServer: false,
-    timeout: 120_000,
-    env: { VITE_SUPABASE_URL: status.API_URL, VITE_SUPABASE_PUBLISHABLE_KEY: status.PUBLISHABLE_KEY, VITE_VAPID_PUBLIC_KEY: vapidPublic },
-  },
+  webServer: [
+    {
+      command: "npm run build && npm run preview",
+      url: "http://localhost:4173/GymTrackerApp/",
+      reuseExistingServer: false,
+      timeout: 120_000,
+      env: { VITE_SUPABASE_URL: status.API_URL, VITE_SUPABASE_PUBLISHABLE_KEY: status.PUBLISHABLE_KEY, VITE_VAPID_PUBLIC_KEY: vapidPublic },
+    },
+    {
+      // The local edge runtime only runs while this is up. A bare request answers 401, which counts as ready.
+      command: "npx supabase functions serve",
+      url: `${status.API_URL}/functions/v1/delete-account`,
+      reuseExistingServer: true,
+      timeout: 120_000,
+    },
+  ],
   use: { baseURL: "http://localhost:4173/GymTrackerApp/" },
   projects: [
     { name: "phone", use: { viewport: { width: 390, height: 844 }, hasTouch: true } },

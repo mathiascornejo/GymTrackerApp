@@ -226,7 +226,7 @@
 .chip input:checked + span {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .chip input:focus-visible + span {
@@ -239,4 +239,26 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 20px;
+}
+
+.prs {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prs li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.addTo label {
+  display: grid;
+  gap: 4px;
+}
+
+.addLabel {
+  font-size: 15px;
 }

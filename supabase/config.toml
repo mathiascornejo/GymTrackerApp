@@ -419,3 +419,8 @@ enabled = true
 [functions.send-rest-push]
 enabled = true
 verify_jwt = false
+
+# The function resolves the caller's session itself with auth.getUser, which works for any key format.
+[functions.delete-account]
+enabled = true
+verify_jwt = false

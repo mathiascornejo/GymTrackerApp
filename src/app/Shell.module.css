@@ -46,7 +46,7 @@
 
 .themeOption[aria-checked="true"] {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 /* Phone: translucent bottom bar. */

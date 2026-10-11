@@ -53,6 +53,13 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - The service worker (`src/sw.ts`) must show a notification for every push (iOS requires it) and never suppresses one while the app is open.
 - Secrets: VAPID private key and service-role key live only in function secrets and Vault. `supabase/functions/.env.local` is git-ignored.
 
+## Quality gates
+- `tests/a11y.spec.ts` runs axe (WCAG 2 A/AA) over every screen and the open sheets in light and dark, plus reduced motion and 44 px targets on phone. Body-map regions are exempt from the size check; the list view is their alternative. New screens or sheets get a scan.
+- Filled accent and done backgrounds use `--on-accent` / `--on-done` for text (dark mode flips to black for contrast). Never hard-code `#fff` on them.
+- `flushOutbox()` returns the in-flight flush; callers that must know sets are saved (finishing a session) await it.
+- Account deletion is the `delete-account` function only. The client sends the typed email; the server re-checks it against the signed-in user and deletes only that user.
+- `npm run e2e` also starts `supabase functions serve` (second web server) so the function tests run locally.
+
 ## Exercise data
 - Dataset is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
 - Refs are `ds:<id>` or `custom:<uuid>`. Do not bump the SHA without an old-id to new-id check: history stores refs.

@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "VITE_");
   return {
     base: "/GymTrackerApp/",
+    define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? "") },
     plugins: [
       react(),
       csp(env.VITE_SUPABASE_URL ?? ""),

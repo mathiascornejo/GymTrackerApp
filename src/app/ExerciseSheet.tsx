@@ -1,7 +1,10 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { cap } from "../exercises/query";
 import type { Exercise } from "../exercises/types";
+import type { Profile } from "../data/profile";
+import { MuscleMap } from "./BodyMap";
 import { ExerciseDemo } from "./ExerciseDemo";
+import { AddToRoutine, ExerciseHistory } from "./ExerciseExtras";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
 
@@ -21,7 +24,7 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
   );
 }
 
-export function ExerciseDetail({ exercise, onEdit, onClose }: { exercise: Exercise; onEdit: () => void; onClose: () => void }) {
+export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercise: Exercise; profile: Profile; onEdit: () => void; onClose: () => void }) {
   const meta = [exercise.equipment, exercise.level, exercise.force, exercise.mechanic, exercise.category].filter(Boolean);
   return (
     <>
@@ -31,7 +34,8 @@ export function ExerciseDetail({ exercise, onEdit, onClose }: { exercise: Exerci
       </div>
       <ExerciseDemo exercise={exercise} />
       <h3 className={f.groupTitle}>Muscles</h3>
-      <div className={s.muscles}>
+      <MuscleMap primary={exercise.primary} secondary={exercise.secondary} />
+      <div className={s.muscles} style={{ marginTop: 8 }}>
         {exercise.primary.map((m) => (
           <span key={m} className={s.musclePrimary}>{cap(m)}</span>
         ))}
@@ -51,6 +55,10 @@ export function ExerciseDetail({ exercise, onEdit, onClose }: { exercise: Exerci
       ) : (
         <p className={f.note}>No steps added.</p>
       )}
+      <h3 className={f.groupTitle}>Your history</h3>
+      <ExerciseHistory exercise={exercise} profile={profile} />
+      <h3 className={f.groupTitle}>Routine</h3>
+      <AddToRoutine exercise={exercise} profile={profile} />
       {exercise.custom && (
         <div className={s.actions}>
           <button className={f.button} onClick={onEdit}>Edit exercise</button>

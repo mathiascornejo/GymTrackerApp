@@ -11,12 +11,13 @@ export type TabId = (typeof TABS)[number]["id"];
 
 // Settings opens from the header, not the tab bar.
 export const SETTINGS = { id: "settings", label: "Settings", hint: "" } as const;
-export type Route = (typeof TABS)[number] | typeof SETTINGS;
+export const ABOUT = { id: "about", label: "About", hint: "" } as const;
+export type Route = (typeof TABS)[number] | typeof SETTINGS | typeof ABOUT;
 
 /** "#/log" -> "log". Anything unknown falls back to the dashboard. */
 export function parseHash(hash: string): Route["id"] {
   const id = hash.replace(/^#\/?/, "").split("/")[0];
-  return [...TABS, SETTINGS].find((t) => t.id === id)?.id ?? "dashboard";
+  return [...TABS, SETTINGS, ABOUT].find((t) => t.id === id)?.id ?? "dashboard";
 }
 
 const subscribe = (cb: () => void) => {

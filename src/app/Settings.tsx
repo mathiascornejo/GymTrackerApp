@@ -1,6 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { auth } from "../data/auth";
+import { auth, useSession } from "../data/auth";
+import { deleteAccount, fetchFullExport } from "../data/account";
+import { sessionsCsv, setsCsv } from "../export";
+import { exportRoutine } from "../routines/model";
 import { useUpdateProfile, type Profile } from "../data/profile";
+import { useRoutines } from "../data/routines";
 import { useExercises } from "../exercises/useExercises";
 import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
 import { AlarmSettings } from "./AlarmSettings";
@@ -119,6 +123,93 @@ function StandardsEditor({ profile }: { profile: Profile }) {
   );
 }
 
+function download(name: string, mime: string, text: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/** Export, delete and sign out. Delete needs the account email typed back, and the server checks it again. */
+function AccountSection({ profile }: { profile: Profile }) {
+  const email = useSession()?.user.email ?? "";
+  const { byRef } = useExercises();
+  const routines = useRoutines();
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [typed, setTyped] = useState("");
+  const stamp = new Date().toISOString().slice(0, 10);
+  const name = (ref: string) => byRef.get(ref)?.name ?? ref;
+
+  const run = async (label: string, fn: () => Promise<void>) => {
+    setBusy(label);
+    setError("");
+    try {
+      await fn();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
+
+  return (
+    <>
+      <h2 className={f.groupTitle}>Your data</h2>
+      <div className={f.group}>
+        <div className={f.stack}>
+          <p className={f.note} style={{ margin: 0 }}>Weights are exported in kilograms, whatever unit you display.</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            <button className={f.quiet} disabled={busy !== ""} onClick={() => void run("sets", async () => { const d = await fetchFullExport(); download(`tempered-sets-${stamp}.csv`, "text/csv", setsCsv(d.sessions, d.sets, name)); })}>
+              Export sets (CSV)
+            </button>
+            <button className={f.quiet} disabled={busy !== ""} onClick={() => void run("sessions", async () => { const d = await fetchFullExport(); download(`tempered-sessions-${stamp}.csv`, "text/csv", sessionsCsv(d.sessions, d.sets)); })}>
+              Export sessions (CSV)
+            </button>
+            <button
+              className={f.quiet}
+              disabled={busy !== ""}
+              onClick={() =>
+                void run("json", async () => {
+                  const d = await fetchFullExport();
+                  download(`tempered-export-${stamp}.json`, "application/json", JSON.stringify({ exportedAt: new Date().toISOString(), unit: "kg", profile: { display_name: profile.display_name, weight_unit: profile.weight_unit }, routines: (routines.data ?? []).map(exportRoutine), ...d }, null, 2));
+                })
+              }
+            >
+              Export everything (JSON)
+            </button>
+          </div>
+          {busy && <p className={f.note} role="status">Preparing your export.</p>}
+        </div>
+      </div>
+
+      <h2 className={f.groupTitle}>Delete account</h2>
+      <details className={f.group} style={{ padding: "0 16px" }}>
+        <summary style={{ minHeight: 52, display: "flex", alignItems: "center", cursor: "pointer" }}>Delete my account and data</summary>
+        <div style={{ paddingBottom: 16, display: "grid", gap: 12 }}>
+          <p style={{ margin: 0 }}>
+            This permanently deletes your account and everything in it: sessions, sets, routines, custom exercises, bodyweight and
+            notification subscriptions. It cannot be undone. Export your data first if you want a copy.
+          </p>
+          <label style={{ display: "grid", gap: 4, fontSize: 15 }}>
+            Type your email ({email}) to confirm
+            <input className={f.input} autoComplete="off" value={typed} onChange={(e) => setTyped(e.target.value)} style={{ textAlign: "left" }} />
+          </label>
+          <button
+            className={f.button}
+            disabled={busy !== "" || !email || typed.trim().toLowerCase() !== email.toLowerCase()}
+            onClick={() => void run("delete", () => deleteAccount(email))}
+          >
+            Delete account and all data
+          </button>
+        </div>
+      </details>
+      {error && <p className={f.error} role="alert">{error}</p>}
+    </>
+  );
+}
+
 export function Settings({ profile }: { profile: Profile }) {
   const update = useUpdateProfile();
   const set = update.mutate;
@@ -197,10 +288,15 @@ export function Settings({ profile }: { profile: Profile }) {
 
       <AlarmSettings />
 
+      <AccountSection profile={profile} />
+
       <h2 className={f.groupTitle}>Account</h2>
       <div className={f.group}>
         <div className={f.row}>
           <button className={f.quiet} onClick={() => void auth.signOut()}>Sign out</button>
+        </div>
+        <div className={f.row}>
+          <a href="#/about">About Tempered</a>
         </div>
       </div>
     </div>

@@ -1,17 +1,21 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useSession } from "../data/auth";
 import { configured } from "../data/client";
 import { useProfile } from "../data/profile";
-import { Dashboard } from "./Dashboard";
-import { Library } from "./Library";
-import { Routines } from "./Routines";
-import { Session } from "./Session";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { RankingSetup } from "./RankingSetup";
-import { Settings } from "./Settings";
 import { Shell } from "./Shell";
 import { SignIn } from "./SignIn";
 import { applyTheme } from "./theme";
 import f from "./Form.module.css";
+
+// Each screen is its own chunk, so the first paint only carries the shell and the screen being opened.
+const Dashboard = lazy(() => import("./Dashboard").then((m) => ({ default: m.Dashboard })));
+const Library = lazy(() => import("./Library").then((m) => ({ default: m.Library })));
+const Routines = lazy(() => import("./Routines").then((m) => ({ default: m.Routines })));
+const Session = lazy(() => import("./Session").then((m) => ({ default: m.Session })));
+const Settings = lazy(() => import("./Settings").then((m) => ({ default: m.Settings })));
+const About = lazy(() => import("./About").then((m) => ({ default: m.About })));
 
 const SKIP_KEY = "tempered.setup-skipped";
 const skipped = () => {
@@ -59,22 +63,30 @@ function Authed() {
     );
 
   // Only the active route is mounted.
+  const screen = (id: string) => {
+    switch (id) {
+      case "dashboard":
+        return <Dashboard profile={p} />;
+      case "log":
+        return <Session profile={p} />;
+      case "routines":
+        return <Routines profile={p} />;
+      case "library":
+        return <Library profile={p} />;
+      case "settings":
+        return <Settings profile={p} />;
+      case "about":
+        return <About />;
+    }
+  };
+
   return (
     <Shell>
-      {(route) => {
-        switch (route.id) {
-          case "dashboard":
-            return <Dashboard profile={p} />;
-          case "log":
-            return <Session profile={p} />;
-          case "routines":
-            return <Routines profile={p} />;
-          case "library":
-            return <Library />;
-          case "settings":
-            return <Settings profile={p} />;
-        }
-      }}
+      {(route) => (
+        <ErrorBoundary key={route.id}>
+          <Suspense fallback={null}>{screen(route.id)}</Suspense>
+        </ErrorBoundary>
+      )}
     </Shell>
   );
 }
