@@ -12,14 +12,11 @@ import { useRouteArg } from "./routes";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
 
-const FILTERS = ["muscle", "equipment", "level", "force", "mechanic", "category"] as const;
+const FILTERS = ["muscle", "equipment", "category"] as const;
 const LABELS: Record<(typeof FILTERS)[number], string> = {
   muscle: "Muscle",
   equipment: "Equipment",
-  level: "Level",
-  force: "Force",
-  mechanic: "Mechanic",
-  category: "Category",
+  category: "Body area",
 };
 
 const href = (ref: string) => `#/library/${encodeURIComponent(ref)}`;

@@ -19,7 +19,7 @@ export function Sheet({ open, onClose, label, children }: { open: boolean; onClo
 }
 
 export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercise: Exercise; profile: Profile; onEdit: () => void; onClose: () => void }) {
-  const meta = [exercise.equipment, exercise.level, exercise.force, exercise.mechanic, exercise.category].filter(Boolean);
+  const meta = [exercise.equipment, exercise.category].filter(Boolean);
   return (
     <>
       <div className={s.sheetHead}>

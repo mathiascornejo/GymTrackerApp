@@ -5,7 +5,7 @@ import type { Exercise } from "../exercises/types";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
 
-type Options = { muscle: string[]; equipment: string[]; level: string[]; force: string[]; mechanic: string[] };
+type Options = { muscle: string[]; equipment: string[] };
 
 function Chips({ legend, options, value, onChange }: { legend: string; options: string[]; value: string[]; onChange: (v: string[]) => void }) {
   return (
@@ -42,9 +42,6 @@ export function CustomExerciseForm({ existing, options, onDone }: { existing: Ex
   const [primary, setPrimary] = useState(existing?.primary ?? []);
   const [secondary, setSecondary] = useState(existing?.secondary ?? []);
   const [equipment, setEquipment] = useState(existing?.equipment ?? "");
-  const [force, setForce] = useState(existing?.force ?? "");
-  const [mechanic, setMechanic] = useState(existing?.mechanic ?? "");
-  const [level, setLevel] = useState(existing?.level ?? "");
   const [steps, setSteps] = useState(existing?.instructions.join("\n") ?? "");
   const error = save.error ?? del.error;
 
@@ -57,9 +54,10 @@ export function CustomExerciseForm({ existing, options, onDone }: { existing: Ex
         primary_muscles: primary,
         secondary_muscles: secondary.filter((m) => !primary.includes(m)),
         equipment: equipment || null,
-        force: force || null,
-        mechanic: mechanic || null,
-        level: level || null,
+        // No longer editable or searchable; an existing exercise keeps what it had.
+        force: existing?.force ?? null,
+        mechanic: existing?.mechanic ?? null,
+        level: existing?.level ?? null,
         instructions: steps.split("\n").map((l) => l.trim()).filter(Boolean),
       },
       { onSuccess: onDone },
@@ -75,9 +73,6 @@ export function CustomExerciseForm({ existing, options, onDone }: { existing: Ex
       <Chips legend="Primary muscles" options={options.muscle} value={primary} onChange={setPrimary} />
       <Chips legend="Secondary muscles" options={options.muscle} value={secondary} onChange={setSecondary} />
       <Pick label="Equipment" options={options.equipment} value={equipment} onChange={setEquipment} />
-      <Pick label="Force" options={options.force} value={force} onChange={setForce} />
-      <Pick label="Mechanic" options={options.mechanic} value={mechanic} onChange={setMechanic} />
-      <Pick label="Level" options={options.level} value={level} onChange={setLevel} />
       <label>
         Steps (one per line)
         <textarea className={f.input} rows={5} value={steps} onChange={(e) => setSteps(e.target.value)} style={{ padding: 12, textAlign: "left" }} />

@@ -15,4 +15,4 @@ export type Exercise = {
   custom: boolean;
 };
 
-export type Filters = Partial<Record<"muscle" | "equipment" | "level" | "force" | "mechanic" | "category", string>>;
+export type Filters = Partial<Record<"muscle" | "equipment" | "category", string>>;

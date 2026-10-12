@@ -14,7 +14,7 @@ export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export type Row = { type: "header"; label: string; count: number } | { type: "item"; exercise: Exercise };
 
-const FILTER_FIELDS = ["equipment", "level", "force", "mechanic", "category"] as const;
+const FILTER_FIELDS = ["equipment", "category"] as const;
 
 export function applyFilters(list: Exercise[], f: Filters): Exercise[] {
   return list.filter(
@@ -58,9 +58,6 @@ export function facets(list: Exercise[]) {
   return {
     muscle: uniq(list.flatMap((e) => [...e.primary, ...e.secondary])),
     equipment: uniq(list.map((e) => e.equipment)),
-    level: uniq(list.map((e) => e.level)),
-    force: uniq(list.map((e) => e.force)),
-    mechanic: uniq(list.map((e) => e.mechanic)),
     category: uniq(list.map((e) => e.category)),
   };
 }

@@ -20,8 +20,8 @@ const ex = (name: string, over: Partial<Exercise> = {}): Exercise => ({
 
 const list = [
   ex("Barbell Bench Press"),
-  ex("Incline Dumbbell Press", { equipment: "dumbbell", level: "intermediate" }),
-  ex("Cable Crunch", { primary: ["abdominals"], equipment: "cable", force: "pull" }),
+  ex("Incline Dumbbell Press", { equipment: "dumbbell" }),
+  ex("Cable Crunch", { primary: ["abdominals"], equipment: "cable" }),
   ex("Bench Dip", { primary: ["triceps"], equipment: "body only" }),
 ];
 
