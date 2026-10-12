@@ -65,7 +65,7 @@ function StandardsEditor({ profile }: { profile: Profile }) {
 
   return (
     <details className={f.group}>
-      <summary style={{ minHeight: 52, display: "flex", alignItems: "center", cursor: "pointer" }}>Edit strength standards</summary>
+      <summary className={f.summary}>Edit strength standards</summary>
       <p className={f.note}>
         Bodyweight multiples of estimated 1RM needed to reach each tier. The built-in numbers are approximate placeholders; change any you
         trust a better source for.
@@ -189,7 +189,7 @@ function AccountSection({ profile }: { profile: Profile }) {
       <section className={f.card}>
       <h2 className={f.cardTitle}>Delete account</h2>
       <details className={f.group}>
-        <summary style={{ minHeight: 52, display: "flex", alignItems: "center", cursor: "pointer" }}>Delete my account and data</summary>
+        <summary className={f.summary}>Delete my account and data</summary>
         <div style={{ paddingBottom: 16, display: "grid", gap: 12 }}>
           <p style={{ margin: 0 }}>
             This permanently deletes your account and everything in it: sessions, sets, routines, custom exercises, bodyweight and
