@@ -15,6 +15,7 @@ import { RestBar, useRestTimer } from "./RestBar";
 import { epley, rankable } from "../ranking/e1rm";
 import { findPRs } from "../session/summary";
 import type { SummaryData } from "./SessionSummary";
+import { ConfirmSheet } from "./ConfirmSheet";
 import f from "./Form.module.css";
 import s from "./Session.module.css";
 
@@ -252,8 +253,9 @@ export function SessionLog({
     }
   };
 
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const discard = async () => {
-    if (!window.confirm("Discard this session? Its logged sets will be removed.")) return;
+    setConfirmDiscard(false);
     setBusy(true);
     try {
       await discardSession(session.id);
@@ -433,7 +435,15 @@ export function SessionLog({
 
       <div className={s.logFoot}>
         <button type="button" className={f.quiet} onClick={() => setAdding(true)}>Add exercise</button>
-        <button type="button" className={f.quiet} disabled={busy} onClick={() => void discard()}>Discard session</button>
+        <button type="button" className={f.quiet} disabled={busy} onClick={() => setConfirmDiscard(true)}>Discard session</button>
+        <ConfirmSheet
+          open={confirmDiscard}
+          title="Discard this session?"
+          body="Its logged sets will be removed."
+          confirmLabel="Discard session"
+          onClose={() => setConfirmDiscard(false)}
+          onConfirm={() => void discard()}
+        />
       </div>
 
       <AddExerciseSheet

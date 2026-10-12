@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useDeleteCustomExercise, useSaveCustomExercise } from "../data/customExercises";
 import { cap } from "../exercises/query";
 import type { Exercise } from "../exercises/types";
+import { ConfirmSheet } from "./ConfirmSheet";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
 
@@ -42,6 +43,7 @@ export function CustomExerciseForm({ existing, options, onDone }: { existing: Ex
   const [primary, setPrimary] = useState(existing?.primary ?? []);
   const [secondary, setSecondary] = useState(existing?.secondary ?? []);
   const [equipment, setEquipment] = useState(existing?.equipment ?? "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [steps, setSteps] = useState(existing?.instructions.join("\n") ?? "");
   const error = save.error ?? del.error;
 
@@ -88,12 +90,25 @@ export function CustomExerciseForm({ existing, options, onDone }: { existing: Ex
             type="button"
             className={f.quiet}
             disabled={del.isPending}
-            onClick={() => window.confirm(`Delete ${existing.name}? Past sessions keep their logged sets.`) && del.mutate(existing.ref.replace("custom:", ""), { onSuccess: onDone })}
+            onClick={() => setConfirmDelete(true)}
           >
             Delete exercise
           </button>
         )}
       </div>
+      {existing && (
+        <ConfirmSheet
+          open={confirmDelete}
+          title={`Delete ${existing.name}?`}
+          body="Past sessions keep their logged sets."
+          confirmLabel="Delete exercise"
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            setConfirmDelete(false);
+            del.mutate(existing.ref.replace("custom:", ""), { onSuccess: onDone });
+          }}
+        />
+      )}
     </form>
   );
 }

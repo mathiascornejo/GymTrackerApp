@@ -3,6 +3,7 @@ import { useDashboardActions, useDashboardData } from "../data/dashboard";
 import type { Profile } from "../data/profile";
 import { fromKg, toKg } from "../units";
 import { LineChart } from "./charts";
+import { ConfirmSheet } from "./ConfirmSheet";
 import f from "./Form.module.css";
 import s from "./Dashboard.module.css";
 import w from "./Weight.module.css";
@@ -12,6 +13,7 @@ export function Weight({ profile }: { profile: Profile }) {
   const data = useDashboardData();
   const actions = useDashboardActions();
   const [value, setValue] = useState("");
+  const [deleting, setDeleting] = useState<{ id: string; date: string; text: string } | null>(null);
   const unit = profile.weight_unit;
 
   if (data.error) return <p className={f.error} role="alert">Could not load your weight log: {data.error.message}</p>;
@@ -66,7 +68,7 @@ export function Weight({ profile }: { profile: Profile }) {
                     className={f.quiet}
                     aria-label={`Delete weight from ${date}`}
                     disabled={actions.deleteBodyweight.isPending}
-                    onClick={() => window.confirm(`Delete ${fromKg(b.weight_kg, unit)} ${unit} from ${date}?`) && actions.deleteBodyweight.mutate(b.id as never)}
+                    onClick={() => setDeleting({ id: b.id, date, text: `${fromKg(b.weight_kg, unit)} ${unit}` })}
                   >
                     Delete
                   </button>
@@ -76,6 +78,17 @@ export function Weight({ profile }: { profile: Profile }) {
           </ul>
         )}
       </section>
+      <ConfirmSheet
+        open={deleting !== null}
+        title="Delete this weight?"
+        body={deleting ? `${deleting.text} from ${deleting.date} is removed from your log and trend.` : ""}
+        confirmLabel="Delete weight"
+        onClose={() => setDeleting(null)}
+        onConfirm={() => {
+          if (deleting) actions.deleteBodyweight.mutate(deleting.id as never);
+          setDeleting(null);
+        }}
+      />
     </div>
   );
 }

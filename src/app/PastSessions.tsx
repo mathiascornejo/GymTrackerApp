@@ -3,12 +3,14 @@ import { usePastSessionActions, usePastSessions, type PastSession } from "../dat
 import type { Exercise } from "../exercises/types";
 import { summarize } from "../session/summary";
 import { fromKg, toKg, type Unit } from "../units";
+import { ConfirmSheet } from "./ConfirmSheet";
 import f from "./Form.module.css";
 import s from "./Session.module.css";
 
 function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (ref: string) => Exercise | undefined }) {
   const actions = usePastSessionActions();
   const [error, setError] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const { session, sets } = past;
   const sum = summarize(sets);
   const date = new Date(session.started_at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
@@ -62,10 +64,21 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
       {error && <p className={f.error} role="alert">{error}</p>}
       <button
         type="button" className={f.quiet}
-        onClick={() => window.confirm(`Delete the session from ${date}? Its sets are removed from your history.`) && void run(actions.deleteSession(session.id))}
+        onClick={() => setConfirming(true)}
       >
         Delete session
       </button>
+      <ConfirmSheet
+        open={confirming}
+        title="Delete this session?"
+        body={`The session from ${date} and its sets are removed from your history.`}
+        confirmLabel="Delete session"
+        onClose={() => setConfirming(false)}
+        onConfirm={() => {
+          setConfirming(false);
+          void run(actions.deleteSession(session.id));
+        }}
+      />
     </details>
   );
 }

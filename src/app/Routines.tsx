@@ -16,6 +16,7 @@ import {
 } from "../routines/model";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
 import { Sheet } from "./ExerciseSheet";
+import { ConfirmSheet } from "./ConfirmSheet";
 import { RoutinePicker } from "./RoutinePicker";
 import f from "./Form.module.css";
 import s from "./Routines.module.css";
@@ -88,6 +89,7 @@ export function Routines({ profile }: { profile: Profile }) {
   // One popup for both: a new routine is only stored when saved, and a rename only applies on save.
   const [naming, setNaming] = useState<"new" | "rename" | { day: number } | null>(null);
   const [draft, setDraft] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const openNaming = (mode: "new" | "rename" | { day: number }) => {
     setDraft(mode === "new" ? "" : mode === "rename" ? routine?.name ?? "" : routine?.days.find((d) => d.weekday === mode.day)?.label ?? "");
     setNaming(mode);
@@ -285,7 +287,7 @@ export function Routines({ profile }: { profile: Profile }) {
           {routine && (
             <button
               className={f.quiet}
-              onClick={() => window.confirm(`Delete ${routine.name}? Logged sessions keep their sets.`) && (actions.remove(routine.id), setPickedId(null))}
+              onClick={() => setConfirmDelete(true)}
             >
               Delete routine
             </button>
@@ -313,6 +315,19 @@ export function Routines({ profile }: { profile: Profile }) {
           </button>
         </form>
       </Sheet>
+
+      <ConfirmSheet
+        open={confirmDelete && routine !== undefined}
+        title={`Delete ${routine?.name ?? "routine"}?`}
+        body="Logged sessions keep their sets."
+        confirmLabel="Delete routine"
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          if (routine) actions.remove(routine.id);
+          setPickedId(null);
+          setConfirmDelete(false);
+        }}
+      />
 
       <p className={f.note} role="status" style={{ margin: "8px 0 0" }}>{actions.saving ? "Saving…" : "All changes saved"}</p>
       {actions.error && <p className={f.error} role="alert">Could not save your changes: {actions.error.message}. The routine was reloaded from your account.</p>}

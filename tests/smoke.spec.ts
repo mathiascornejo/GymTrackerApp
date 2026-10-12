@@ -150,8 +150,8 @@ test.describe("exercise library", () => {
     await expect(sheet.locator("ol li")).toHaveCount(2);
 
     await sheet.getByRole("button", { name: "Edit exercise" }).click();
-    page.once("dialog", (d) => d.accept());
     await page.getByRole("button", { name: "Delete exercise" }).click();
+    await page.getByRole("dialog", { name: "Delete Neck harness curl?" }).getByRole("button", { name: "Delete exercise" }).click();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("link", { name: /Neck harness curl/ })).toHaveCount(0);
   });
@@ -569,8 +569,8 @@ test.describe("dashboard and ranks", () => {
     await page.getByLabel("Add bodyweight (kg)").fill("81.5");
     await page.getByRole("button", { name: "Add weight" }).click();
     await expect(page.getByRole("img", { name: /Bodyweight: 2 points, latest 81.5 kg/ })).toBeVisible();
-    page.once("dialog", (d) => void d.accept());
     await page.getByRole("button", { name: /^Delete weight from/ }).first().click();
+    await page.getByRole("dialog", { name: "Delete this weight?" }).getByRole("button", { name: "Delete weight" }).click();
     await expect(page.getByRole("img", { name: /Bodyweight: 1 points/ })).toBeVisible();
   });
 
