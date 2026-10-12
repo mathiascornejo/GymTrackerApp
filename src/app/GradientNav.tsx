@@ -39,12 +39,25 @@ export function ProfileDock({ current }: { current: boolean }) {
   return (
     <div className={`${s.profileDock} ${s.themed}`}>
       <div className={s.profileTray}>
-        <a href="#/settings" className={s.profile} aria-label="Settings" aria-current={current ? "page" : undefined}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
-            <circle cx="12" cy="9" r="3.5" />
-            <path d="M5 20c1-3.5 4-5 7-5s6 1.5 7 5" />
-          </svg>
-        </a>
+        <div className={s.profileInner}>
+          <a href="#/settings" className={s.item} aria-label="Settings" aria-current={current ? "page" : undefined} data-active={current}>
+            {current && (
+              <>
+                <span className={s.well} />
+                <span className={s.ring}>
+                  <span className={s.spin} />
+                </span>
+                <span className={s.gap} />
+              </>
+            )}
+            <span className={s.face}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                <circle cx="12" cy="9" r="3.5" />
+                <path d="M5 20c1-3.5 4-5 7-5s6 1.5 7 5" />
+              </svg>
+            </span>
+          </a>
+        </div>
       </div>
     </div>
   );
