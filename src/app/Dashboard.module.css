@@ -55,7 +55,6 @@
   position: relative;
 }
 
-.heroTop,
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -74,7 +73,8 @@
 
 .segBtn {
   min-height: 44px;
-  padding: 0 14px;
+  padding: 0 12px;
+  white-space: nowrap;
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -89,24 +89,72 @@
 
 .mapWrap {
   display: grid;
-  grid-template-columns: minmax(150px, 52%) 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
   align-items: center;
-  margin-top: 8px;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 720px) {
   .mapWrap {
-    grid-template-columns: minmax(220px, 300px) 1fr;
-    gap: 32px;
+    grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+    gap: 40px;
+  }
+}
+
+/* Front and back side by side, always. */
+.maps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.mapFig {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  text-align: center;
+}
+
+.heroSide {
+  display: grid;
+  gap: 20px;
+  align-content: center;
+}
+
+@media (max-width: 719px) {
+  .heroSide {
+    text-align: center;
+  }
+
+  .heroSide .weekRow {
+    justify-content: center;
+    text-align: left;
   }
 }
 
 .map {
   width: 100%;
-  max-width: 300px;
   height: auto;
   color: var(--ink);
+}
+
+.masonry {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 760px) {
+  .masonry {
+    column-count: 2;
+    column-gap: 16px;
+  }
+}
+
+.masonry > .section {
+  break-inside: avoid;
+  margin-bottom: 16px;
 }
 
 .silhouette {
@@ -137,9 +185,8 @@
 .hit {
   fill: none;
   stroke: transparent;
-  /* Wider is better for thumbs, but a thin region padded to 44px would steal taps from its neighbours.
-     The list view is the full-size alternative. */
-  stroke-width: 10;
+  /* Wider is better for thumbs, but a thin region padded to 44px would steal taps from its neighbours. */
+  stroke-width: 8;
   pointer-events: stroke;
 }
 
@@ -204,30 +251,6 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
-}
-
-.muscleList {
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 4px;
-  max-width: 520px;
-}
-
-.muscleRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  min-height: 48px;
-  padding: 0 16px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
 }
 
 .ceremony {
@@ -341,6 +364,7 @@
 .prs li {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--hairline);
@@ -405,4 +429,21 @@
   fill: var(--surface);
   stroke: var(--hairline);
   stroke-width: 1;
+}
+
+.prs li > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Four range buttons plus the lift menu: share the width instead of overflowing a small phone. */
+@media (max-width: 479px) {
+  .controls .seg {
+    width: 100%;
+  }
+
+  .controls .segBtn {
+    flex: 1;
+    padding: 0 4px;
+  }
 }

@@ -40,7 +40,7 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - `src/ranking/standards.ts` is the only place standards live. Every number is `// UNVERIFIED`; users can override per lift in Settings (`profiles.standards_overrides`). Thresholds are bodyweight multiples to REACH Bronze..Olympian; Wood is the floor.
 - `computeRanks` is pure: best credited set per lift, best lift per muscle, median overall. Any exercise ranks: ones without a standard get `derivedLift` (muscle reference scaled by equipment, `// UNVERIFIED`); a lift credits its primary muscles in full and secondaries at `SECONDARY_CREDIT`. Callers pass an `info(ref)` lookup. Muscles with no data are absent (drawn neutral), never Wood. Sets over 5x bodyweight are `flagged` and excluded until `session_sets.confirmed`.
 - Rank-up ceremony compares current tiers with `localStorage["tempered.ranks.seen"]`; the first visit only records. Dashboard data is paged (PostgREST caps responses at 1000 rows).
-- Body map art lives in `src/app/bodyMapArt.ts` (original, 200x380 box). Materials are static SVG defs in `BodyMap.tsx`; the only animation is the one-shot sheen.
+- Front and back maps always show together (no list mode). Body map art lives in `src/app/bodyMapArt.ts` (original, 200x380 box). Materials are static SVG defs in `BodyMap.tsx`; the only animation is the one-shot sheen.
 
 ## Local testing
 - `supabase/config.toml` raises auth rate limits for the local stack only; the e2e suite signs in once per test. Hosted projects keep their own limits.
@@ -54,7 +54,7 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - Secrets: VAPID private key and service-role key live only in function secrets and Vault. `supabase/functions/.env.local` is git-ignored.
 
 ## Quality gates
-- `tests/a11y.spec.ts` runs axe (WCAG 2 A/AA) over every screen and the open sheets in light and dark, plus reduced motion and 44 px targets on phone. Body-map regions are exempt from the size check; the list view is their alternative. New screens or sheets get a scan.
+- `tests/a11y.spec.ts` runs axe (WCAG 2 A/AA) over every screen and the open sheets in light and dark, plus reduced motion and 44 px targets on phone. Body-map regions are exempt from the size check; each is keyboard focusable. New screens or sheets get a scan.
 - Filled accent and done backgrounds use `--on-accent` / `--on-done` for text (dark mode flips to black for contrast). Never hard-code `#fff` on them.
 - `flushOutbox()` returns the in-flight flush; callers that must know sets are saved (finishing a session) await it.
 - Account deletion is the `delete-account` function only. The client sends the typed email; the server re-checks it against the signed-in user and deletes only that user.

@@ -112,14 +112,14 @@ export function BodyMap({
               strokeWidth={id === "olympian" ? 2 : 1.5}
             />
             {sheen.has(r.muscle) && (
-              <Shape region={r} fill="url(#sheen-run)" className={s.sheenShape} />
+              <Shape region={r} fill={`url(#sheen-run-${view})`} className={s.sheenShape} />
             )}
           </g>
         );
       })}
       {sheen.size > 0 && (
         <defs>
-          <linearGradient id="sheen-run" href="#sheen" gradientUnits="userSpaceOnUse">
+          <linearGradient id={`sheen-run-${view}`} href="#sheen" gradientUnits="userSpaceOnUse">
             {!reduced() && (
               <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="300 0" dur={`${sheenSeconds}s`} fill="freeze" repeatCount="1" />
             )}

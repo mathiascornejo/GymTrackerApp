@@ -509,17 +509,17 @@ test.describe("dashboard and ranks", () => {
     await expect(sheet).toContainText("1.46x bodyweight");
     await page.keyboard.press("Escape");
     // Unranked muscles are neutral, not Wood.
-    await expect(page.getByRole("button", { name: "Calves, no data. Show details" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Calves, no data. Show details" }).first()).toBeVisible();
     await expect(page.getByText(/^Platinum$/).first()).toBeVisible(); // overall
   });
 
-  test("offers a list alternative to the map", async ({ page }) => {
+  test("shows the front and back maps together", async ({ page }) => {
     const seed = await seededUser();
     await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }]);
     await open(page, seed);
-    await page.getByRole("button", { name: "Show as list" }).click();
-    await expect(page.getByRole("button", { name: /Chest\s*Platinum/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Calves\s*No data/ })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Body map, front" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Body map, back" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Show as list" })).toHaveCount(0);
   });
 
   test("holds back an implausible entry until it is confirmed", async ({ page }) => {

@@ -9,7 +9,7 @@ export function LineChart({ points, unit, label }: { points: Point[]; unit: stri
   if (points.length === 0) return null;
   const W = 600;
   const H = 180;
-  const pad = { l: 8, r: 8, t: 12, b: 24 };
+  const pad = { l: 8, r: 8, t: 28, b: 24 };
   const ts = points.map((p) => p.t);
   const vs = points.map((p) => p.v);
   const [t0, t1] = [Math.min(...ts), Math.max(...ts)];
@@ -30,7 +30,7 @@ export function LineChart({ points, unit, label }: { points: Point[]; unit: stri
         ))}
         <text x={pad.l} y={H - 6} className={s.axis}>{dateLabel(t0)}</text>
         <text x={W - pad.r} y={H - 6} textAnchor="end" className={s.axis}>{dateLabel(t1)}</text>
-        <text x={pad.l} y={pad.t + 4} className={s.axis}>{Math.round((hi) * 10) / 10} {unit}</text>
+        <text x={pad.l} y={14} className={s.axis}>{Math.round((hi) * 10) / 10} {unit}</text>
       </svg>
     </figure>
   );

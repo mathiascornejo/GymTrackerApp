@@ -111,7 +111,7 @@ test.describe("motion and touch", () => {
       await page.waitForLoadState("networkidle");
       const found = await page.evaluate(() =>
         [...document.querySelectorAll<HTMLElement>("button, select, summary, input:not([type=hidden]):not([type=checkbox]):not([type=radio]), [role=button], nav a")]
-          .filter((el) => !(el instanceof SVGElement)) // body-map regions: the list view is their full-size alternative
+          .filter((el) => !(el instanceof SVGElement)) // body-map regions: thin shapes, each also focusable by keyboard
           .filter((el) => {
             const r = el.getBoundingClientRect();
             const cs = getComputedStyle(el);

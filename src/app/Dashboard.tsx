@@ -5,7 +5,7 @@ import { useRoutines } from "../data/routines";
 import { cap } from "../exercises/query";
 import { useExercises } from "../exercises/useExercises";
 import { computeRanks, progressOf, tierOf } from "../ranking/rank";
-import { MUSCLES, RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
+import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
 import { e1rmSeries, frequencyGrid, prEvents, weekStart, weeklyVolume } from "../ranking/stats";
 import { fromKg, toKg } from "../units";
 import { BodyMap, MaterialDefs } from "./BodyMap";
@@ -45,8 +45,6 @@ export function Dashboard({ profile }: { profile: Profile }) {
   const { all, byRef } = useExercises();
   const actions = useDashboardActions();
 
-  const [view, setView] = useState<"front" | "back">("front");
-  const [mode, setMode] = useState<"map" | "list">("map");
   const [selected, setSelected] = useState<string | null>(null);
   const [liftRef, setLiftRef] = useState<string | null>(null);
   const [range, setRange] = useState<(typeof RANGES)[number]["id"]>("12w");
@@ -137,15 +135,6 @@ export function Dashboard({ profile }: { profile: Profile }) {
 
       {/* Body map: the hero */}
       <section aria-label="Rank" className={s.hero}>
-        <div className={s.heroTop}>
-          <div className={s.seg} role="radiogroup" aria-label="Body view">
-            {(["front", "back"] as const).map((v) => (
-              <button key={v} role="radio" aria-checked={view === v} onClick={() => setView(v)} className={s.segBtn}>{cap(v)}</button>
-            ))}
-          </div>
-          <button className={f.quiet} onClick={() => setMode(mode === "map" ? "list" : "map")}>{mode === "map" ? "Show as list" : "Show as map"}</button>
-        </div>
-
         {!ready ? (
           <div className={s.prompt}>
             <p className={s.promptTitle}>Add your bodyweight to see ranks</p>
@@ -162,33 +151,34 @@ export function Dashboard({ profile }: { profile: Profile }) {
               </form>
             )}
           </div>
-        ) : mode === "map" ? (
+        ) : (
           <div className={s.mapWrap}>
-            <BodyMap
-              view={view} tiers={tiers} sheen={new Set(ceremony?.muscles ?? [])}
-              sheenSeconds={ceremony?.seconds} onSelect={setSelected}
-            />
-            <div className={s.overall}>
-              <span className={s.overallLabel}>Overall</span>
-              <span className={s.overallTier}>{overall === null ? "No ranks yet" : TIERS[Math.floor(overall + 1e-9)]}</span>
-              {overall !== null && <span className={s.overallPct}>{Math.round(progressOf(overall) * 100)}% to the next tier</span>}
-              {overall === null && <span className={f.note}>Log your first session to start ranking.</span>}
+            <div className={s.maps}>
+              {(["front", "back"] as const).map((v) => (
+                <figure key={v} className={s.mapFig}>
+                  <BodyMap view={v} tiers={tiers} sheen={new Set(ceremony?.muscles ?? [])} sheenSeconds={ceremony?.seconds} onSelect={setSelected} />
+                  <figcaption className={s.sub}>{cap(v)}</figcaption>
+                </figure>
+              ))}
+            </div>
+            <div className={s.heroSide}>
+              <div className={s.overall}>
+                <span className={s.overallLabel}>Overall</span>
+                <span className={s.overallTier}>{overall === null ? "No ranks yet" : TIERS[Math.floor(overall + 1e-9)]}</span>
+                {overall !== null && <span className={s.overallPct}>{Math.round(progressOf(overall) * 100)}% to the next tier</span>}
+                {overall === null && <span className={f.note}>Log your first session to start ranking.</span>}
+              </div>
+              <div className={s.weekRow} role="group" aria-label="This week">
+                <Ring value={doneThisWeek} total={plannedDays} label={`${doneThisWeek} of ${plannedDays} planned sessions this week`} />
+                <p className={s.weekText}>
+                  <span className={s.overallLabel}>This week</span>
+                  <br />
+                  {plannedDays ? `${doneThisWeek} of ${plannedDays} planned sessions` : `${doneThisWeek} ${doneThisWeek === 1 ? "session" : "sessions"} so far`}
+                  {plannedDays === 0 && <span className={s.sub}> Build a routine to plan your week.</span>}
+                </p>
+              </div>
             </div>
           </div>
-        ) : (
-          <ul className={s.muscleList}>
-            {MUSCLES.map((m) => {
-              const v = ranks.muscles.get(m);
-              return (
-                <li key={m}>
-                  <button className={s.muscleRow} onClick={() => setSelected(m)}>
-                    <span>{cap(m)}</span>
-                    <span className={s.sub}>{v ? `${tierOf(v.score)}, ${Math.round(progressOf(v.score) * 100)}%` : "No data"}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
         )}
         {ceremony && (
           <div className={s.ceremony} role="status">
@@ -219,17 +209,6 @@ export function Dashboard({ profile }: { profile: Profile }) {
         </section>
       )}
 
-      <section aria-label="This week" className={s.section}>
-        <h2 className={s.h2}>This week</h2>
-        <div className={s.weekRow}>
-          <Ring value={doneThisWeek} total={plannedDays} label={`${doneThisWeek} of ${plannedDays} planned sessions this week`} />
-          <p className={s.weekText}>
-            {plannedDays ? `${doneThisWeek} of ${plannedDays} planned sessions` : `${doneThisWeek} ${doneThisWeek === 1 ? "session" : "sessions"} so far`}
-            {plannedDays === 0 && <span className={s.sub}> Build a routine to plan your week.</span>}
-          </p>
-        </div>
-      </section>
-
       <section aria-label="Estimated 1RM trend" className={`${s.section} ${s.wide}`}>
         <h2 className={s.h2}>Estimated 1RM</h2>
         {liftOptions.length === 0 ? (
@@ -256,7 +235,9 @@ export function Dashboard({ profile }: { profile: Profile }) {
         )}
       </section>
 
-      <section aria-label="Weekly volume" className={`${s.section} ${s.wide}`}>
+      {/* Two balanced columns: the sections differ in height, and a grid would leave holes beside the short ones. */}
+      <div className={s.masonry}>
+      <section aria-label="Weekly volume" className={s.section}>
         <h2 className={s.h2}>Weekly sets by muscle</h2>
         {volume.length === 0 ? (
           <p className={f.note}>Sets you log this week appear here.</p>
@@ -297,6 +278,8 @@ export function Dashboard({ profile }: { profile: Profile }) {
           </ul>
         )}
       </section>
+
+      </div>
 
       <Sheet open={selected !== null} onClose={() => setSelected(null)} label={selected ? cap(selected) : "Muscle"}>
         {selected && (
