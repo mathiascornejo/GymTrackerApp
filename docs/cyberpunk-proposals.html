@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tempered: five cyberpunk proposals</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Exo+2:wght@500;700&family=Space+Grotesk:wght@500;700&family=Rajdhani:wght@500;700&family=Sora:wght@500;700&display=swap">
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0c0c0f; color: #eee; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1280px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .lede { color: #a0a0aa; margin: 0 0 32px; max-width: 62ch; text-wrap: pretty; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; }
+  .tokens { margin: 12px 0 0; font-size: 12px; color: #a0a0aa; font-family: ui-monospace, monospace; white-space: pre-wrap; }
+  .note { margin: 12px 0 0; color: #c9c9d2; font-size: 14px; text-wrap: pretty; }
+
+  /* each proposal scopes the app's own token names, so applying one means pasting its block into tokens.css */
+  .p { background: var(--ground); color: var(--ink); font-family: var(--font-ui); border-radius: var(--r-card);
+       padding: 20px; position: relative; overflow: hidden; isolation: isolate;
+       box-shadow: 0 0 0 1px var(--hairline), 0 24px 60px -20px var(--glow); }
+  .p::before { /* grain, the only texture */
+    content: ""; position: absolute; inset: 0; z-index: -1; opacity: .07; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .p::after { /* ambient wash, one per theme */
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: var(--wash); }
+  .name { font: 700 22px/1.1 var(--font-display); letter-spacing: -.01em; margin: 0; }
+  .sub { color: var(--ink-muted); margin: 4px 0 18px; font-size: 14px; }
+  .card { background: var(--surface); border-radius: var(--r-list); padding: 14px; margin-bottom: 12px;
+          box-shadow: inset 0 0 0 1px var(--hairline); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .lift { font: 600 17px var(--font-display); margin: 0; }
+  .num { font-variant-numeric: tabular-nums; color: var(--ink-muted); font-size: 14px; }
+  .big { font: 700 34px/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .btn { border: 0; border-radius: var(--r-control); padding: 10px 16px; font: 600 15px var(--font-ui); cursor: pointer;
+         background: var(--accent); color: var(--on-accent); box-shadow: 0 0 22px -4px var(--glow); }
+  .btn.done { background: var(--done); color: var(--on-done); box-shadow: 0 0 22px -4px var(--done); }
+  .chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 600;
+          color: var(--ink); box-shadow: inset 0 0 0 1px var(--accent); }
+  svg.spark { width: 100%; height: 56px; display: block; margin-top: 10px; }
+  .tabs { display: flex; gap: 6px; margin-top: 14px; }
+  .tab { flex: 1; text-align: center; padding: 9px 0; border-radius: var(--r-control); font-size: 14px; color: var(--ink-muted); }
+  .tab.on { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tempered: five cyberpunk proposals</h1>
+  <p class="lede">Each one is a token set for <code>src/styles/tokens.css</code> plus a few shape and glow values, so applying one is a paste, not a rewrite. All keep the house rules: sentence case, no tracked all-caps, no monospace data labels, tabular figures for numbers, and body text at AA or better.</p>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+const P = [
+  { n: "Neon rain", d: "Tokyo at 2 a.m. Wet indigo black, one hot magenta, cyan only for done.",
+    f: "'Chakra Petch'", ground: "#0b0d1a", surface: "#141830", ink: "#eef0ff", muted: "#9aa3c7",
+    accent: "#ff2e97", done: "#22e5d0", glow: "rgb(255 46 151 / .45)", r: [10, 14, 4],
+    wash: "radial-gradient(120% 60% at 100% 0%, rgb(255 46 151 / .22), transparent 60%), radial-gradient(90% 50% at 0% 100%, rgb(34 229 208 / .12), transparent 60%)",
+    note: "Most readable and the safest swap. Magenta glow on the primary button only; chips are outlined." },
+  { n: "Night city", d: "Corporate yellow on soot. Hard edges, small radii, almost no glow.",
+    f: "'Rajdhani'", ground: "#0c0b08", surface: "#17150e", ink: "#fbf8e6", muted: "#a8a38a",
+    accent: "#fcee0a", done: "#3dff9a", glow: "rgb(252 238 10 / .28)", r: [4, 6, 2],
+    wash: "linear-gradient(180deg, rgb(252 238 10 / .08), transparent 35%)",
+    note: "Highest contrast of the five (yellow on black is about 17:1). Squarest corners, closest to a terminal." },
+  { n: "Chrome and cyan", d: "Neuromancer. Cold steel greys with one electric cyan.",
+    f: "'Space Grotesk'", ground: "#05090f", surface: "#0e151f", ink: "#e9f4ff", muted: "#8ea2b8",
+    accent: "#19e3ff", done: "#7dff6b", glow: "rgb(25 227 255 / .4)", r: [8, 12, 4],
+    wash: "radial-gradient(80% 40% at 50% -10%, rgb(25 227 255 / .2), transparent 70%)",
+    note: "Calmest in a dim gym. Rank colours stay legible because the base is neutral." },
+  { n: "Ultraviolet", d: "Synthwave haze. Deep violet ground, one electric lilac, mint for done.",
+    f: "'Exo 2'", ground: "#0f0720", surface: "#1a0f33", ink: "#f4eeff", muted: "#a898cc",
+    accent: "#b26bff", done: "#5cffb0", glow: "rgb(178 107 255 / .45)", r: [14, 20, 8],
+    wash: "radial-gradient(100% 55% at 0% 0%, rgb(178 107 255 / .28), transparent 65%), radial-gradient(70% 40% at 100% 100%, rgb(255 61 154 / .12), transparent 70%)",
+    note: "Softest radii and the most atmosphere. Master rank (purple) needs a separate hue so it does not vanish." },
+  { n: "Chrome daylight", d: "The one light option: pale steel ground, ink black text, hot magenta accent.",
+    f: "'Sora'", ground: "#e4e8f0", surface: "#ffffff", ink: "#0a0e1a", muted: "#555d70",
+    accent: "#d4007a", done: "#0b7a5a", glow: "rgb(212 0 122 / .3)", on: "#ffffff", onDone: "#ffffff", r: [6, 10, 3], light: true,
+    wash: "linear-gradient(135deg, rgb(212 0 122 / .08), transparent 45%), linear-gradient(315deg, rgb(10 14 26 / .08), transparent 40%)",
+    note: "Cyberpunk without the dark room. Works outdoors and keeps the existing light-mode contrast logic." },
+];
+const grid = document.getElementById("grid");
+grid.innerHTML = P.map(p => {
+  const on = p.on || "#000", onDone = p.onDone || "#000";
+  const vars = `--ground:${p.ground};--surface:${p.surface};--ink:${p.ink};--ink-muted:${p.muted};--accent:${p.accent};--done:${p.done};` +
+    `--on-accent:${on};--on-done:${onDone};--hairline:${p.light ? "rgb(0 0 0 / .14)" : "rgb(255 255 255 / .14)"};--glow:${p.glow};` +
+    `--r-card:${p.r[1] + 6}px;--r-list:${p.r[1]}px;--r-control:${p.r[0]}px;--font-display:${p.f}, system-ui, sans-serif;--font-ui:system-ui, sans-serif;--wash:${p.wash}`;
+  return `<section>
+    <div class="p" style="${vars}">
+      <h2 class="name">${p.n}</h2>
+      <p class="sub">${p.d}</p>
+      <div class="card">
+        <div class="row"><p class="lift">Bench press</p><span class="chip">Gold</span></div>
+        <div class="row" style="margin-top:12px">
+          <div><div class="big">82.5 <span class="num">kg</span></div><div class="num">Set 3 of 4, 8 reps, last time 80 kg</div></div>
+          <button class="btn done">Done</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row"><p class="lift">Estimated 1RM</p><span class="num">up 4.6 kg in 6 weeks</span></div>
+        <svg class="spark" viewBox="0 0 200 56" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 46 L28 42 L56 44 L84 34 L112 36 L140 24 L168 18 L200 8" fill="none" stroke="${p.accent}" stroke-width="2.5" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px ${p.accent})"/>
+        </svg>
+      </div>
+      <div class="row"><button class="btn">Start session</button><span class="num">Push day, 5 exercises</span></div>
+      <div class="tabs"><div class="tab on">Today</div><div class="tab">Log</div><div class="tab">Routines</div><div class="tab">Weight</div></div>
+    </div>
+    <p class="note">${p.note}</p>
+    <pre class="tokens">--ground: ${p.ground};  --surface: ${p.surface};
+--ink: ${p.ink};  --ink-muted: ${p.muted};
+--accent: ${p.accent};  --done: ${p.done};
+--on-accent: ${on};  --on-done: ${onDone};
+--radius-list: ${p.r[1]}px;  --radius-control: ${p.r[0]}px;
+--font-display: ${p.f.replace(/'/g, '"')};</pre>
+  </section>`;
+}).join("");
+</script>
+</body>
+</html>
