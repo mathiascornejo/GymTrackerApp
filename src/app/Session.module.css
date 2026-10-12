@@ -14,6 +14,7 @@
 
 .start {
   max-width: 560px;
+  margin-inline: auto;
 }
 
 .startField {
@@ -32,6 +33,7 @@
 .log {
   max-width: 720px;
   padding-bottom: 120px;
+  margin-inline: auto;
 }
 
 .logHead {
@@ -381,6 +383,7 @@
 
 .summary {
   max-width: 560px;
+  margin-inline: auto;
 }
 
 .stats {
@@ -429,6 +432,7 @@
   border-radius: var(--radius-list);
   background: var(--surface);
   max-width: 560px;
+  margin-inline: auto;
 }
 
 .past > summary {

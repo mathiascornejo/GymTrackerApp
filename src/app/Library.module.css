@@ -35,6 +35,7 @@
 .list {
   position: relative;
   max-width: 720px;
+  margin-inline: auto;
 }
 
 .header,

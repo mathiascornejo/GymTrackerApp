@@ -199,7 +199,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
       </section>
 
       {ranks.flagged.length > 0 && (
-        <section aria-label="Entries to check" className={s.section}>
+        <section aria-label="Entries to check" className={`${s.section} ${s.wide}`}>
           <h2 className={s.h2}>Check these entries</h2>
           <p className={f.note}>These look too heavy to be right, so they are not ranked yet.</p>
           <ul className={s.flagList}>
@@ -230,7 +230,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
         </div>
       </section>
 
-      <section aria-label="Estimated 1RM trend" className={s.section}>
+      <section aria-label="Estimated 1RM trend" className={`${s.section} ${s.wide}`}>
         <h2 className={s.h2}>Estimated 1RM</h2>
         {liftOptions.length === 0 ? (
           <p className={f.note}>Log your first session to see your estimated 1RM trend.</p>
@@ -256,7 +256,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
         )}
       </section>
 
-      <section aria-label="Weekly volume" className={s.section}>
+      <section aria-label="Weekly volume" className={`${s.section} ${s.wide}`}>
         <h2 className={s.h2}>Weekly sets by muscle</h2>
         {volume.length === 0 ? (
           <p className={f.note}>Sets you log this week appear here.</p>

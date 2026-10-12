@@ -7,6 +7,10 @@
 }
 
 .toolbar {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-list);
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -443,6 +447,14 @@
 .sheetTitle {
   margin: 12px 0;
   font: 700 28px/34px var(--font-display);
+}
+
+.volume {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-list);
 }
 
 .volume ul {

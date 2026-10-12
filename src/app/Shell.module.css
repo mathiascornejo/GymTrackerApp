@@ -9,11 +9,13 @@
 .header {
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 12px;
   max-width: var(--content-w);
   margin: 0 auto;
-  /* Room on the right for the frozen profile button. */
-  padding: 16px 64px 8px 0;
+  /* Equal room either side keeps the title centred under the frozen profile button. */
+  padding: 16px 64px 8px;
 }
 
 .title {

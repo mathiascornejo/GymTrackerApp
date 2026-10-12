@@ -12,12 +12,38 @@
   color: var(--ink-muted);
 }
 
+/* Bento: every section is its own card; the wide ones span both columns. */
 .page {
-  max-width: 960px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  max-width: var(--content-w);
+  margin: 0 auto;
 }
 
-.section {
-  margin-top: 40px;
+@media (min-width: 760px) {
+  .page {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.page > :not(section) {
+  grid-column: 1 / -1;
+}
+
+.section,
+.hero {
+  min-width: 0;
+  margin: 0;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-list);
+}
+
+.hero,
+.wide {
+  grid-column: 1 / -1;
 }
 
 .h2 {
