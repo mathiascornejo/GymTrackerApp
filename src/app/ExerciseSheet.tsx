@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { ExpandableScreen, ExpandableScreenContent } from "./ExpandableScreen";
 import { cap } from "../exercises/query";
 import type { Exercise } from "../exercises/types";
 import type { Profile } from "../data/profile";
@@ -8,19 +9,12 @@ import { AddToRoutine, ExerciseHistory } from "./ExerciseExtras";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
 
-/** A modal <dialog> styled as a bottom sheet (centered panel on desktop). The browser supplies focus trapping and Escape. */
+/** Every popup in the app: an ExpandableScreen that grows out of the control that opened it. Callers keep their own Close or Done button. */
 export function Sheet({ open, onClose, label, children }: { open: boolean; onClose: () => void; label: string; children: ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (open && !d.open) d.showModal();
-    if (!open && d.open) d.close();
-  }, [open]);
   return (
-    <dialog ref={ref} className={s.sheet} aria-label={label} onClose={onClose} onClick={(e) => e.target === ref.current && onClose()}>
-      {open && <div className={s.sheetBody}>{children}</div>}
-    </dialog>
+    <ExpandableScreen expanded={open} onExpandChange={(v) => !v && onClose()} layoutId={`sheet-${label}`}>
+      <ExpandableScreenContent label={label} showCloseButton={false}>{children}</ExpandableScreenContent>
+    </ExpandableScreen>
   );
 }
 
