@@ -39,6 +39,7 @@ const tabs = [
   ["log", "Session"],
   ["routines", "Routines"],
   ["library", "Exercises"],
+  ["weight", "Weight"],
 ];
 
 for (const [id, label] of tabs) {
@@ -559,15 +560,18 @@ test.describe("dashboard and ranks", () => {
     await expect(page.getByRole("img", { name: /estimated 1RM: 2 points/ })).toBeVisible();
     await expect(page.getByRole("img", { name: /Sessions over the last 12 weeks: 2/ })).toBeVisible();
     await expect(page.getByRole("region", { name: "Recent personal bests" })).toContainText("Barbell Bench Press - Medium Grip");
-    await expect(page.getByRole("img", { name: /Bodyweight: 1 points/ })).toBeVisible();
   });
 
-  test("adds bodyweight from the dashboard", async ({ page }) => {
+  test("adds and deletes bodyweight on the weight tab", async ({ page }) => {
     const seed = await seededUser();
-    await open(page, seed);
+    await open(page, seed, "weight");
+    await expect(page.getByRole("img", { name: /Bodyweight: 1 points/ })).toBeVisible();
     await page.getByLabel("Add bodyweight (kg)").fill("81.5");
     await page.getByRole("button", { name: "Add weight" }).click();
     await expect(page.getByRole("img", { name: /Bodyweight: 2 points, latest 81.5 kg/ })).toBeVisible();
+    page.once("dialog", (d) => void d.accept());
+    await page.getByRole("button", { name: /^Delete weight from/ }).first().click();
+    await expect(page.getByRole("img", { name: /Bodyweight: 1 points/ })).toBeVisible();
   });
 
   test("edited standards persist", async ({ page }) => {

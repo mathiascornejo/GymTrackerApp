@@ -36,6 +36,7 @@ const screens = [
   ["log", "Session"],
   ["routines", "Routines"],
   ["library", "Exercises"],
+  ["weight", "Weight"],
   ["settings", "Settings"],
 ] as const;
 
@@ -105,7 +106,7 @@ test.describe("motion and touch", () => {
     const email = await seed();
     await signIn(page, email, "settings");
     const small: string[] = [];
-    for (const hash of ["dashboard", "log", "routines", "library", "settings"]) {
+    for (const hash of ["dashboard", "log", "routines", "library", "weight", "settings"]) {
       await page.goto(`#/${hash}`);
       await page.waitForLoadState("networkidle");
       const found = await page.evaluate(() =>

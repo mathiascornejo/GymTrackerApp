@@ -12,6 +12,7 @@ import f from "./Form.module.css";
 // Each screen is its own chunk, so the first paint only carries the shell and the screen being opened.
 const Dashboard = lazy(() => import("./Dashboard").then((m) => ({ default: m.Dashboard })));
 const Library = lazy(() => import("./Library").then((m) => ({ default: m.Library })));
+const Weight = lazy(() => import("./Weight").then((m) => ({ default: m.Weight })));
 const Routines = lazy(() => import("./Routines").then((m) => ({ default: m.Routines })));
 const Session = lazy(() => import("./Session").then((m) => ({ default: m.Session })));
 const Settings = lazy(() => import("./Settings").then((m) => ({ default: m.Settings })));
@@ -73,6 +74,8 @@ function Authed() {
         return <Routines profile={p} />;
       case "library":
         return <Library profile={p} />;
+      case "weight":
+        return <Weight profile={p} />;
       case "settings":
         return <Settings profile={p} />;
       case "about":

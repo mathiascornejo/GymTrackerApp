@@ -280,24 +280,6 @@ export function Dashboard({ profile }: { profile: Profile }) {
         {sessions.length === 0 ? <p className={f.note}>Finished sessions fill this grid.</p> : <FrequencyGrid weeks={grid} dayNames={dayNames} />}
       </section>
 
-      <section aria-label="Bodyweight" className={s.section}>
-        <h2 className={s.h2}>Bodyweight</h2>
-        {bodyweights.length > 0 && (
-          <LineChart
-            points={bodyweights.map((b) => ({ t: new Date(`${b.measured_on}T12:00:00`).getTime(), v: fromKg(b.weight_kg, unit) }))}
-            unit={unit}
-            label="Bodyweight"
-          />
-        )}
-        <form onSubmit={addWeight} className={s.inline}>
-          <label>
-            <span className={s.visuallyHidden}>Add bodyweight ({unit})</span>
-            <input className={f.input} inputMode="decimal" placeholder={latestBw ? `${fromKg(latestBw, unit)} ${unit}` : unit} value={weight} onChange={(e) => setWeight(e.target.value)} />
-          </label>
-          <button className={f.button} type="submit" disabled={actions.addBodyweight.isPending}>Add weight</button>
-        </form>
-      </section>
-
       <section aria-label="Recent personal bests" className={s.section}>
         <h2 className={s.h2}>Recent personal bests</h2>
         {prs.length === 0 ? (

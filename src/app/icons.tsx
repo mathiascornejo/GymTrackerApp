@@ -15,6 +15,13 @@ const paths: Record<TabId, ReactNode> = {
       <path d="M4 10h16M9 3v4m6-4v4" />
     </>
   ),
+  weight: (
+    <>
+      <path d="M6.5 8h11l2 11h-15Z" />
+      <circle cx="12" cy="5.5" r="2" />
+      <path d="m12 12 2 3" />
+    </>
+  ),
   library: (
     <>
       <path d="M2.5 9.5v5m3-7v9m2.5-4.5h8m2.5-4.5v9m3-7v5" />

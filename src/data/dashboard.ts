@@ -64,6 +64,10 @@ export function useDashboardActions() {
       ),
       onSuccess: done,
     }),
+    deleteBodyweight: useMutation({
+      mutationFn: run((id: string) => supabase.from("bodyweight_entries").update({ deleted_at: new Date().toISOString() }).eq("id", id)),
+      onSuccess: done,
+    }),
     confirmSet: useMutation({
       mutationFn: run((id: string) => supabase.from("session_sets").update({ confirmed: true }).eq("id", id)),
       onSuccess: done,

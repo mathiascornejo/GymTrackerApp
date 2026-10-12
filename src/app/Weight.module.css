@@ -1,0 +1,26 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  border-top: 1px solid var(--hairline);
+}
+
+.list li:first-child {
+  border-top: 0;
+}
+
+.list li > span:first-child {
+  flex: 1;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
