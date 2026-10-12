@@ -30,15 +30,22 @@
   overflow: hidden;
 }
 
+.screen[open] {
+  display: grid;
+  place-items: center;
+}
+
 .screen::backdrop {
-  background: rgb(0 0 0 / 0.4);
+  background: rgb(0 0 0 / 0.3);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 
+/* A compact card, centred; whatever it does not cover is blurred by the backdrop. */
 .panel {
-  position: fixed;
-  inset: 12px;
+  position: relative;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(80dvh, 680px);
   overflow-y: auto;
   background: var(--surface);
   box-shadow: 0 8px 40px rgb(0 0 0 / 0.25);
@@ -47,8 +54,6 @@
 }
 
 .body {
-  max-width: 720px;
-  margin: 0 auto;
   padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
 }
 

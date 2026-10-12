@@ -116,7 +116,7 @@ export function ExpandableScreenContent({
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     origin.current = r
-      ? { x: r.left + r.width / 2 - vw / 2, y: r.top + r.height / 2 - vh / 2, scale: Math.min(1, Math.max(0.05, r.width / (vw - 24))) }
+      ? { x: r.left + r.width / 2 - vw / 2, y: r.top + r.height / 2 - vh / 2, scale: Math.min(1, Math.max(0.05, r.width / Math.min(520, vw - 32))) }
       : { x: 0, y: 0, scale: 0.92 };
   }
   if (!isExpanded) origin.current = null;
