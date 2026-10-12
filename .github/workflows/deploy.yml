@@ -1,9 +1,9 @@
 name: Deploy to GitHub Pages
 
-# The github-pages environment currently allows only v2. Add main under Settings, Environments, github-pages, then list it here.
+# The github-pages environment must allow main (Settings, Environments, github-pages) or this deploy is rejected.
 on:
   push:
-    branches: [v2]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
