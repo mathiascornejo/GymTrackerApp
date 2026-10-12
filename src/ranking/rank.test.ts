@@ -60,7 +60,7 @@ describe("computeRanks credit", () => {
     expect(r.muscles.has("quadriceps")).toBe(false);
   });
   it("never ranks stretches", () => {
-    const stretchy = (ref: string) => ({ name: "Chest Stretch", primary: ["chest"], secondary: [], equipment: "body weight" }) as never;
+    const stretchy = () => ({ name: "Chest Stretch", primary: ["chest"], secondary: [], equipment: "body weight" }) as never;
     expect(computeRanks([set("a", "ds:S", 0, 10)], BW, "male", {}, stretchy).muscles.size).toBe(0);
   });
   it("ignores unknown exercises", () => {
