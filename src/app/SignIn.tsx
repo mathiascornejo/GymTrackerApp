@@ -2,7 +2,9 @@ import { useState, type FormEvent } from "react";
 import { auth } from "../data/auth";
 import f from "./Form.module.css";
 
-// The code flow exists because a magic link opens in Safari, not the installed iPhone app.
+// The code flow exists because a magic link opens in Safari, not the installed iPhone app. It needs an email template
+// containing {{ .Token }}, which Supabase only lets you edit with custom SMTP, so it is off unless the build opts in.
+const EMAIL_CODE = import.meta.env.VITE_EMAIL_CODE_SIGNIN === "true";
 type Mode = "password" | "create" | "code";
 
 export function SignIn() {
@@ -84,7 +86,7 @@ export function SignIn() {
       </form>
       <div>
         {mode !== "password" && <button className={f.quiet} onClick={() => switchMode("password")}>Use password</button>}
-        {mode !== "code" && <button className={f.quiet} onClick={() => switchMode("code")}>Sign in with an email code</button>}
+        {EMAIL_CODE && mode !== "code" && <button className={f.quiet} onClick={() => switchMode("code")}>Sign in with an email code</button>}
         {mode !== "create" && <button className={f.quiet} onClick={() => switchMode("create")}>Create account</button>}
       </div>
     </div>

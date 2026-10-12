@@ -31,6 +31,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_EMAIL_CODE_SIGNIN: ${{ vars.VITE_EMAIL_CODE_SIGNIN }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
