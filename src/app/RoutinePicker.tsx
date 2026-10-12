@@ -2,8 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { useMemo, useState } from "react";
 import { applyFilters, cap, search } from "../exercises/query";
 import type { Exercise } from "../exercises/types";
-import { ALL_WEEKDAYS, type Target } from "../routines/model";
-import { WEEKDAY_NAMES } from "./BlockCard";
+import type { Target } from "../routines/model";
 import f from "./Form.module.css";
 import s from "./Routines.module.css";
 
@@ -30,17 +29,6 @@ function PickRow({ exercise, onAdd, current }: { exercise: Exercise; onAdd: (t: 
       >
         {added ? "Added" : "Add"}
       </button>
-      <select
-        aria-label={`Add ${exercise.name} to`}
-        value=""
-        onChange={(e) => e.target.value && onAdd(e.target.value === "bank" ? "bank" : { day: Number(e.target.value) })}
-      >
-        <option value="">Other day</option>
-        {ALL_WEEKDAYS.map((d) => (
-          <option key={d} value={d}>{WEEKDAY_NAMES[d]}</option>
-        ))}
-        <option value="bank">Accessory bank</option>
-      </select>
     </li>
   );
 }
@@ -59,6 +47,7 @@ export function RoutinePicker({
   const shown = useMemo(() => search(applyFilters(exercises, { muscle: muscle || undefined }), query), [exercises, query, muscle]);
   return (
     <section aria-label="Exercise picker" className={s.picker}>
+      <p className={f.note}>Adding to {current.label}. Close this and pick another day to add there.</p>
       <div className={s.pickerControls}>
         <label className={s.grow}>
           <span className={s.visuallyHidden}>Search the picker</span>

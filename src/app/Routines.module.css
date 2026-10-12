@@ -181,23 +181,31 @@
   opacity: 0.4;
 }
 
-.cardHead {
+
+
+
+
+.cardTop {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  align-items: flex-start;
   gap: 4px;
 }
 
-
-
+.cardMain {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+}
 
 .grip,
 .iconBtn {
   display: grid;
   place-items: center;
+  flex: none;
   width: 44px;
   height: 44px;
-  margin: -8px 0;
   border: 0;
   background: transparent;
   color: var(--ink-muted);
@@ -206,8 +214,37 @@
 }
 
 .grip {
+  margin: -4px -8px -4px -10px;
   cursor: grab;
   touch-action: none;
+}
+
+.editBtn {
+  flex: none;
+  min-height: 44px;
+  margin: -4px -6px -4px 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--accent);
+  font: 600 15px var(--font-ui);
+  cursor: pointer;
+}
+
+.editBtn:active {
+  background: var(--hairline);
+}
+
+.itemEdit {
+  display: grid;
+  gap: 6px;
+}
+
+.itemEditName {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 14px;
 }
 
 .items {
@@ -517,7 +554,7 @@
 
 .overview {
   margin: 16px 0 0;
-  padding: 16px;
+  padding: 16px 16px 18px;
   background: var(--surface);
   border-radius: 20px;
 }
@@ -526,8 +563,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 8px;
-  font-size: 1.25rem;
+  margin: 0;
+  font: 700 1.375rem/1.2 var(--font-display);
 }
 
 .badge {
@@ -540,19 +577,26 @@
 }
 
 .stats {
-  display: flex;
-  gap: 24px;
-  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 0;
 }
 
 .stats div {
   display: flex;
   flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 14px 14px 12px;
+  border-radius: var(--radius-control);
+  background: var(--ground);
 }
 
 .stats dt {
   color: var(--ink-muted);
   font-size: 0.8125rem;
+  line-height: 1.25;
 }
 
 .stats dd {
@@ -639,24 +683,3 @@
   text-align: center;
 }
 
-/* Collapsed card: the buttons share the first row with the name instead of sitting above it. */
-.compact .cardHead {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-}
-
-.compact .items {
-  padding-right: 136px;
-  min-height: 44px;
-}
-
-.compact .itemName {
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 2px 8px;
-}
-
-.compact .itemMeta {
-  white-space: nowrap;
-}

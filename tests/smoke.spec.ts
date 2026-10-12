@@ -172,22 +172,23 @@ test.describe("routine builder", () => {
     await expect(page.getByRole("region", { name: "Routine overview" }).getByRole("heading", { name: "New routine" })).toBeVisible();
   }
 
-  // The picker is docked on desktop and a bottom sheet on phone; either way it exposes the same "Add to" menu.
-  async function addExercise(page: Page, name: string, to: string) {
-    if (isPhone()) {
-      await page.getByRole("button", { name: "Add exercise" }).click();
-      await page.getByLabel("Search the picker").fill(name);
-      await page.getByLabel(`Add ${name} to`, { exact: true }).selectOption({ label: to });
-      await page.getByRole("button", { name: "Done", exact: true }).click();
-    } else {
-      await page.getByLabel("Search the picker").fill(name);
-      await page.getByLabel(`Add ${name} to`, { exact: true }).selectOption({ label: to });
-    }
-  }
-
   const showDay = async (page: Page, day: string) => {
     await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
   };
+
+  // The picker is docked on desktop and a bottom sheet on phone; either way Add puts the exercise on the day being viewed.
+  async function addExercise(page: Page, name: string, to: string) {
+    await showDay(page, to === "Accessory bank" ? "Bank" : to);
+    if (isPhone()) {
+      await page.getByRole("button", { name: "Add exercise" }).click();
+      await page.getByLabel("Search the picker").fill(name);
+      await page.getByRole("button", { name: `Add ${name} to ${to}`, exact: true }).click();
+      await page.getByRole("button", { name: "Done", exact: true }).click();
+    } else {
+      await page.getByLabel("Search the picker").fill(name);
+      await page.getByRole("button", { name: `Add ${name} to ${to}`, exact: true }).click();
+    }
+  }
 
   test("adds an exercise, edits sets, and keeps it after reload", async ({ page }) => {
     await openBuilder(page);
@@ -227,7 +228,7 @@ test.describe("routine builder", () => {
     await expect(page.getByRole("article")).toHaveCount(2);
   });
 
-  test("bank blocks count seven days of volume and Move to relocates a card", async ({ page }) => {
+  test("bank blocks count seven days of volume and a schedule change updates it", async ({ page }) => {
     await openBuilder(page);
     await addExercise(page, "Standing Calf Raises", "Accessory bank");
     await showDay(page, "Bank");
@@ -236,10 +237,6 @@ test.describe("routine builder", () => {
     await card.getByRole("button", { name: /^Edit / }).click();
     await card.getByLabel("Schedule").selectOption("week");
     await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*6/);
-    await card.getByLabel("Move Standing Calf Raises to").selectOption({ label: "Wednesday" });
-    await showDay(page, "Wednesday");
-    await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*3/);
   });
 
   test("exports a routine and imports it back, and rejects a bad file with reasons", async ({ page }) => {

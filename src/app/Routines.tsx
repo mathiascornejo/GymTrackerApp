@@ -148,7 +148,6 @@ export function Routines({ profile }: { profile: Profile }) {
     onRemoveItem: (itemId) => edit((r) => removeItem(r, b.id, itemId)),
     onRemoveBlock: () => edit((r) => removeBlock(r, b.id)),
     onUnlink: () => edit((r) => unlink(r, b.id)),
-    onMove: (to) => edit((r) => moveBlock(r, b.id, to)),
     onSchedule: (p) => edit((r) => updateBlock(r, b.id, p)),
     stepOf: (ref) => fromKg(profile.increments?.[ref] ?? defaultIncrementKg(info(ref)?.equipment ?? null), profile.weight_unit),
     onStep: (ref, v) => updateProfile.mutate({ increments: { ...(profile.increments ?? {}), [ref]: toKg(v, profile.weight_unit) } }),
@@ -270,7 +269,6 @@ export function Routines({ profile }: { profile: Profile }) {
             key={b.id}
             block={b}
             bank={target === "bank"}
-            container={cid}
             dragging={drag !== null && drag.type !== "item" && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
             info={info}
             actions={blockActions(b)}
@@ -302,11 +300,6 @@ export function Routines({ profile }: { profile: Profile }) {
             <button className={f.quiet} onClick={() => actions.setActive(routine.id)}>Make active</button>
           )}
           {routine && <button className={f.quiet} onClick={() => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`)))}>Duplicate</button>}
-          {routine && (
-            <button className={f.quiet} onClick={() => edit((r) => ({ ...r, archivedAt: r.archivedAt ? null : new Date().toISOString(), isActive: false }))}>
-              {routine.archivedAt ? "Restore" : "Archive"}
-            </button>
-          )}
           {routine && (
             <button
               className={f.quiet}
@@ -412,7 +405,6 @@ export function Routines({ profile }: { profile: Profile }) {
                   <h2 className={s.sheetTitle}>Add exercise</h2>
                   <button className={f.quiet} onClick={() => setPickerOpen(false)}>Done</button>
                 </div>
-                <p className={f.note}>Add puts it on {current.label}. Use Other day for a different one.</p>
                 <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
               </Sheet>
             </>
