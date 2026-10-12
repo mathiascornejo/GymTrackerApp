@@ -87,7 +87,7 @@ export function Routines({ profile }: { profile: Profile }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   // A new routine is only stored when saved; until then it is just a name.
-  const [draft, setDraft] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
   useEffect(() => setSelected([]), [routine?.id]);
 
   const sensors = useSensors(
@@ -242,34 +242,29 @@ export function Routines({ profile }: { profile: Profile }) {
             ))}
           </select>
         </label>
-        {draft !== null && (
-          <label>
-            New routine name
-            <input autoFocus className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
-          </label>
-        )}
-        {routine && draft === null && (
+        {routine && (
           <label>
             Name
             <input key={routine.id} className={f.input} defaultValue={routine.name} onBlur={(e) => e.target.value.trim() && e.target.value.trim() !== routine.name && edit((r) => ({ ...r, name: e.target.value.trim() }))} />
           </label>
         )}
+        <form
+          className={s.newRoutine}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!draft.trim()) return;
+            setPickedId(actions.create(draft.trim()));
+            setDraft("");
+          }}
+        >
+          <label>
+            New routine name
+            <input className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          </label>
+          <button className={f.button} type="submit" disabled={!draft.trim()}>Save routine</button>
+        </form>
         <div className={s.toolbarButtons}>
-          {draft === null ? (
-            <button className={f.button} onClick={() => setDraft("")}>New routine</button>
-          ) : (
-            <>
-              <button
-                className={f.button}
-                disabled={!draft.trim()}
-                onClick={() => (setPickedId(actions.create(draft.trim())), setDraft(null))}
-              >
-                Save routine
-              </button>
-              <button className={f.quiet} onClick={() => setDraft(null)}>Cancel</button>
-            </>
-          )}
-          {routine && draft === null && !routine.isActive && !routine.archivedAt && (
+          {routine && !routine.isActive && !routine.archivedAt && (
             <button className={f.quiet} onClick={() => actions.setActive(routine.id)}>Make active</button>
           )}
           {routine && <button className={f.quiet} onClick={() => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`)))}>Duplicate</button>}
@@ -303,7 +298,7 @@ export function Routines({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      {routine && draft === null && (
+      {routine && (
         <section className={s.overview} aria-label="Routine overview">
           <h2 className={s.overviewName}>
             {routine.name}

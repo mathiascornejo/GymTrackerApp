@@ -164,7 +164,6 @@ test.describe("routine builder", () => {
   }
 
   async function newRoutine(page: Page) {
-    await page.getByRole("button", { name: "New routine" }).click();
     await page.getByLabel("New routine name").fill("New routine");
     await page.getByRole("button", { name: "Save routine" }).click();
     await expect(page.getByLabel("Name", { exact: true })).toHaveValue("New routine");

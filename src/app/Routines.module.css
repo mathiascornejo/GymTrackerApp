@@ -510,3 +510,9 @@
   font-size: 1.5rem;
   font-weight: 600;
 }
+
+.newRoutine {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
