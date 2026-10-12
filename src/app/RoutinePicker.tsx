@@ -9,7 +9,8 @@ import s from "./Routines.module.css";
 
 const LIMIT = 40;
 
-function PickRow({ exercise, onAdd }: { exercise: Exercise; onAdd: (t: Target) => void }) {
+function PickRow({ exercise, onAdd, current }: { exercise: Exercise; onAdd: (t: Target) => void; current: { target: Target; label: string } }) {
+  const [added, setAdded] = useState(false);
   const drag = useDraggable({ id: `pick:${exercise.ref}`, data: { type: "pick", ref: exercise.ref } });
   return (
     <li className={s.pickRow} style={{ opacity: drag.isDragging ? 0.5 : 1 }}>
@@ -17,12 +18,24 @@ function PickRow({ exercise, onAdd }: { exercise: Exercise; onAdd: (t: Target) =
         <span>{exercise.name}</span>
         <span className={s.sub}>{[exercise.primary[0] && cap(exercise.primary[0]), exercise.equipment].filter(Boolean).join(" · ")}</span>
       </div>
+      <button
+        type="button"
+        className={`${s.pickAdd} ${added ? s.pickAdded : ""}`}
+        aria-label={`Add ${exercise.name} to ${current.label}`}
+        onClick={() => {
+          onAdd(current.target);
+          setAdded(true);
+          setTimeout(() => setAdded(false), 1200);
+        }}
+      >
+        {added ? "Added" : "Add"}
+      </button>
       <select
         aria-label={`Add ${exercise.name} to`}
         value=""
         onChange={(e) => e.target.value && onAdd(e.target.value === "bank" ? "bank" : { day: Number(e.target.value) })}
       >
-        <option value="">Add to…</option>
+        <option value="">Other day</option>
         {ALL_WEEKDAYS.map((d) => (
           <option key={d} value={d}>{WEEKDAY_NAMES[d]}</option>
         ))}
@@ -32,7 +45,15 @@ function PickRow({ exercise, onAdd }: { exercise: Exercise; onAdd: (t: Target) =
   );
 }
 
-export function RoutinePicker({ exercises, muscles, onAdd }: { exercises: Exercise[]; muscles: string[]; onAdd: (ref: string, t: Target) => void }) {
+export function RoutinePicker({
+  exercises, muscles, onAdd, current,
+}: {
+  exercises: Exercise[];
+  muscles: string[];
+  onAdd: (ref: string, t: Target) => void;
+  /** The day being viewed: the one-tap Add button puts the exercise here. */
+  current: { target: Target; label: string };
+}) {
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState("");
   const shown = useMemo(() => search(applyFilters(exercises, { muscle: muscle || undefined }), query), [exercises, query, muscle]);
@@ -55,7 +76,7 @@ export function RoutinePicker({ exercises, muscles, onAdd }: { exercises: Exerci
       </div>
       <ul className={s.pickList}>
         {shown.slice(0, LIMIT).map((e) => (
-          <PickRow key={e.ref} exercise={e} onAdd={(t) => onAdd(e.ref, t)} />
+          <PickRow key={e.ref} exercise={e} current={current} onAdd={(t) => onAdd(e.ref, t)} />
         ))}
       </ul>
       {shown.length > LIMIT && <p className={f.note}>Showing {LIMIT} of {shown.length}. Search to narrow the list.</p>}

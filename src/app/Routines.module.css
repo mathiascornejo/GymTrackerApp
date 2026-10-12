@@ -9,7 +9,6 @@
 .toolbar {
   padding: 16px;
   background: var(--surface);
-  border: 1px solid var(--hairline);
   border-radius: var(--radius-list);
   display: flex;
   flex-wrap: wrap;
@@ -26,6 +25,8 @@
 
 .toolbarButtons {
   flex-basis: 100%;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -62,11 +63,18 @@
   min-width: 56px;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--hairline);
+  border: 0;
   border-radius: 999px;
   background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--hairline);
   color: var(--ink);
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.pagerBtn:active {
+  background: var(--hairline);
 }
 
 .pagerOver {
@@ -89,8 +97,9 @@
 
 .pagerBtn[aria-selected="true"] {
   background: var(--accent);
-  border-color: var(--accent);
+  box-shadow: none;
   color: var(--on-accent);
+  font-weight: 600;
 }
 
 
@@ -103,36 +112,44 @@
 
 .column {
   min-width: 0;
-  padding: 8px;
-  border: 1px solid var(--hairline);
+  padding: 4px;
   border-radius: var(--radius-list);
-  background: var(--surface);
   min-height: 120px;
 }
 
 .columnOver {
-  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .columnHead {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 4px 4px 8px;
-  font: 600 15px/20px var(--font-ui);
+  gap: 2px;
+  padding: 4px 4px 12px;
+  font: 700 22px/28px var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 
 .columnBody {
   display: grid;
-  gap: 8px;
+  gap: 10px;
+}
+
+.columnBody:empty {
+  display: none;
 }
 
 .empty {
-  margin: 8px 4px;
+  margin: 0;
+  padding: 24px 16px;
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius-list);
   color: var(--ink-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
 }
 
 .bankLane {
@@ -146,13 +163,17 @@
 .card {
   position: relative;
   display: grid;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-control);
-  background: var(--ground);
-  font-size: 15px;
-  line-height: 20px;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-list);
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--hairline);
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.compact {
+  cursor: pointer;
 }
 
 
@@ -201,7 +222,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-weight: 600;
+  font: 600 17px/22px var(--font-display);
 }
 
 .itemName a {
@@ -214,16 +235,28 @@
 
 .repRow {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: 6px;
-  color: var(--ink-muted);
+  gap: 8px 12px;
 }
 
 .controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 8px 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+.stepField {
+  display: grid;
+  gap: 4px;
+}
+
+.stepCaption {
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 16px;
 }
 
 .note {
@@ -236,9 +269,9 @@
 .stepper {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--hairline);
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: var(--ground);
+  box-shadow: inset 0 0 0 1px var(--hairline);
 }
 
 .stepper button {
@@ -246,8 +279,14 @@
   height: 44px;
   border: 0;
   background: transparent;
-  font-size: 20px;
+  color: var(--accent);
+  font-size: 22px;
   cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.stepper button:not(:disabled):active {
+  background: var(--hairline);
 }
 
 .stepper button:disabled {
@@ -256,7 +295,8 @@
 }
 
 .stepper output {
-  min-width: 36px;
+  min-width: 48px;
+  font-weight: 600;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
@@ -324,6 +364,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
 }
 
 .textBtn {
@@ -391,10 +433,28 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 4px 8px;
-  border: 1px solid var(--hairline);
+  padding: 4px 8px 4px 12px;
   border-radius: var(--radius-control);
   background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+
+.pickAdd {
+  flex: none;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 15px var(--font-ui);
+  cursor: pointer;
+}
+
+.pickAdded {
+  background: var(--done);
+  color: var(--on-done);
 }
 
 .pickName {
@@ -435,7 +495,6 @@
   margin-top: 16px;
   padding: 16px 20px;
   background: var(--surface);
-  border: 1px solid var(--hairline);
   border-radius: var(--radius-list);
 }
 
@@ -498,8 +557,8 @@
 
 .stats dd {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font: 700 1.75rem/1.2 var(--font-display);
+  font-variant-numeric: tabular-nums;
 }
 
 .newRoutine {

@@ -66,6 +66,8 @@ export function BlockCard({
       className={`${s.card} ${open ? "" : s.compact} ${sortable.isDragging ? s.cardDragging : ""}`}
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       aria-label={names.join(" and ")}
+      // Tapping the card body opens the editor; the pencil stays for keyboard users.
+      onClick={(e) => { if (!open && !(e.target as HTMLElement).closest("a,button,select,input,label")) setOpen(true); }}
     >
       <header className={s.cardHead}>
         <button
@@ -136,9 +138,8 @@ export function BlockCard({
               />
             </label>
             <div className={s.repRow}>
-              <Stepper label={`${names[i]} minimum reps`} value={item.repMin} min={1} max={100} onChange={(v) => actions.onReps(item.id, { repMin: v })} />
-              <span aria-hidden="true">to</span>
-              <Stepper label={`${names[i]} maximum reps`} value={item.repMax} min={1} max={100} onChange={(v) => actions.onReps(item.id, { repMax: v })} />
+              <Stepper caption="Min reps" label={`${names[i]} minimum reps`} value={item.repMin} min={1} max={100} onChange={(v) => actions.onReps(item.id, { repMin: v })} />
+              <Stepper caption="Max reps" label={`${names[i]} maximum reps`} value={item.repMax} min={1} max={100} onChange={(v) => actions.onReps(item.id, { repMax: v })} />
             </div>
           </li>
         ))}
@@ -148,10 +149,10 @@ export function BlockCard({
       {note === "same-muscle" && <p className={s.note}>Both target {cap(info(block.items[0].ref)?.primary[0] ?? "the same muscle")}.</p>}
 
       <div className={s.controls}>
-        <Stepper label={block.kind === "single" ? "Sets" : "Rounds"} value={block.sets} min={1} max={30} onChange={actions.onSets} />
-        <Stepper label="Rest" value={block.restS} step={15} min={0} max={600} format={mmss} onChange={actions.onRest} />
+        <Stepper caption={block.kind === "single" ? "Sets" : "Rounds"} label={block.kind === "single" ? "Sets" : "Rounds"} value={block.sets} min={1} max={30} onChange={actions.onSets} />
+        <Stepper caption="Rest" label="Rest" value={block.restS} step={15} min={0} max={600} format={mmss} onChange={actions.onRest} />
         {block.items.length > 1 && (
-          <Stepper label="Rest between exercises" value={block.transitionRestS} step={5} min={0} max={300} format={mmss} onChange={actions.onTransition} />
+          <Stepper caption="Between exercises" label="Rest between exercises" value={block.transitionRestS} step={5} min={0} max={300} format={mmss} onChange={actions.onTransition} />
         )}
       </div>
 
@@ -174,7 +175,7 @@ export function BlockCard({
             </select>
           </label>
           {mode === "week" && (
-            <Stepper label="Times per week" value={block.weeklyTarget ?? 2} min={1} max={7} onChange={(v) => actions.onSchedule({ weekdays: null, weeklyTarget: v })} />
+            <Stepper caption="Times per week" label="Times per week" value={block.weeklyTarget ?? 2} min={1} max={7} onChange={(v) => actions.onSchedule({ weekdays: null, weeklyTarget: v })} />
           )}
           {mode === "days" && (
             <fieldset className={s.dayChips}>

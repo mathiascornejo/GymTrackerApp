@@ -65,7 +65,7 @@ function Column({ target, label, title, children, ids }: { target: Target; label
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
       </SortableContext>
-      {ids.length === 0 && <p className={s.empty}>{target === "bank" ? "Accessories that repeat across days go here." : "Rest day"}</p>}
+      {ids.length === 0 && <p className={s.empty}>{target === "bank" ? "Accessories that repeat across days go here. Add one below." : "Rest day. Add an exercise to make this a training day."}</p>}
     </section>
   );
 }
@@ -202,6 +202,7 @@ export function Routines({ profile }: { profile: Profile }) {
   const volume = routine ? Object.entries(weeklySets(routine, (ref) => info(ref)?.primary ?? [])).sort((a, b) => b[1] - a[1]) : [];
 
   const stats = routine ? routineStats(routine) : null;
+  const current = pageDay === "bank" ? { target: "bank" as Target, label: "Accessory bank" } : { target: { day: pageDay }, label: WEEKDAY_NAMES[pageDay] };
   const nameOf = (id: string) => info(id)?.name ?? id;
   const overlayText = !drag
     ? ""
@@ -402,7 +403,7 @@ export function Routines({ profile }: { profile: Profile }) {
           <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>
 
           {desktop ? (
-            <RoutinePicker exercises={all} muscles={muscles} onAdd={(ref, t) => add(ref, t)} />
+            <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
           ) : (
             <>
               <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>
@@ -411,7 +412,8 @@ export function Routines({ profile }: { profile: Profile }) {
                   <h2 className={s.sheetTitle}>Add exercise</h2>
                   <button className={f.quiet} onClick={() => setPickerOpen(false)}>Done</button>
                 </div>
-                <RoutinePicker exercises={all} muscles={muscles} onAdd={(ref, t) => add(ref, t)} />
+                <p className={f.note}>Add puts it on {current.label}. Use Other day for a different one.</p>
+                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
               </Sheet>
             </>
           )}
