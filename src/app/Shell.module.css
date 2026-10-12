@@ -8,11 +8,12 @@
 
 .header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 16px 0 8px;
+  max-width: var(--content-w);
+  margin: 0 auto;
+  /* Room on the right for the frozen profile button. */
+  padding: 16px 64px 8px 0;
 }
 
 .title {
@@ -21,56 +22,14 @@
 }
 
 .main {
-  max-width: 1100px;
+  max-width: var(--content-w);
+  margin: 0 auto;
   padding-top: 8px;
-}
-
-.theme {
-  display: inline-flex;
-  padding: 2px;
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-}
-
-.themeOption {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.themeOption[aria-checked="true"] {
-  background: var(--accent);
-  color: var(--on-accent);
 }
 
 @media (min-width: 1024px) {
   /* The nav tray is pinned top left, so the page starts below it. */
   .body {
-    padding: calc(16px + var(--nav-h) + 16px) 40px 24px;
+    padding: calc(16px + var(--nav-h) + 16px) clamp(40px, 8vw, 128px) 24px;
   }
-}
-
-.tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.profile {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  color: var(--ink-muted);
-}
-
-.profile[aria-current="page"] {
-  color: var(--accent);
 }

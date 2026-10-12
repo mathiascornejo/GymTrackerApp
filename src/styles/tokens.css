@@ -35,6 +35,7 @@
   --tabbar-h: 88px;
   --rail-w: 0px; /* no side rail any more: the nav is top left on desktop */
   --nav-h: 80px;
+  --content-w: 1100px;
 }
 
 :root:not([data-theme="light"]) {

@@ -67,7 +67,8 @@ test("sign-in rejects a wrong password with a readable message", async ({ page }
 
 test("theme choice is saved to the profile and survives a fresh browser", async ({ page, browser }) => {
   await signInAndSkipSetup(page);
-  await profileSaved(page, () => page.getByRole("radio", { name: "Dark" }).click());
+  await profileSaved(page, () => page.getByRole("button", { name: /^Theme: System/ }).click()); // system to light
+  await profileSaved(page, () => page.getByRole("button", { name: /^Theme: Light/ }).click()); // light to dark
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
