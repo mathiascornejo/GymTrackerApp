@@ -9,6 +9,10 @@ declare const self: ServiceWorkerGlobalScope;
 // The app shell, built assets (including the exercise dataset chunk) and fonts are precached: the log works offline.
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
+
+// A new worker takes over straight away. Without this it waits for every tab to close, so a reload kept showing the old build.
+self.addEventListener("install", () => void self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 registerRoute(new NavigationRoute(createHandlerBoundToURL(`${import.meta.env.BASE_URL}index.html`)));
 
 // Demonstration images come from jsDelivr pinned to a dataset commit, so cached copies never go stale.
