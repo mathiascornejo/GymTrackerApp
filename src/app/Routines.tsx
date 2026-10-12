@@ -379,7 +379,7 @@ export function Routines({ profile }: { profile: Profile }) {
             <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>
             <div><dt>Sets per week</dt><dd>{stats!.weeklySets}</dd></div>
           </dl>
-          {volume.length > 0 && <p className={f.note}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
+          {volume.length > 0 && <p className={`${f.note} ${s.mostWork}`}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
         </section>
       )}
 
