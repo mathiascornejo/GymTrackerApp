@@ -11,17 +11,6 @@ const METAL: Record<string, [string, string, string]> = {
   platinum: ["#5f9aa1", "#8FC9CF", "#e9fcfe"],
 };
 
-const HATCH: Record<string, string> = {
-  wood: "M0 4 L8 4",
-  bronze: "M4 0 L4 8",
-  silver: "M0 8 L8 0",
-  gold: "M0 0 L8 8",
-  platinum: "M0 4 L8 4 M4 0 L4 8",
-  diamond: "",
-  master: "M0 2 L4 6 L8 2",
-  olympian: "M0 0 L8 8 M0 8 L8 0",
-};
-
 /** Static materials. Rendered once per page; each map references them by id. */
 export function MaterialDefs() {
   return (
@@ -61,11 +50,6 @@ export function MaterialDefs() {
           <stop offset="0" stopColor="#E23B52" />
           <stop offset="1" stopColor="#A31527" />
         </linearGradient>
-        {MATERIAL_IDS.map((id) => (
-          <pattern key={id} id={`hatch-${id}`} width="8" height="8" patternUnits="userSpaceOnUse">
-            {id === "diamond" ? <circle cx="4" cy="4" r="1.2" fill="currentColor" /> : <path d={HATCH[id]} stroke="currentColor" strokeWidth="1" fill="none" />}
-          </pattern>
-        ))}
         <linearGradient id="sheen" gradientUnits="userSpaceOnUse" x1="-70" y1="0" x2="-10" y2="0">
           <stop offset="0" stopColor="#fff" stopOpacity="0" />
           <stop offset="0.5" stopColor="#fff" stopOpacity="0.9" />
@@ -88,12 +72,11 @@ function Shape({ region, className, ...rest }: { region: Region } & Omit<React.S
 }
 
 export function BodyMap({
-  view, tiers, patterns, sheen, sheenSeconds = 1.4, onSelect,
+  view, tiers, sheen, sheenSeconds = 1.4, onSelect,
 }: {
   view: "front" | "back";
   /** muscle -> tier index; muscles with no data are absent and drawn neutral. */
   tiers: Map<string, number>;
-  patterns: boolean;
   /** Muscles playing the rank-up sheen. */
   sheen: Set<string>;
   sheenSeconds?: number;
@@ -128,7 +111,6 @@ export function BodyMap({
               stroke={id === "olympian" ? "#F2C96B" : undefined}
               strokeWidth={id === "olympian" ? 2 : 1.5}
             />
-            {has && patterns && <Shape region={r} fill={`url(#hatch-${id})`} className={s.pattern} />}
             {sheen.has(r.muscle) && (
               <Shape region={r} fill="url(#sheen-run)" className={s.sheenShape} />
             )}

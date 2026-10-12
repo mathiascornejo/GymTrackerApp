@@ -570,7 +570,7 @@ test.describe("dashboard and ranks", () => {
     await expect(page.getByRole("img", { name: /Bodyweight: 2 points, latest 81.5 kg/ })).toBeVisible();
   });
 
-  test("edited standards and the pattern overlay persist", async ({ page }) => {
+  test("edited standards persist", async ({ page }) => {
     const seed = await seededUser();
     await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }]);
     await open(page, seed, "settings");
@@ -580,7 +580,6 @@ test.describe("dashboard and ranks", () => {
     await diamond.fill("1.4");
     await profileSaved(page, () => diamond.blur());
     await expect(page.getByRole("alert")).toHaveCount(0);
-    await profileSaved(page, () => page.getByLabel("Rank patterns on the body map").check());
     await page.goto("#/dashboard");
     await expect(page.getByRole("button", { name: "Chest, Diamond. Show details" })).toBeVisible();
     await page.reload();

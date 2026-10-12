@@ -258,12 +258,6 @@ export function Settings({ profile }: { profile: Profile }) {
       </div>
       <p className={f.note}>Standards are approximate.</p>
       <StandardsEditor profile={profile} />
-      <div className={f.group}>
-        <label className={f.row}>
-          <span className={f.label}>Rank patterns on the body map</span>
-          <Toggle checked={profile.rank_patterns} onChange={(v) => set({ rank_patterns: v })} />
-        </label>
-      </div>
       </section>
 
       <section className={f.card}>

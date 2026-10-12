@@ -156,12 +156,6 @@
   stroke-linejoin: round;
 }
 
-.pattern {
-  opacity: 0.45;
-  pointer-events: none;
-  stroke: none;
-}
-
 .sheenShape {
   pointer-events: none;
   stroke: none;

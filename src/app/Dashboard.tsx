@@ -165,7 +165,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
         ) : mode === "map" ? (
           <div className={s.mapWrap}>
             <BodyMap
-              view={view} tiers={tiers} patterns={profile.rank_patterns} sheen={new Set(ceremony?.muscles ?? [])}
+              view={view} tiers={tiers} sheen={new Set(ceremony?.muscles ?? [])}
               sheenSeconds={ceremony?.seconds} onSelect={setSelected}
             />
             <div className={s.overall}>
