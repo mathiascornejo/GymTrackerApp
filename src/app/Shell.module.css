@@ -50,9 +50,9 @@
 }
 
 @media (min-width: 1024px) {
+  /* The nav tray is pinned top left, so the page starts below it. */
   .body {
-    margin-left: var(--rail-w);
-    padding: 24px 40px;
+    padding: calc(16px + var(--nav-h) + 16px) 40px 24px;
   }
 }
 

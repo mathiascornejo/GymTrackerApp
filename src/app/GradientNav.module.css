@@ -183,25 +183,10 @@
   cursor: pointer;
 }
 
-/* Desktop: the same tray stood on end in the left rail. */
+/* Desktop: the same tray, pinned to the top left. */
 @media (min-width: 1024px) {
   .dock {
-    inset: 0 auto 0 0;
-    width: var(--rail-w);
-    align-items: center;
-    padding: 24px 0;
-  }
-
-  .tray {
-    flex-direction: column;
-    padding: 4px 4px 6px;
-  }
-
-  .nav {
-    flex-direction: column;
-  }
-
-  .toggle {
-    margin: 4px 0 0;
+    inset: 16px auto auto 16px;
+    justify-content: flex-start;
   }
 }
