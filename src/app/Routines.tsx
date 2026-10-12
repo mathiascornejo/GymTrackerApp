@@ -86,8 +86,21 @@ export function Routines({ profile }: { profile: Profile }) {
   const [keyboardDrag, setKeyboardDrag] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
-  // A new routine is only stored when saved; until then it is just a name.
+  // One popup for both: a new routine is only stored when saved, and a rename only applies on save.
+  const [naming, setNaming] = useState<"new" | "rename" | null>(null);
   const [draft, setDraft] = useState("");
+  const openNaming = (mode: "new" | "rename") => {
+    setDraft(mode === "rename" ? routine?.name ?? "" : "");
+    setNaming(mode);
+  };
+  const saveName = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = draft.trim();
+    if (!name) return;
+    if (naming === "new") setPickedId(actions.create(name));
+    else if (name !== routine?.name) edit((r) => ({ ...r, name }));
+    setNaming(null);
+  };
   useEffect(() => setSelected([]), [routine?.id]);
 
   const sensors = useSensors(
@@ -242,27 +255,7 @@ export function Routines({ profile }: { profile: Profile }) {
             ))}
           </select>
         </label>
-        {routine && (
-          <label>
-            Name
-            <input key={routine.id} className={f.input} defaultValue={routine.name} onBlur={(e) => e.target.value.trim() && e.target.value.trim() !== routine.name && edit((r) => ({ ...r, name: e.target.value.trim() }))} />
-          </label>
-        )}
-        <form
-          className={s.newRoutine}
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!draft.trim()) return;
-            setPickedId(actions.create(draft.trim()));
-            setDraft("");
-          }}
-        >
-          <label>
-            New routine name
-            <input className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
-          </label>
-          <button className={f.button} type="submit" disabled={!draft.trim()}>Save routine</button>
-        </form>
+        <button className={`${f.button} ${s.newRoutine}`} onClick={() => openNaming("new")}>New routine</button>
         <div className={s.toolbarButtons}>
           {routine && !routine.isActive && !routine.archivedAt && (
             <button className={f.quiet} onClick={() => actions.setActive(routine.id)}>Make active</button>
@@ -289,6 +282,20 @@ export function Routines({ profile }: { profile: Profile }) {
         </div>
       </div>
 
+      <Sheet open={naming !== null} onClose={() => setNaming(null)} label={naming === "new" ? "New routine" : "Rename routine"}>
+        <form onSubmit={saveName}>
+          <div className={s.sheetTop}>
+            <h2 className={s.sheetTitle}>{naming === "new" ? "New routine" : "Rename routine"}</h2>
+            <button type="button" className={f.quiet} onClick={() => setNaming(null)}>Cancel</button>
+          </div>
+          <label>
+            Routine name
+            <input autoFocus className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          </label>
+          <button className={f.button} type="submit" disabled={!draft.trim()} style={{ marginTop: 16 }}>Save routine</button>
+        </form>
+      </Sheet>
+
       <p className={f.note} role="status" style={{ margin: "8px 0 0" }}>{actions.saving ? "Saving…" : "All changes saved"}</p>
       {actions.error && <p className={f.error} role="alert">Could not save your changes: {actions.error.message}. The routine was reloaded from your account.</p>}
       {importErrors.length > 0 && (
@@ -302,6 +309,12 @@ export function Routines({ profile }: { profile: Profile }) {
         <section className={s.overview} aria-label="Routine overview">
           <h2 className={s.overviewName}>
             {routine.name}
+            <button className={s.pencil} aria-label="Rename routine" onClick={() => openNaming("rename")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </button>
             {routine.isActive && <span className={s.badge}>Active</span>}
             {routine.archivedAt && <span className={s.badge}>Archived</span>}
           </h2>

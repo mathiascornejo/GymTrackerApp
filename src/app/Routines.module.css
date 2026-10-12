@@ -512,7 +512,18 @@
 }
 
 .newRoutine {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
+  justify-self: end;
+}
+
+.pencil {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
 }

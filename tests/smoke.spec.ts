@@ -164,9 +164,10 @@ test.describe("routine builder", () => {
   }
 
   async function newRoutine(page: Page) {
-    await page.getByLabel("New routine name").fill("New routine");
+    await page.getByRole("button", { name: "New routine" }).click();
+    await page.getByLabel("Routine name").fill("New routine");
     await page.getByRole("button", { name: "Save routine" }).click();
-    await expect(page.getByLabel("Name", { exact: true })).toHaveValue("New routine");
+    await expect(page.getByRole("region", { name: "Routine overview" }).getByRole("heading", { name: "New routine" })).toBeVisible();
   }
 
   // The picker is docked on desktop and a bottom sheet on phone; either way it exposes the same "Add to" menu.
