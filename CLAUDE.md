@@ -61,7 +61,7 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - `npm run e2e` also starts `supabase functions serve` (second web server) so the function tests run locally.
 
 ## Exercise data
-- Dataset is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
+- Dataset (hasaneyldrm/exercises-dataset, converted by `scripts/build-exercise-dataset.mjs`; media © Gym visual, personal use only) is vendored at `src/exercises/dataset.json`, pinned to `DATASET_SHA` in `src/exercises/dataset.ts` (images from jsDelivr at that SHA). It loads as a separate chunk.
 - Refs are `ds:<id>` or `custom:<uuid>`. Do not bump the SHA without an old-id to new-id check: history stores refs.
 - Muscle vocabulary is derived from the data (17 groups). Dataset labels are lower-case; show them through `cap()`.
 

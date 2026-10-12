@@ -9,9 +9,9 @@ export function About() {
 
       <h2 className={f.groupTitle}>Exercise data</h2>
       <p style={{ margin: 0 }}>
-        The exercise list, demonstration images and instructions come from the open{" "}
-        <a href="https://github.com/yuhonas/free-exercise-db">free-exercise-db</a> project by yuhonas, released under the Unlicense
-        (public domain). Attribution is not required; it is given here anyway.
+        The exercise list and instructions come from the{" "}
+        <a href="https://github.com/hasaneyldrm/exercises-dataset">exercises-dataset</a> project by hasaneyldrm (MIT). The
+        demonstration animations are © <a href="https://gymvisual.com/">Gym visual</a> and are shown for personal, educational use.
       </p>
       <p className={f.note}>Pinned to commit {DATASET_SHA.slice(0, 7)}. Images are served from jsDelivr.</p>
 

@@ -67,4 +67,4 @@ The strength standards behind the ranks are placeholders written for this app, n
 | `CLAUDE.md` | Conventions for working on this codebase |
 
 ## Credits
-Exercise data and images: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) by yuhonas (Unlicense), pinned to a commit and served through jsDelivr.
+Exercise data and images: [exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) by hasaneyldrm (MIT for data; animations © [Gym visual](https://gymvisual.com/), see its NOTICE.md), pinned to a commit and served through jsDelivr.

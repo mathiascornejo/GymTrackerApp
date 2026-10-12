@@ -53,8 +53,6 @@ export const RANKING_LIFTS: RankingLift[] = [
   { ref: "ds:Cable_Crunch", muscle: "abdominals", load: "external", male: [0.35, 0.55, 0.75, 0.95, 1.2, 1.45, 1.7], femaleFactor: MID },
   { ref: "ds:Seated_Palms-Down_Barbell_Wrist_Curl", muscle: "forearms", load: "external", male: [0.15, 0.25, 0.35, 0.45, 0.58, 0.72, 0.88], femaleFactor: UP },
   { ref: "ds:Seated_Palm-Up_Barbell_Wrist_Curl", muscle: "forearms", load: "external", male: [0.2, 0.32, 0.45, 0.58, 0.72, 0.88, 1.05], femaleFactor: UP },
-  { ref: "ds:Lying_Face_Down_Plate_Neck_Resistance", muscle: "neck", load: "external", male: [0.08, 0.14, 0.2, 0.28, 0.36, 0.45, 0.55], femaleFactor: MID },
-  { ref: "ds:Lying_Face_Up_Plate_Neck_Resistance", muscle: "neck", load: "external", male: [0.07, 0.12, 0.18, 0.25, 0.33, 0.42, 0.5], femaleFactor: MID },
   { ref: "ds:Thigh_Abductor", muscle: "abductors", load: "external", male: [0.5, 0.8, 1.1, 1.45, 1.8, 2.2, 2.6], femaleFactor: LOW },
   { ref: "ds:Thigh_Adductor", muscle: "adductors", load: "external", male: [0.5, 0.8, 1.1, 1.4, 1.75, 2.1, 2.5], femaleFactor: LOW },
 ];
