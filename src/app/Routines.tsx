@@ -12,7 +12,7 @@ import { loadDataset } from "../exercises/dataset";
 import { cap, facets } from "../exercises/query";
 import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
-  removeItem, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
+  removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
 import { Sheet } from "./ExerciseSheet";
@@ -86,6 +86,8 @@ export function Routines({ profile }: { profile: Profile }) {
   const [keyboardDrag, setKeyboardDrag] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
+  // A new routine is only stored when saved; until then it is just a name.
+  const [draft, setDraft] = useState<string | null>(null);
   useEffect(() => setSelected([]), [routine?.id]);
 
   const sensors = useSensors(
@@ -146,6 +148,7 @@ export function Routines({ profile }: { profile: Profile }) {
   const order = Array.from({ length: 7 }, (_, i) => (profile.week_starts_on + i) % 7);
   const volume = routine ? Object.entries(weeklySets(routine, (ref) => info(ref)?.primary ?? [])).sort((a, b) => b[1] - a[1]) : [];
 
+  const stats = routine ? routineStats(routine) : null;
   const nameOf = (id: string) => info(id)?.name ?? id;
   const overlayText = !drag
     ? ""
@@ -239,15 +242,34 @@ export function Routines({ profile }: { profile: Profile }) {
             ))}
           </select>
         </label>
-        {routine && (
+        {draft !== null && (
+          <label>
+            New routine name
+            <input autoFocus className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          </label>
+        )}
+        {routine && draft === null && (
           <label>
             Name
             <input key={routine.id} className={f.input} defaultValue={routine.name} onBlur={(e) => e.target.value.trim() && e.target.value.trim() !== routine.name && edit((r) => ({ ...r, name: e.target.value.trim() }))} />
           </label>
         )}
         <div className={s.toolbarButtons}>
-          <button className={f.button} onClick={() => setPickedId(actions.create("New routine"))}>New routine</button>
-          {routine && !routine.isActive && !routine.archivedAt && (
+          {draft === null ? (
+            <button className={f.button} onClick={() => setDraft("")}>New routine</button>
+          ) : (
+            <>
+              <button
+                className={f.button}
+                disabled={!draft.trim()}
+                onClick={() => (setPickedId(actions.create(draft.trim())), setDraft(null))}
+              >
+                Save routine
+              </button>
+              <button className={f.quiet} onClick={() => setDraft(null)}>Cancel</button>
+            </>
+          )}
+          {routine && draft === null && !routine.isActive && !routine.archivedAt && (
             <button className={f.quiet} onClick={() => actions.setActive(routine.id)}>Make active</button>
           )}
           {routine && <button className={f.quiet} onClick={() => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`)))}>Duplicate</button>}
@@ -279,6 +301,22 @@ export function Routines({ profile }: { profile: Profile }) {
           <p style={{ margin: 0 }}>This file could not be imported:</p>
           <ul>{importErrors.slice(0, 8).map((m) => <li key={m}>{m}</li>)}</ul>
         </div>
+      )}
+
+      {routine && draft === null && (
+        <section className={s.overview} aria-label="Routine overview">
+          <h2 className={s.overviewName}>
+            {routine.name}
+            {routine.isActive && <span className={s.badge}>Active</span>}
+            {routine.archivedAt && <span className={s.badge}>Archived</span>}
+          </h2>
+          <dl className={s.stats}>
+            <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
+            <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>
+            <div><dt>Sets per week</dt><dd>{stats!.weeklySets}</dd></div>
+          </dl>
+          {volume.length > 0 && <p className={f.note}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
+        </section>
       )}
 
       {!routine ? (

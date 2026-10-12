@@ -160,8 +160,14 @@ test.describe("routine builder", () => {
 
   async function openBuilder(page: Page) {
     await signInAndSkipSetup(page, "routines");
+    await newRoutine(page);
+  }
+
+  async function newRoutine(page: Page) {
     await page.getByRole("button", { name: "New routine" }).click();
-    await expect(page.getByLabel("Name")).toHaveValue("New routine");
+    await page.getByLabel("New routine name").fill("New routine");
+    await page.getByRole("button", { name: "Save routine" }).click();
+    await expect(page.getByLabel("Name", { exact: true })).toHaveValue("New routine");
   }
 
   // The picker is docked on desktop and a bottom sheet on phone; either way it exposes the same "Add to" menu.
@@ -251,7 +257,7 @@ test.describe("routine builder", () => {
   test("only one routine is active", async ({ page }) => {
     await openBuilder(page);
     await expect(page.getByLabel("Routine", { exact: true })).toContainText("(active)");
-    await page.getByRole("button", { name: "New routine" }).click();
+    await newRoutine(page);
     await page.getByRole("button", { name: "Make active" }).click();
     await expect(page.getByText("All changes saved")).toBeVisible();
     await page.reload();

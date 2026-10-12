@@ -175,6 +175,17 @@ export function weeklySets(r: Routine, primaryOf: (ref: string) => string[]): Re
   return out;
 }
 
+/** Headline numbers for the overview card. Bank blocks count once per scheduled day, or the weekly target. */
+export function routineStats(r: Routine) {
+  const times = (b: Block) => b.weekdays?.length ?? b.weeklyTarget ?? 0;
+  const blocks = [...r.days.flatMap((d) => d.blocks.map((b) => [b, 1] as const)), ...r.bank.map((b) => [b, times(b)] as const)];
+  return {
+    trainingDays: r.days.filter((d) => d.blocks.length > 0 || r.bank.some((b) => b.weekdays?.includes(d.weekday))).length,
+    exercises: new Set(blocks.flatMap(([b]) => b.items.map((i) => i.ref))).size,
+    weeklySets: blocks.reduce((n, [b, t]) => n + b.sets * t, 0),
+  };
+}
+
 export type PairNote = "push-pull" | "same-muscle" | null;
 
 export function pairNote(b: Block, info: (ref: string) => { force: string | null; primary: string[] } | undefined): PairNote {

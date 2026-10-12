@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, importRoutine, link, locate, moveBlock, newBlock,
-  newRoutine, pairNote, removeItem, unlink, updateItem, weeklySets, type Routine,
+  newRoutine, pairNote, removeItem, routineStats, unlink, updateItem, weeklySets, type Routine,
 } from "./model";
 
 let r: Routine;
@@ -100,6 +100,16 @@ describe("weeklySets", () => {
   it("counts a weekly-target bank block by its target", () => {
     r = addBlock(r, "bank", { ...newBlock("ds:Neck", 60), weekdays: null, weeklyTarget: 2 });
     expect(weeklySets(r, () => ["neck"])).toEqual({ neck: 6 });
+  });
+});
+
+describe("routineStats", () => {
+  it("counts training days, distinct exercises and weekly sets", () => {
+    let r = newRoutine("R", true);
+    r = addBlock(r, { day: 1 }, newBlock("ds:A", 90));
+    r = addBlock(r, { day: 3 }, newBlock("ds:A", 90));
+    r = addBlock(r, "bank", { ...newBlock("ds:B", 90), weekdays: [1, 5] });
+    expect(routineStats(r)).toEqual({ trainingDays: 3, exercises: 2, weeklySets: 2 * 3 + 2 * 3 });
   });
 });
 
