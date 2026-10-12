@@ -12,7 +12,13 @@ const old = JSON.parse(readFileSync(oldSrc, "utf8"));
 
 const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const fix = (s) => s.replace(/в°/g, "°"); // mojibake in some upstream names
-const title = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const SMALL = new Set(["a", "an", "and", "as", "at", "for", "in", "of", "on", "or", "the", "to", "with"]);
+const title = (s) => s.replace(/[A-Za-z][A-Za-z']*/g, (w, i) => (i > 0 && SMALL.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)));
+
+// "Common" is a heuristic (no popularity data upstream): everyday equipment, plain names, no duplicate takes of one exercise.
+const COMMON_EQUIPMENT = new Set(["barbell", "dumbbell", "body weight", "cable", "leverage machine", "ez barbell", "kettlebell", "smith machine"]);
+const JUNK = /\bv\. ?\d|pov\b|\((male|female)\)|\bbosu\b/i;
+const MAX_WORDS = 4;
 
 // Old id (as used by ranking standards and history) to the closest new exercise name. UNVERIFIED: judgement calls.
 const OVERRIDES = {
@@ -70,7 +76,11 @@ for (const o of old) {
 for (const [oldId, name] of Object.entries(OVERRIDES))
   if (![...claimed.values()].includes(oldId)) console.warn("unresolved override:", oldId, "->", name);
 
-const data = raw.map((r) => {
+// Exercises that carried over from the old dataset stay, so stored refs and ranking standards resolve.
+const isCommon = (r) =>
+  claimed.has(r.id) || (COMMON_EQUIPMENT.has(r.equipment) && fix(r.name).split(/\s+/).length <= MAX_WORDS && !JUNK.test(r.name));
+
+const data = raw.filter(isCommon).map((r) => {
   const primary = muscles([r.target]);
   return {
     id: claimed.get(r.id) ?? r.id,

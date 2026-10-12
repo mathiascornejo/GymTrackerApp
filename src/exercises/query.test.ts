@@ -39,6 +39,14 @@ describe("search", () => {
   });
 });
 
+describe("commonness", () => {
+  it("puts staple lifts and plain equipment before rarer variants", () => {
+    const l = [ex("Bosu Ball Press", { ref: "ds:x", equipment: "bosu ball" }), ex("Dumbbell Fly", { ref: "ds:y", equipment: "dumbbell" }), ex("Barbell Bench Press", { ref: "ds:Barbell_Bench_Press_-_Medium_Grip" })];
+    expect(search(l, "press").map((e) => e.name)).toEqual(["Barbell Bench Press", "Bosu Ball Press"]);
+    expect(toRows(l, false).filter((r) => r.type === "item").map((r) => (r as { exercise: Exercise }).exercise.name)).toEqual(["Barbell Bench Press", "Dumbbell Fly", "Bosu Ball Press"]);
+  });
+});
+
 describe("applyFilters", () => {
   it("combines filters with AND", () => {
     expect(applyFilters(list, { muscle: "chest", equipment: "dumbbell" }).map((e) => e.name)).toEqual(["Incline Dumbbell Press"]);

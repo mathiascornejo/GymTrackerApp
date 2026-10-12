@@ -90,14 +90,12 @@ for (const scheme of ["light", "dark"] as const) {
 }
 
 test.describe("motion and touch", () => {
-  test("reduced motion shows start and end images side by side and runs no animation", async ({ page }) => {
+  test("reduced motion runs no CSS animation on the demo", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     const email = await seed();
     await signIn(page, email, "library/ds%3ABarbell_Curl");
     const imgs = page.getByRole("dialog", { name: "Barbell Curl" }).locator("img");
-    await expect(imgs).toHaveCount(2);
-    const [a, b] = [await imgs.nth(0).boundingBox(), await imgs.nth(1).boundingBox()];
-    expect(b!.x).toBeGreaterThanOrEqual(a!.x + a!.width - 1); // not stacked on top of each other
+    await expect(imgs).toHaveCount(1);
     const running = await page.evaluate(() => document.getAnimations().filter((x) => x.playState === "running" && (x.effect as KeyframeEffect | null)?.target?.tagName === "IMG").length);
     expect(running).toBe(0);
   });

@@ -1,4 +1,13 @@
+import { RANKING_LIFTS } from "../ranking/standards";
 import type { Exercise, Filters } from "./types";
+
+const STAPLES = new Set(RANKING_LIFTS.map((l) => l.ref));
+// shortcut: the dataset has no popularity data, so "common" is a heuristic (staple lifts, plain equipment, short names); upgrade if real usage data appears.
+const EQUIPMENT_RANK: Record<string, number> = { barbell: 0, dumbbell: 0, "body weight": 1, "body only": 1, cable: 1, "leverage machine": 1, "ez barbell": 1, kettlebell: 2, "smith machine": 2 };
+
+/** Lower is more common: ranked lifts first, then barbell/dumbbell/bodyweight/cable, then shorter (plainer) names. */
+export const commonness = (e: Exercise) =>
+  (STAPLES.has(e.ref) ? 0 : 100) + (EQUIPMENT_RANK[e.equipment ?? ""] ?? 3) * 10 + e.name.split(/\s+/).length;
 
 /** Dataset labels are lower-case ("lower back"); the UI shows sentence case. */
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -25,14 +34,14 @@ export function search(list: Exercise[], query: string): Exercise[] {
     const score = name.startsWith(words[0]) ? 0 : name.split(/[\s-]+/).some((t) => t.startsWith(words[0])) ? 1 : 2;
     scored.push([score, e]);
   }
-  return scored.sort((a, b) => a[0] - b[0] || a[1].name.localeCompare(b[1].name)).map(([, e]) => e);
+  return scored.sort((a, b) => a[0] - b[0] || commonness(a[1]) - commonness(b[1]) || a[1].name.localeCompare(b[1].name)).map(([, e]) => e);
 }
 
 /** Grouped by primary muscle when browsing; a flat relevance list when searching. */
 export function toRows(list: Exercise[], searching: boolean): Row[] {
   if (searching) return list.map((exercise) => ({ type: "item", exercise }));
   const groups = new Map<string, Exercise[]>();
-  for (const e of [...list].sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const e of [...list].sort((a, b) => commonness(a) - commonness(b) || a.name.localeCompare(b.name))) {
     const key = e.primary[0] ?? "other";
     groups.set(key, [...(groups.get(key) ?? []), e]);
   }
