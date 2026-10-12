@@ -71,7 +71,7 @@ const EQUIPMENT_FACTOR: Record<string, number> = {
   barbell: 1, "olympic barbell": 1, "trap bar": 1, "ez barbell": 0.8, "smith machine": 0.9, "leverage machine": 0.9,
   cable: 0.6, dumbbell: 0.4, kettlebell: 0.35,
 };
-const BODYWEIGHT_EQUIPMENT = new Set(["body weight", "weighted", "assisted"]);
+const BODYWEIGHT_EQUIPMENT = new Set(["body weight", "weighted"]);
 
 /**
  * A standard for an exercise that has none of its own: the muscle's reference lift scaled by equipment, so every
@@ -82,11 +82,11 @@ export function derivedLift(ref: string, primary: string, equipment: string | nu
   const same = RANKING_LIFTS.filter((l) => l.muscle === primary);
   const base = same.find((l) => l.load === "external") ?? same[0] ?? RANKING_LIFTS[0];
   const bodyweight = BODYWEIGHT_EQUIPMENT.has(equipment ?? "");
-  const k = bodyweight ? (base.load === "external" ? 2 : 1) : EQUIPMENT_FACTOR[equipment ?? ""] ?? 0.5;
+  const k = bodyweight ? (base.load === "external" ? 2 : 1) : EQUIPMENT_FACTOR[equipment ?? ""] ?? 0.5; // assisted falls to 0.5
   return {
     ref,
     muscle: primary,
-    load: bodyweight ? "bodyweight_plus" : "external",
+    load: equipment === "assisted" ? "assisted" : bodyweight ? "bodyweight_plus" : "external",
     male: base.male.map((n) => Math.round(n * k * 1000) / 1000) as RankingLift["male"],
     femaleFactor: base.femaleFactor,
   };

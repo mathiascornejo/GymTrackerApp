@@ -69,7 +69,7 @@ const median = (xs: number[]) => {
  * Ranks from every logged working set. Sets with an implausible estimate (over IMPLAUSIBLE_RATIO x bodyweight)
  * are held back as `flagged` until confirmed; they never rank silently.
  */
-export type MuscleInfo = { primary: string[]; secondary: string[]; equipment: string | null };
+export type MuscleInfo = { name?: string; primary: string[]; secondary: string[]; equipment: string | null };
 
 export function computeRanks(
   sets: RankSet[],
@@ -83,7 +83,8 @@ export function computeRanks(
   const liftFor = (ref: string) => {
     if (!liftOf.has(ref)) {
       const i = info(ref);
-      liftOf.set(ref, i?.primary[0] ? derivedLift(ref, i.primary[0], i.equipment) : null);
+      // Stretches are not strength work, so they never rank.
+      liftOf.set(ref, i?.primary[0] && !/stretch/i.test(i.name ?? "") ? derivedLift(ref, i.primary[0], i.equipment) : null);
     }
     return liftOf.get(ref) ?? undefined;
   };
