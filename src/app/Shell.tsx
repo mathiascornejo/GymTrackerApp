@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useUpdateProfile } from "../data/profile";
-import { TabIcon } from "./icons";
+import { GradientNav } from "./GradientNav";
 import { ABOUT, SETTINGS, TABS, useRoute, type Route } from "./routes";
 import { OfflineNotice } from "./OfflineNotice";
 import { useTheme, type Theme } from "./theme";
@@ -12,13 +12,7 @@ const THEMES: { id: Theme; label: string }[] = [
   { id: "dark", label: "Dark" },
 ];
 
-function ThemeControl() {
-  const [theme, setTheme] = useTheme();
-  const save = useUpdateProfile();
-  const choose = (t: Theme) => {
-    setTheme(t);
-    save.mutate({ theme: t });
-  };
+function ThemeControl({ theme, choose }: { theme: Theme; choose: (t: Theme) => void }) {
   return (
     <div className={s.theme} role="radiogroup" aria-label="Theme">
       {THEMES.map((t) => (
@@ -32,22 +26,22 @@ function ThemeControl() {
 
 export function Shell({ children }: { children: (route: Route) => ReactNode }) {
   const active = useRoute();
+  const [theme, setTheme] = useTheme();
+  const save = useUpdateProfile();
+  const choose = (t: Theme) => {
+    setTheme(t);
+    save.mutate({ theme: t });
+  };
+  const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   const route = [...TABS, SETTINGS, ABOUT].find((t) => t.id === active)!;
   return (
     <div className={s.shell}>
-      <nav className={s.nav} aria-label="Main">
-        {TABS.map((t) => (
-          <a key={t.id} href={`#/${t.id}`} className={s.link} aria-current={t.id === active ? "page" : undefined}>
-            <TabIcon id={t.id} />
-            <span>{t.label}</span>
-          </a>
-        ))}
-      </nav>
+      <GradientNav tabs={TABS} active={active} dark={dark} onToggleTheme={() => choose(dark ? "light" : "dark")} />
       <div className={s.body}>
         <header className={s.header}>
           <h1 className={s.title}>{route.label}</h1>
           <div className={s.tools}>
-            <ThemeControl />
+            <ThemeControl theme={theme} choose={choose} />
             <a href="#/settings" className={s.profile} aria-label="Settings" aria-current={active === "settings" ? "page" : undefined}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
                 <circle cx="12" cy="9" r="3.5" />
