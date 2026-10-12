@@ -18,7 +18,7 @@ import {
   removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
-import { Sheet } from "./ExerciseSheet";
+import { ExerciseDetail, Sheet } from "./ExerciseSheet";
 import { ConfirmSheet } from "./ConfirmSheet";
 import { RoutinePicker } from "./RoutinePicker";
 import f from "./Form.module.css";
@@ -104,6 +104,7 @@ export function Routines({ profile }: { profile: Profile }) {
   // Keyboard drags reorder only: the superset strips would otherwise be the nearest target for Arrow keys.
   const [keyboardDrag, setKeyboardDrag] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [viewing, setViewing] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   // One popup for both: a new routine is only stored when saved, and a rename only applies on save.
   const [naming, setNaming] = useState<"new" | "rename" | { day: number } | null>(null);
@@ -147,6 +148,7 @@ export function Routines({ profile }: { profile: Profile }) {
     onReps: (itemId, patch) => edit((r) => updateItem(r, b.id, itemId, patch)),
     onRemoveItem: (itemId) => edit((r) => removeItem(r, b.id, itemId)),
     onRemoveBlock: () => edit((r) => removeBlock(r, b.id)),
+    onView: setViewing,
     onUnlink: () => edit((r) => unlink(r, b.id)),
     onSchedule: (p) => edit((r) => updateBlock(r, b.id, p)),
     stepOf: (ref) => fromKg(profile.increments?.[ref] ?? defaultIncrementKg(info(ref)?.equipment ?? null), profile.weight_unit),
@@ -422,6 +424,18 @@ export function Routines({ profile }: { profile: Profile }) {
               </ul>
             )}
           </section>
+
+          <Sheet open={viewing !== null} onClose={() => setViewing(null)} label={info(viewing ?? "")?.name ?? "Exercise"}>
+            {viewing && info(viewing) && (
+              <ExerciseDetail
+                exercise={info(viewing)!}
+                profile={profile}
+                onClose={() => setViewing(null)}
+                // Custom exercises are edited in the library, so this is the one path that leaves the tab.
+                onEdit={() => { window.location.hash = `#/library/${encodeURIComponent(viewing)}`; }}
+              />
+            )}
+          </Sheet>
 
           <DragOverlay>{drag ? <div className={s.overlay}>{overlayText}</div> : null}</DragOverlay>
         </DndContext>

@@ -18,6 +18,8 @@ export type BlockActions = {
   onReps: (itemId: string, patch: { repMin?: number; repMax?: number }) => void;
   onRemoveItem: (itemId: string) => void;
   onRemoveBlock: () => void;
+  /** Opens the exercise popup in place; the tab does not change. */
+  onView: (ref: string) => void;
   onUnlink: () => void;
   onSchedule: (patch: { weekdays: number[] | null; weeklyTarget: number | null }) => void;
   /** Progression step for an exercise, in the display unit, and how to change it (given in the display unit). */
@@ -80,7 +82,7 @@ export function BlockCard({
             {block.items.map((item, i) => (
               <li key={item.id} className={s.itemName}>
                 {multi && <ItemGrip blockId={block.id} itemId={item.id} name={names[i]} />}
-                <a href={`#/library/${encodeURIComponent(item.ref)}`}>{names[i]}</a>
+                <button type="button" className={s.itemLink} onClick={() => actions.onView(item.ref)}>{names[i]}</button>
                 {!open && <span className={s.itemMeta}>{item.repMin}-{item.repMax}</span>}
                 {open && multi && (
                   <button type="button" className={s.iconBtn} aria-label={`Remove ${names[i]} from block`} onClick={() => actions.onRemoveItem(item.id)}>
