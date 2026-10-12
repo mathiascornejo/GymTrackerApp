@@ -53,10 +53,21 @@
   font: inherit;
 }
 
+/* Every field on a settings row is the same box, whether it is text, a number or a menu. */
 .row .input {
-  width: auto;
+  flex: none;
+  width: 200px;
   max-width: 55%;
-  text-align: right;
+  text-align: left;
+}
+
+/* The arrow is drawn here so it sits the same distance from the edge as in the routines tab. */
+select.input {
+  appearance: none;
+  padding-right: 36px;
+  background-image: var(--chevron);
+  background-repeat: no-repeat;
+  background-position: right 14px center;
 }
 
 .toggle {
