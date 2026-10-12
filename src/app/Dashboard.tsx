@@ -122,6 +122,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
   const overall = ranks.overall;
   const sel = selected ? ranks.muscles.get(selected) : undefined;
   const selLifts = selected ? RANKING_LIFTS.filter((l) => l.muscle === selected) : [];
+  const doneLifts = selected ? [...ranks.lifts.values()].filter((lr) => lr.lift.muscle === selected).sort((a, b) => b.score - a.score) : [];
 
   const addWeight = (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,19 +349,16 @@ export function Dashboard({ profile }: { profile: Profile }) {
             ) : (
               <p className={f.lead}>No data yet. Log {selLifts.map((l) => name(l.ref)).join(" or ")} to rank this muscle.</p>
             )}
-            {selLifts.length > 1 && (
+            {doneLifts.length > 1 && (
               <>
                 <h3 className={f.groupTitle}>Ranking lifts</h3>
                 <ul className={s.prs}>
-                  {selLifts.map((l) => {
-                    const lr = ranks.lifts.get(l.ref);
-                    return (
-                      <li key={l.ref}>
-                        <a href={`#/library/${encodeURIComponent(l.ref)}`}>{name(l.ref)}</a>
-                        <span className={s.sub}>{lr ? tierOf(lr.score) : "No data"}</span>
-                      </li>
-                    );
-                  })}
+                  {doneLifts.map((lr) => (
+                    <li key={lr.lift.ref}>
+                      <a href={`#/library/${encodeURIComponent(lr.lift.ref)}`}>{name(lr.lift.ref)}</a>
+                      <span className={s.sub}>{tierOf(lr.score)}</span>
+                    </li>
+                  ))}
                 </ul>
               </>
             )}
