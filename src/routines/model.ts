@@ -129,6 +129,20 @@ export function removeItem(r: Routine, blockId: string, itemId: string): Routine
   });
 }
 
+/** Pulls one exercise out of a superset into its own block (same sets and rest) at a position in any day or the bank. */
+export function extractItem(r: Routine, blockId: string, itemId: string, t: Target, index?: number): Routine {
+  const at = locate(r, blockId);
+  const item = at?.block.items.find((i) => i.id === itemId);
+  if (!at || !item || at.block.items.length < 2) return r;
+  const single: Block = { ...at.block, id: uuid(), kind: "single", transitionRestS: 0, items: [item] };
+  // Removing the item can shift the index when the drop is in the same container, so insert by the block it lands before.
+  const before = index !== undefined ? containerBlocks(r, t)[index]?.id : undefined;
+  const out = removeItem(r, blockId, itemId);
+  const list = containerBlocks(out, t);
+  const i = before ? list.findIndex((b) => b.id === before) : -1;
+  return addBlock(out, t, single, i >= 0 ? i : t === at.target && index === undefined ? at.index + 1 : undefined);
+}
+
 export function addItem(r: Routine, blockId: string, ref: string): Routine {
   return mapBlock(r, blockId, (b) => {
     const items = [...b.items, newItem(ref)];

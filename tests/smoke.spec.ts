@@ -206,18 +206,19 @@ test.describe("routine builder", () => {
     await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText("Biceps");
   });
 
-  test("links a push/pull superset, then unlinks it", async ({ page }) => {
-    await openBuilder(page);
-    await addExercise(page, "Barbell Curl", "Monday");
-    await addExercise(page, "Barbell Bench Press - Medium Grip", "Monday");
+  test("unlinks a superset into separate cards", async ({ page }) => {
+    await signInAndSkipSetup(page, "routines");
+    const routine = {
+      format: "tempered-routine", version: 1, name: "Superset",
+      days: [{ weekday: 1, label: "", blocks: [{ sets: 3, restS: 60, transitionRestS: 0, items: [
+        { ref: "ds:Barbell_Curl", repMin: 8, repMax: 12 }, { ref: "ds:Barbell_Bench_Press_-_Medium_Grip", repMin: 8, repMax: 12 },
+      ] }] }],
+      bank: [],
+    };
+    await page.locator('input[type="file"]').setInputFiles({ name: "s.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(routine)) });
     await showDay(page, "Monday");
-    await page.getByLabel("Select Barbell Curl to link").check();
-    await page.getByLabel("Select Barbell Bench Press - Medium Grip to link").check();
-    await page.getByRole("button", { name: "Link as superset" }).click();
-    const card = page.getByRole("article", { name: /Barbell Curl and Barbell Bench Press|Barbell Bench Press - Medium Grip and Barbell Curl/ });
-    await expect(card.getByText("Superset", { exact: true })).toBeVisible();
-    await expect(card.getByText("Push/pull pair")).toBeVisible();
-    await card.getByRole("button", { name: "Unlink" }).click();
+    await expect(page.getByRole("article")).toHaveCount(1);
+    await page.getByRole("button", { name: "Unlink" }).click();
     await expect(page.getByRole("article")).toHaveCount(2);
   });
 

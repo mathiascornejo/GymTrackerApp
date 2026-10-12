@@ -1,4 +1,4 @@
-import { useDroppable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../exercises/types";
@@ -11,7 +11,6 @@ export const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thurs
 export const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 
 export type BlockActions = {
-  onSelect: (selected: boolean) => void;
   onSets: (v: number) => void;
   onRest: (v: number) => void;
   onTransition: (v: number) => void;
@@ -25,13 +24,22 @@ export type BlockActions = {
 
 const toTarget = (v: string): Target => (v === "bank" ? "bank" : { day: Number(v) });
 
+/** Drag handle for one exercise inside a superset; dropping it on a day or card makes it its own block. */
+function ItemGrip({ blockId, itemId, name }: { blockId: string; itemId: string; name: string }) {
+  const drag = useDraggable({ id: `item:${itemId}`, data: { type: "item", blockId, itemId } });
+  return (
+    <button type="button" className={s.itemGrip} aria-label={`Drag ${name} out of the superset`} ref={drag.setNodeRef} {...drag.attributes} {...drag.listeners}>
+      ⠿
+    </button>
+  );
+}
+
 export function BlockCard({
-  block, bank, container, selected, dragging, info, actions,
+  block, bank, container, dragging, info, actions,
 }: {
   block: Block;
   bank: boolean;
   container: string;
-  selected: boolean;
   /** True while something else is being dragged, which reveals the superset drop strip. */
   dragging: boolean;
   info: (ref: string) => Exercise | undefined;
@@ -49,16 +57,11 @@ export function BlockCard({
   return (
     <article
       ref={sortable.setNodeRef}
-      className={`${s.card} ${selected ? s.cardSelected : ""} ${sortable.isDragging ? s.cardDragging : ""}`}
+      className={`${s.card} ${sortable.isDragging ? s.cardDragging : ""}`}
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       aria-label={names.join(" and ")}
     >
       <header className={s.cardHead}>
-        <label className={s.check}>
-          <input type="checkbox" checked={selected} onChange={(e) => actions.onSelect(e.target.checked)} />
-          <span className={s.visuallyHidden}>Select {names.join(" and ")} to link</span>
-        </label>
-        <span className={s.kind}>{block.kind === "single" ? "Single" : block.kind === "superset" ? "Superset" : "Circuit"}</span>
         <button type="button" className={s.grip} aria-label={`Reorder ${names.join(" and ")}`} {...sortable.attributes} {...sortable.listeners}>
           ⠿
         </button>
@@ -71,6 +74,7 @@ export function BlockCard({
         {block.items.map((item, i) => (
           <li key={item.id}>
             <div className={s.itemName}>
+              {block.items.length > 1 && <ItemGrip blockId={block.id} itemId={item.id} name={names[i]} />}
               <a href={`#/library/${encodeURIComponent(item.ref)}`}>{names[i]}</a>
               {block.items.length > 1 && (
                 <button type="button" className={s.iconBtn} aria-label={`Remove ${names[i]} from block`} onClick={() => actions.onRemoveItem(item.id)}>

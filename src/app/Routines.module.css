@@ -7,9 +7,9 @@
 }
 
 .toolbar {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   align-items: end;
   font-size: 15px;
   line-height: 20px;
@@ -21,7 +21,7 @@
 }
 
 .toolbarButtons {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -71,12 +71,6 @@
   color: var(--on-accent);
 }
 
-.linkBar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0;
-}
 
 .board {
   display: grid;
@@ -86,9 +80,32 @@
 
 @media (min-width: 1024px) {
   .board {
-    grid-template-columns: repeat(7, minmax(150px, 1fr));
-    overflow-x: auto;
+    /* Seven equal columns that shrink with the page, so the week never scrolls sideways. */
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     align-items: start;
+  }
+
+  .board .card {
+    padding: 8px;
+  }
+
+  .board .stepper button {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .board .stepper output {
+    min-width: 26px;
+  }
+
+  .board .cardFoot {
+    flex-wrap: wrap;
+  }
+
+  .board .cardFoot select {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -156,9 +173,6 @@
   line-height: 20px;
 }
 
-.cardSelected {
-  border-color: var(--accent);
-}
 
 .cardDragging {
   opacity: 0.4;
@@ -167,28 +181,12 @@
 .cardHead {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
 }
 
-.kind {
-  flex: 1;
-  font-size: 13px;
-  color: var(--ink-muted);
-}
 
-.check {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin: -8px 0 -8px -10px;
-}
 
-.check input {
-  width: 22px;
-  height: 22px;
-  accent-color: var(--accent);
-}
 
 .grip,
 .iconBtn {
@@ -225,6 +223,9 @@
 }
 
 .itemName a {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
   color: inherit;
   text-decoration: none;
 }
@@ -512,7 +513,19 @@
 }
 
 .newRoutine {
-  justify-self: end;
+  margin-left: auto;
+}
+
+.itemGrip {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 18px;
+  cursor: grab;
+  touch-action: none;
 }
 
 .pencil {

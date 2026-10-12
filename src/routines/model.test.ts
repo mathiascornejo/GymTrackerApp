@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, importRoutine, link, locate, moveBlock, newBlock,
-  newRoutine, pairNote, removeItem, routineStats, unlink, updateItem, weeklySets, type Routine,
+  newRoutine, pairNote, removeItem, extractItem, routineStats, unlink, updateItem, weeklySets, type Routine,
 } from "./model";
 
 let r: Routine;
@@ -100,6 +100,24 @@ describe("weeklySets", () => {
   it("counts a weekly-target bank block by its target", () => {
     r = addBlock(r, "bank", { ...newBlock("ds:Neck", 60), weekdays: null, weeklyTarget: 2 });
     expect(weeklySets(r, () => ["neck"])).toEqual({ neck: 6 });
+  });
+});
+
+describe("extractItem", () => {
+  it("moves one exercise out of a superset into its own block on another day", () => {
+    let x = addBlock(r, mon, newBlock("ds:A", 90));
+    const b = containerBlocks(x, mon)[0];
+    x = addItem(x, b.id, "ds:B");
+    const item = containerBlocks(x, mon)[0].items[1];
+    x = extractItem(x, b.id, item.id, { day: 3 });
+    expect(containerBlocks(x, mon)[0].items.map((i) => i.ref)).toEqual(["ds:A"]);
+    expect(containerBlocks(x, mon)[0].kind).toBe("single");
+    expect(containerBlocks(x, { day: 3 }).map((blk) => blk.items[0].ref)).toEqual(["ds:B"]);
+  });
+  it("leaves a single-exercise block alone", () => {
+    const x = addBlock(r, mon, newBlock("ds:A", 90));
+    const b = containerBlocks(x, mon)[0];
+    expect(extractItem(x, b.id, b.items[0].id, { day: 2 })).toBe(x);
   });
 });
 

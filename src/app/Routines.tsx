@@ -4,14 +4,14 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { useRoutineActions, useRoutines } from "../data/routines";
 import { loadDataset } from "../exercises/dataset";
 import { cap, facets } from "../exercises/query";
 import {
-  addBlock, addItem, containerBlocks, duplicate, exportRoutine, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
+  addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
   removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
@@ -46,7 +46,7 @@ const collide: CollisionDetection = (args) => {
   return pick ? [pick] : closestCenter(args);
 };
 
-type Drag = { type: "pick"; ref: string } | { type: "block"; id: string };
+type Drag = { type: "pick"; ref: string } | { type: "block"; id: string } | { type: "item"; blockId: string; itemId: string };
 
 function Column({ target, label, title, children, ids }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[] }) {
   const id = containerId(target);
@@ -79,7 +79,6 @@ export function Routines({ profile }: { profile: Profile }) {
   const routine: Routine | undefined =
     list.find((r) => r.id === pickedId) ?? list.find((r) => r.isActive && !r.archivedAt) ?? list.find((r) => !r.archivedAt) ?? list[0];
 
-  const [selected, setSelected] = useState<string[]>([]);
   const [pageDay, setPageDay] = useState<number | "bank">(() => new Date().getDay());
   const [drag, setDrag] = useState<Drag | null>(null);
   // Keyboard drags reorder only: the superset strips would otherwise be the nearest target for Arrow keys.
@@ -101,7 +100,6 @@ export function Routines({ profile }: { profile: Profile }) {
     else if (name !== routine?.name) edit((r) => ({ ...r, name }));
     setNaming(null);
   };
-  useEffect(() => setSelected([]), [routine?.id]);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -117,7 +115,6 @@ export function Routines({ profile }: { profile: Profile }) {
   const add = (ref: string, t: Target, index?: number) => edit((r) => addBlock(r, t, newBlock(ref, profile.default_rest_s), index));
 
   const blockActions = (b: Block): BlockActions => ({
-    onSelect: (on) => setSelected((cur) => (on ? [...cur, b.id] : cur.filter((x) => x !== b.id))),
     onSets: (v) => edit((r) => updateBlock(r, b.id, { sets: v })),
     onRest: (v) => edit((r) => updateBlock(r, b.id, { restS: v })),
     onTransition: (v) => edit((r) => updateBlock(r, b.id, { transitionRestS: v })),
@@ -139,6 +136,21 @@ export function Routines({ profile }: { profile: Profile }) {
     const data = active.data.current as Drag | undefined;
     if (!routine || !over || !data) return;
     const overId = String(over.id);
+
+    if (data.type === "item") {
+      // An exercise pulled out of a superset lands as its own block; the superset strips do not apply to it.
+      if (overId.startsWith("join:")) return;
+      let t = targetOf(overId);
+      let at: number | undefined;
+      if (!t) {
+        const hit = locate(routine, overId);
+        if (!hit) return;
+        t = hit.target;
+        at = hit.index;
+      }
+      edit((r) => extractItem(r, data.blockId, data.itemId, t!, at));
+      return;
+    }
 
     if (overId.startsWith("join:")) {
       const targetId = overId.slice(5);
@@ -167,7 +179,9 @@ export function Routines({ profile }: { profile: Profile }) {
     ? ""
     : drag.type === "pick"
       ? nameOf(drag.ref)
-      : (() => {
+      : drag.type === "item"
+        ? nameOf(routine?.days.flatMap((d) => d.blocks).concat(routine.bank).find((b) => b.id === drag.blockId)?.items.find((i) => i.id === drag.itemId)?.ref ?? "")
+        : (() => {
           const b = routine && locate(routine, drag.id)?.block;
           return b ? b.items.map((i) => nameOf(i.ref)).join(" + ") : "";
         })();
@@ -230,8 +244,7 @@ export function Routines({ profile }: { profile: Profile }) {
             block={b}
             bank={target === "bank"}
             container={cid}
-            selected={selected.includes(b.id)}
-            dragging={drag !== null && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
+            dragging={drag !== null && drag.type !== "item" && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
             info={info}
             actions={blockActions(b)}
           />
@@ -338,15 +351,6 @@ export function Routines({ profile }: { profile: Profile }) {
                   {d === "bank" ? "Bank" : WEEKDAY_NAMES[d].slice(0, 3)}
                 </button>
               ))}
-            </div>
-          )}
-
-          {selected.length >= 2 && (
-            <div className={s.linkBar}>
-              <button className={f.button} onClick={() => (edit((r) => link(r, selected)), setSelected([]))}>
-                {selected.length >= 3 ? "Link as circuit" : "Link as superset"}
-              </button>
-              <button className={f.quiet} onClick={() => setSelected([])}>Clear selection</button>
             </div>
           )}
 
