@@ -26,8 +26,8 @@ export function AlarmSettings() {
   };
 
   return (
-    <>
-      <h2 className={f.groupTitle}>Rest alarm in the background</h2>
+    <section className={f.card}>
+      <h2 className={f.cardTitle}>Rest alarm in the background</h2>
       <div className={f.group}>
         <div className={f.stack}>
           {state === null && <p className={f.note}>Checking notification support.</p>}
@@ -73,6 +73,6 @@ export function AlarmSettings() {
           </p>
         </div>
       </div>
-    </>
+    </section>
   );
 }

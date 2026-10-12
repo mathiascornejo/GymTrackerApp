@@ -64,7 +64,7 @@ function StandardsEditor({ profile }: { profile: Profile }) {
   const save = (next: Record<string, number[]>) => update.mutate({ standards_overrides: next });
 
   return (
-    <details className={f.group} style={{ padding: "0 16px" }}>
+    <details className={f.group}>
       <summary style={{ minHeight: 52, display: "flex", alignItems: "center", cursor: "pointer" }}>Edit strength standards</summary>
       <p className={f.note}>
         Bodyweight multiples of estimated 1RM needed to reach each tier. The built-in numbers are approximate placeholders; change any you
@@ -156,7 +156,8 @@ function AccountSection({ profile }: { profile: Profile }) {
 
   return (
     <>
-      <h2 className={f.groupTitle}>Your data</h2>
+      <section className={f.card}>
+      <h2 className={f.cardTitle}>Your data</h2>
       <div className={f.group}>
         <div className={f.stack}>
           <p className={f.note} style={{ margin: 0 }}>Weights are exported in kilograms, whatever unit you display.</p>
@@ -183,9 +184,11 @@ function AccountSection({ profile }: { profile: Profile }) {
           {busy && <p className={f.note} role="status">Preparing your export.</p>}
         </div>
       </div>
+      </section>
 
-      <h2 className={f.groupTitle}>Delete account</h2>
-      <details className={f.group} style={{ padding: "0 16px" }}>
+      <section className={f.card}>
+      <h2 className={f.cardTitle}>Delete account</h2>
+      <details className={f.group}>
         <summary style={{ minHeight: 52, display: "flex", alignItems: "center", cursor: "pointer" }}>Delete my account and data</summary>
         <div style={{ paddingBottom: 16, display: "grid", gap: 12 }}>
           <p style={{ margin: 0 }}>
@@ -205,7 +208,8 @@ function AccountSection({ profile }: { profile: Profile }) {
           </button>
         </div>
       </details>
-      {error && <p className={f.error} role="alert">{error}</p>}
+      </section>
+      {error && <p className={`${f.error} ${f.wide}`} role="alert">{error}</p>}
     </>
   );
 }
@@ -215,15 +219,16 @@ export function Settings({ profile }: { profile: Profile }) {
   const set = update.mutate;
 
   return (
-    <div className={f.page}>
+    <div className={f.settings}>
       {profile.standards_table === null && (
-        <>
-          <h2 className={f.groupTitle}>Ranking setup</h2>
+        <section className={`${f.card} ${f.wide}`}>
+          <h2 className={f.cardTitle}>Ranking setup</h2>
           <RankingSetup profile={profile} />
-        </>
+        </section>
       )}
 
-      <h2 className={f.groupTitle}>Training</h2>
+      <section className={`${f.card} ${f.wide}`}>
+      <h2 className={f.cardTitle}>Training</h2>
       <div className={f.group}>
         <label className={f.row}>
           <span className={f.label}>Display name</span>
@@ -259,8 +264,10 @@ export function Settings({ profile }: { profile: Profile }) {
           <Toggle checked={profile.rank_patterns} onChange={(v) => set({ rank_patterns: v })} />
         </label>
       </div>
+      </section>
 
-      <h2 className={f.groupTitle}>Rest timer</h2>
+      <section className={f.card}>
+      <h2 className={f.cardTitle}>Rest timer</h2>
       <div className={f.group}>
         <label className={f.row}>
           <span className={f.label}>Default rest (seconds)</span>
@@ -284,21 +291,24 @@ export function Settings({ profile }: { profile: Profile }) {
           <Toggle checked={profile.auto_start_rest} onChange={(v) => set({ auto_start_rest: v })} />
         </label>
       </div>
-      {update.error && <p className={f.error} role="alert">{update.error.message}</p>}
+      </section>
+      {update.error && <p className={`${f.error} ${f.wide}`} role="alert">{update.error.message}</p>}
 
       <AlarmSettings />
 
       <AccountSection profile={profile} />
 
-      <h2 className={f.groupTitle}>Account</h2>
-      <div className={f.group}>
-        <div className={f.row}>
-          <button className={f.quiet} onClick={() => void auth.signOut()}>Sign out</button>
+      <section className={f.card}>
+        <h2 className={f.cardTitle}>Account</h2>
+        <div className={f.group}>
+          <div className={f.row}>
+            <button className={f.quiet} onClick={() => void auth.signOut()}>Sign out</button>
+          </div>
+          <div className={f.row}>
+            <a href="#/about">About Tempered</a>
+          </div>
         </div>
-        <div className={f.row}>
-          <a href="#/about">About Tempered</a>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
