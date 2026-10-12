@@ -84,15 +84,17 @@
 }
 
 .silhouette {
-  fill: var(--hairline);
-  stroke: var(--hairline);
-  stroke-width: 7;
+  fill: var(--surface);
+  stroke: var(--edge);
+  stroke-width: 1.2;
   stroke-linejoin: round;
 }
 
 .decor {
-  fill: var(--hairline);
-  stroke: none;
+  fill: var(--surface);
+  stroke: var(--edge);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
 }
 
 .region {
@@ -111,20 +113,21 @@
   stroke: transparent;
   /* Wider is better for thumbs, but a thin region padded to 44px would steal taps from its neighbours.
      The list view is the full-size alternative. */
-  stroke-width: 20;
+  stroke-width: 10;
   pointer-events: stroke;
 }
 
 .filled {
   stroke: var(--edge);
-  stroke-width: 1.5;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
 }
 
 .neutral {
   fill: var(--surface);
   stroke: var(--edge);
-  stroke-width: 1.5;
-  stroke-dasharray: 3 3;
+  stroke-width: 0.8;
+  stroke-linejoin: round;
 }
 
 .pattern {

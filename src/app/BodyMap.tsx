@@ -102,10 +102,8 @@ export function BodyMap({
   const regions = view === "front" ? FRONT : BACK;
   return (
     <svg viewBox={VIEWBOX} className={s.map} role="group" aria-label={`Body map, ${view}`}>
-      <path d={SILHOUETTE} className={s.silhouette} />
-      {DECOR.map((d, i) => (
-        <Shape key={i} region={{ muscle: "", d: d.d, mirror: d.mirror }} className={s.decor} />
-      ))}
+      <path d={SILHOUETTE[view]} className={s.silhouette} />
+      <path d={DECOR[view]} className={s.decor} />
       {regions.map((r) => {
         const t = tiers.get(r.muscle);
         const has = t !== undefined;
@@ -155,10 +153,11 @@ export function MuscleMap({ primary, secondary }: { primary: string[]; secondary
   const p = new Set(primary);
   const sec = new Set(secondary.filter((m) => !p.has(m)));
   const names = [...primary.map((m) => `${cap(m)} (primary)`), ...[...sec].map((m) => cap(m))];
-  const figure = (regions: Region[], label: string) => (
+  const figure = (view: "front" | "back", regions: Region[], label: string) => (
     <svg viewBox={VIEWBOX} className={s.miniMap} aria-hidden="true">
       <title>{label}</title>
-      <path d={SILHOUETTE} className={s.silhouette} />
+      <path d={SILHOUETTE[view]} className={s.silhouette} />
+      <path d={DECOR[view]} className={s.decor} />
       {regions.map((r) => (
         <Shape
           key={r.muscle}
@@ -170,8 +169,8 @@ export function MuscleMap({ primary, secondary }: { primary: string[]; secondary
   );
   return (
     <div className={s.miniMaps} role="img" aria-label={names.length ? `Muscles worked: ${names.join(", ")}` : "No muscles set"}>
-      {figure(FRONT, "Front")}
-      {figure(BACK, "Back")}
+      {figure("front", FRONT, "Front")}
+      {figure("back", BACK, "Back")}
     </div>
   );
 }
