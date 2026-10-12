@@ -13,7 +13,11 @@ export const auth = {
   },
   /** Returns true when a session started; false when the project requires email confirmation first. */
   signUp: async (email: string, password: string) =>
-    Boolean(check(await supabase.auth.signUp({ email, password })).data.session),
+    // Land back on this app (including the /GymTrackerApp/ path) rather than whatever the project's Site URL says.
+    Boolean(
+      check(await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}${import.meta.env.BASE_URL}` } }))
+        .data.session,
+    ),
   sendCode: async (email: string) => {
     check(await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } }));
   },
