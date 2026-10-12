@@ -86,20 +86,25 @@ export function Routines({ profile }: { profile: Profile }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   // One popup for both: a new routine is only stored when saved, and a rename only applies on save.
-  const [naming, setNaming] = useState<"new" | "rename" | null>(null);
+  const [naming, setNaming] = useState<"new" | "rename" | { day: number } | null>(null);
   const [draft, setDraft] = useState("");
-  const openNaming = (mode: "new" | "rename") => {
-    setDraft(mode === "rename" ? routine?.name ?? "" : "");
+  const openNaming = (mode: "new" | "rename" | { day: number }) => {
+    setDraft(mode === "new" ? "" : mode === "rename" ? routine?.name ?? "" : routine?.days.find((d) => d.weekday === mode.day)?.label ?? "");
     setNaming(mode);
   };
   const saveName = (e: React.FormEvent) => {
     e.preventDefault();
     const name = draft.trim();
-    if (!name) return;
-    if (naming === "new") setPickedId(actions.create(name));
+    if (typeof naming === "object" && naming) {
+      // A day label may be empty: that clears it.
+      const day = naming.day;
+      edit((r) => ({ ...r, days: r.days.map((d) => (d.weekday === day ? { ...d, label: name } : d)) }));
+    } else if (!name) return;
+    else if (naming === "new") setPickedId(actions.create(name));
     else if (name !== routine?.name) edit((r) => ({ ...r, name }));
     setNaming(null);
   };
+  const namingTitle = naming === "new" ? "New routine" : naming === "rename" ? "Rename routine" : naming ? `${WEEKDAY_NAMES[naming.day]} label` : "";
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -223,17 +228,15 @@ export function Routines({ profile }: { profile: Profile }) {
       ) : (
         <>
           <span>{WEEKDAY_NAMES[target.day]}</span>
-          <input
-            key={`${routine.id}-${target.day}`}
-            className={s.dayLabel}
-            aria-label={`${WEEKDAY_NAMES[target.day]} label`}
-            placeholder="Label"
-            defaultValue={day!.label}
-            onBlur={(e) =>
-              e.target.value.trim() !== day!.label &&
-              edit((r) => ({ ...r, days: r.days.map((d) => (d.weekday === target.day ? { ...d, label: e.target.value.trim() } : d)) }))
-            }
-          />
+          <span className={s.dayLabelRow}>
+            <span className={s.dayLabelText}>{day!.label || <span className={s.dayLabelEmpty}>No label</span>}</span>
+            <button className={s.pencil} aria-label={`Edit ${WEEKDAY_NAMES[target.day]} label`} onClick={() => openNaming({ day: target.day })}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </button>
+          </span>
         </>
       );
     return (
@@ -254,7 +257,7 @@ export function Routines({ profile }: { profile: Profile }) {
   };
 
   return (
-    <div>
+    <div className={s.root}>
       <div className={s.toolbar}>
         <label>
           Routine
@@ -295,17 +298,19 @@ export function Routines({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      <Sheet open={naming !== null} onClose={() => setNaming(null)} label={naming === "new" ? "New routine" : "Rename routine"}>
+      <Sheet open={naming !== null} onClose={() => setNaming(null)} label={namingTitle}>
         <form onSubmit={saveName}>
           <div className={s.sheetTop}>
-            <h2 className={s.sheetTitle}>{naming === "new" ? "New routine" : "Rename routine"}</h2>
+            <h2 className={s.sheetTitle}>{namingTitle}</h2>
             <button type="button" className={f.quiet} onClick={() => setNaming(null)}>Cancel</button>
           </div>
           <label>
-            Routine name
+            {typeof naming === "object" && naming ? "Label" : "Routine name"}
             <input autoFocus className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
           </label>
-          <button className={f.button} type="submit" disabled={!draft.trim()} style={{ marginTop: 16 }}>Save routine</button>
+          <button className={f.button} type="submit" disabled={typeof naming !== "object" && !draft.trim()} style={{ marginTop: 16 }}>
+            {typeof naming === "object" && naming ? "Save label" : "Save routine"}
+          </button>
         </form>
       </Sheet>
 
