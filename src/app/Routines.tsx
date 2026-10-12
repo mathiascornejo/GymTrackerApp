@@ -60,7 +60,7 @@ function Column({ target, label, title, children, ids }: { target: Target; label
   const id = containerId(target);
   const drop = useDroppable({ id });
   return (
-    <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""} ${target === "bank" ? s.bank : ""}`} aria-label={label}>
+    <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""}`} aria-label={label}>
       <div className={s.columnHead}>{title}</div>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
@@ -249,7 +249,12 @@ export function Routines({ profile }: { profile: Profile }) {
     const day = target === "bank" ? null : routine.days.find((d) => d.weekday === target.day)!;
     const title =
       target === "bank" ? (
-        "Accessory bank"
+        <>
+          <span>Accessory bank</span>
+          <span className={s.dayLabelRow}>
+            <span className={s.dayLabelText}>Repeats across days</span>
+          </span>
+        </>
       ) : (
         <>
           <span>{WEEKDAY_NAMES[target.day]}</span>
