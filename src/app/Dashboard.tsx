@@ -63,8 +63,8 @@ export function Dashboard({ profile }: { profile: Profile }) {
   const table = profile.standards_table;
   const ready = table !== null && bodyweights.length > 0;
   const ranks = useMemo(
-    () => computeRanks(sets, bodyweights, table ?? "male", profile.standards_overrides ?? {}),
-    [sets, bodyweights, table, profile.standards_overrides],
+    () => computeRanks(sets, bodyweights, table ?? "male", profile.standards_overrides ?? {}, (ref) => byRef.get(ref)),
+    [sets, bodyweights, table, profile.standards_overrides, byRef],
   );
   const tiers = useMemo(() => new Map([...ranks.muscles].map(([m, v]) => [m, Math.floor(v.score + 1e-9)])), [ranks]);
 

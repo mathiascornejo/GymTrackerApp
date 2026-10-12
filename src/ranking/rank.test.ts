@@ -47,6 +47,23 @@ const set = (id: string, ref: string, w: number, reps: number, at = "2026-05-01T
 const BW = [{ measured_on: "2026-01-01", weight_kg: 80 }];
 const BENCH = "ds:Barbell_Bench_Press_-_Medium_Grip";
 
+describe("computeRanks credit", () => {
+  const info = (ref: string) =>
+    ({ "ds:Fly": { primary: ["chest"], secondary: ["shoulders", "biceps"], equipment: "dumbbell" } } as Record<string, { primary: string[]; secondary: string[]; equipment: string }>)[ref];
+
+  it("ranks an exercise with no standard and credits its primary and secondary muscles", () => {
+    const r = computeRanks([set("a", "ds:Fly", 20, 10)], BW, "male", {}, info);
+    const chest = r.muscles.get("chest")!.score;
+    expect(chest).toBeGreaterThan(0);
+    expect(r.muscles.get("shoulders")!.score).toBeCloseTo(chest * 0.7);
+    expect(r.muscles.has("biceps")).toBe(true);
+    expect(r.muscles.has("quadriceps")).toBe(false);
+  });
+  it("ignores unknown exercises", () => {
+    expect(computeRanks([set("a", "ds:Nope", 20, 10)], BW, "male", {}, info).muscles.size).toBe(0);
+  });
+});
+
 describe("computeRanks", () => {
   it("ranks the best set per lift and takes the best lift per muscle", () => {
     const r = computeRanks([set("a", BENCH, 80, 5), set("b", BENCH, 100, 5), set("c", "ds:Dumbbell_Bench_Press", 20, 10)], BW, "male");

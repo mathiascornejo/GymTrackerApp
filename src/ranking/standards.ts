@@ -60,7 +60,37 @@ export const RANKING_LIFTS: RankingLift[] = [
 /** Above this multiple of bodyweight an estimated 1RM is treated as a probable typo until the user confirms it. */
 export const IMPLAUSIBLE_RATIO = 5;
 
-export const MUSCLES = [...new Set(RANKING_LIFTS.map((l) => l.muscle))];
+// Neck has no ranked lift of its own; it is credited as a secondary muscle.
+export const MUSCLES = [...new Set([...RANKING_LIFTS.map((l) => l.muscle), "neck"])];
+
+/** Share of a lift's score a secondary muscle receives. UNVERIFIED: judgement call. */
+export const SECONDARY_CREDIT = 0.7;
+
+// UNVERIFIED: rough share of the muscle's reference (barbell) thresholds that each implement should reach.
+const EQUIPMENT_FACTOR: Record<string, number> = {
+  barbell: 1, "olympic barbell": 1, "trap bar": 1, "ez barbell": 0.8, "smith machine": 0.9, "leverage machine": 0.9,
+  cable: 0.6, dumbbell: 0.4, kettlebell: 0.35,
+};
+const BODYWEIGHT_EQUIPMENT = new Set(["body weight", "weighted", "assisted"]);
+
+/**
+ * A standard for an exercise that has none of its own: the muscle's reference lift scaled by equipment, so every
+ * logged exercise can rank. Bodyweight movements count bodyweight plus added load against a doubled reference.
+ * UNVERIFIED: all scaling is a placeholder; override per lift in Settings once it has a standard.
+ */
+export function derivedLift(ref: string, primary: string, equipment: string | null): RankingLift {
+  const same = RANKING_LIFTS.filter((l) => l.muscle === primary);
+  const base = same.find((l) => l.load === "external") ?? same[0] ?? RANKING_LIFTS[0];
+  const bodyweight = BODYWEIGHT_EQUIPMENT.has(equipment ?? "");
+  const k = bodyweight ? (base.load === "external" ? 2 : 1) : EQUIPMENT_FACTOR[equipment ?? ""] ?? 0.5;
+  return {
+    ref,
+    muscle: primary,
+    load: bodyweight ? "bodyweight_plus" : "external",
+    male: base.male.map((n) => Math.round(n * k * 1000) / 1000) as RankingLift["male"],
+    femaleFactor: base.femaleFactor,
+  };
+}
 
 export type Table = "male" | "female";
 export type Overrides = Record<string, number[]>;

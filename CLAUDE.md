@@ -38,7 +38,7 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 
 ## Ranking
 - `src/ranking/standards.ts` is the only place standards live. Every number is `// UNVERIFIED`; users can override per lift in Settings (`profiles.standards_overrides`). Thresholds are bodyweight multiples to REACH Bronze..Olympian; Wood is the floor.
-- `computeRanks` is pure: best credited set per lift, best lift per muscle, median overall. Muscles with no data are absent (drawn neutral), never Wood. Sets over 5x bodyweight are `flagged` and excluded until `session_sets.confirmed`.
+- `computeRanks` is pure: best credited set per lift, best lift per muscle, median overall. Any exercise ranks: ones without a standard get `derivedLift` (muscle reference scaled by equipment, `// UNVERIFIED`); a lift credits its primary muscles in full and secondaries at `SECONDARY_CREDIT`. Callers pass an `info(ref)` lookup. Muscles with no data are absent (drawn neutral), never Wood. Sets over 5x bodyweight are `flagged` and excluded until `session_sets.confirmed`.
 - Rank-up ceremony compares current tiers with `localStorage["tempered.ranks.seen"]`; the first visit only records. Dashboard data is paged (PostgREST caps responses at 1000 rows).
 - Body map art lives in `src/app/bodyMapArt.ts` (original, 200x380 box). Materials are static SVG defs in `BodyMap.tsx`; the only animation is the one-shot sheen.
 

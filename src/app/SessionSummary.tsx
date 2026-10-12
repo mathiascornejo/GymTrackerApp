@@ -24,8 +24,8 @@ export function SessionSummary({ data, info, profile, onDone }: { data: SummaryD
     if (!dash.data || !profile.standards_table || !dash.data.bodyweights.length) return null;
     const table = profile.standards_table;
     const ov = profile.standards_overrides ?? {};
-    const after = computeRanks(dash.data.sets, dash.data.bodyweights, table, ov);
-    const before = computeRanks(dash.data.sets.filter((x) => x.session_id !== session.id), dash.data.bodyweights, table, ov);
+    const after = computeRanks(dash.data.sets, dash.data.bodyweights, table, ov, info);
+    const before = computeRanks(dash.data.sets.filter((x) => x.session_id !== session.id), dash.data.bodyweights, table, ov, info);
     return tierChanges(before, after);
   })();
 

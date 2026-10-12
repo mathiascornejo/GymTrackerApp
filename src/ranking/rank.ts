@@ -1,5 +1,5 @@
 import { epley, rankable } from "./e1rm";
-import { IMPLAUSIBLE_RATIO, MUSCLES, RANKING_LIFTS, thresholds, TIERS, type LoadModel, type Overrides, type RankingLift, type Table } from "./standards";
+import { derivedLift, IMPLAUSIBLE_RATIO, MUSCLES, RANKING_LIFTS, SECONDARY_CREDIT, thresholds, TIERS, type LoadModel, type Overrides, type RankingLift, type Table } from "./standards";
 
 export type RankSet = {
   id: string;
@@ -52,7 +52,7 @@ export type Flagged = { set: RankSet; lift: RankingLift; e1rmKg: number; ratio: 
 
 export type Ranks = {
   lifts: Map<string, LiftRank>;
-  /** muscle -> best lift score; absent when there is no data. */
+  /** muscle -> best credited lift score (secondary muscles get SECONDARY_CREDIT of it); absent when there is no data. */
   muscles: Map<string, { score: number; lift: LiftRank }>;
   /** Median of the muscles that have data, or null when none do. */
   overall: number | null;
@@ -69,13 +69,29 @@ const median = (xs: number[]) => {
  * Ranks from every logged working set. Sets with an implausible estimate (over IMPLAUSIBLE_RATIO x bodyweight)
  * are held back as `flagged` until confirmed; they never rank silently.
  */
-export function computeRanks(sets: RankSet[], bodyweights: Bodyweight[], table: Table, overrides: Overrides = {}): Ranks {
-  const liftOf = new Map(RANKING_LIFTS.map((l) => [l.ref, l]));
+export type MuscleInfo = { primary: string[]; secondary: string[]; equipment: string | null };
+
+export function computeRanks(
+  sets: RankSet[],
+  bodyweights: Bodyweight[],
+  table: Table,
+  overrides: Overrides = {},
+  info: (ref: string) => MuscleInfo | undefined = () => undefined,
+): Ranks {
+  const liftOf = new Map<string, RankingLift | null>(RANKING_LIFTS.map((l) => [l.ref, l]));
+  /** Standards lift if there is one, else a derived standard for any exercise with a known primary muscle. */
+  const liftFor = (ref: string) => {
+    if (!liftOf.has(ref)) {
+      const i = info(ref);
+      liftOf.set(ref, i?.primary[0] ? derivedLift(ref, i.primary[0], i.equipment) : null);
+    }
+    return liftOf.get(ref) ?? undefined;
+  };
   const best = new Map<string, LiftRank>();
   const flagged: Flagged[] = [];
 
   for (const s of sets) {
-    const lift = liftOf.get(s.exercise_ref);
+    const lift = liftFor(s.exercise_ref);
     if (!lift || s.is_warmup || !rankable(s.reps)) continue;
     const bw = bodyweightAt(s.completed_at, bodyweights);
     if (bw === null) continue; // no bodyweight yet: ranks wait for one
@@ -92,8 +108,14 @@ export function computeRanks(sets: RankSet[], bodyweights: Bodyweight[], table: 
 
   const muscles = new Map<string, { score: number; lift: LiftRank }>();
   for (const lr of best.values()) {
-    const cur = muscles.get(lr.lift.muscle);
-    if (!cur || lr.score > cur.score) muscles.set(lr.lift.muscle, { score: lr.score, lift: lr });
+    const i = info(lr.lift.ref);
+    const full = new Set([lr.lift.muscle, ...(i?.primary ?? [])]);
+    const credit = new Map<string, number>([...full].map((m) => [m, lr.score]));
+    for (const m of i?.secondary ?? []) if (!full.has(m)) credit.set(m, lr.score * SECONDARY_CREDIT);
+    for (const [m, sc] of credit) {
+      const cur = muscles.get(m);
+      if (!cur || sc > cur.score) muscles.set(m, { score: sc, lift: lr });
+    }
   }
   const scores = [...muscles.values()].map((m) => m.score);
   return { lifts: best, muscles, overall: scores.length ? median(scores) : null, flagged };
