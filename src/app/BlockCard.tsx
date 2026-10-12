@@ -20,6 +20,9 @@ export type BlockActions = {
   onUnlink: () => void;
   onMove: (to: Target) => void;
   onSchedule: (patch: { weekdays: number[] | null; weeklyTarget: number | null }) => void;
+  /** Progression step for an exercise, in the display unit, and how to change it (given in the display unit). */
+  stepOf: (ref: string) => number;
+  onStep: (ref: string, value: number) => void;
 };
 
 const toTarget = (v: string): Target => (v === "bank" ? "bank" : { day: Number(v) });
@@ -35,7 +38,7 @@ function ItemGrip({ blockId, itemId, name }: { blockId: string; itemId: string; 
 }
 
 export function BlockCard({
-  block, bank, container, dragging, info, actions,
+  block, bank, container, dragging, info, actions, unit,
 }: {
   block: Block;
   bank: boolean;
@@ -44,6 +47,7 @@ export function BlockCard({
   dragging: boolean;
   info: (ref: string) => Exercise | undefined;
   actions: BlockActions;
+  unit: string;
 }) {
   const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id } });
   const join = useDroppable({ id: `join:${block.id}` });
@@ -82,6 +86,20 @@ export function BlockCard({
                 </button>
               )}
             </div>
+            <label className={s.step}>
+              Progression step ({unit})
+              <input
+                key={`${item.id}-${actions.stepOf(item.ref)}`}
+                className={s.stepInput}
+                inputMode="decimal"
+                defaultValue={actions.stepOf(item.ref)}
+                onBlur={(e) => {
+                  const v = Number(e.target.value.replace(",", "."));
+                  if (Number.isFinite(v) && v > 0) actions.onStep(item.ref, v);
+                  else e.target.value = String(actions.stepOf(item.ref));
+                }}
+              />
+            </label>
             <div className={s.repRow}>
               <Stepper label={`${names[i]} minimum reps`} value={item.repMin} min={1} max={100} onChange={(v) => actions.onReps(item.id, { repMin: v })} />
               <span aria-hidden="true">to</span>

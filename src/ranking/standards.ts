@@ -60,8 +60,8 @@ export const RANKING_LIFTS: RankingLift[] = [
 /** Above this multiple of bodyweight an estimated 1RM is treated as a probable typo until the user confirms it. */
 export const IMPLAUSIBLE_RATIO = 5;
 
-// Neck has no ranked lift of its own; it is credited as a secondary muscle.
-export const MUSCLES = [...new Set([...RANKING_LIFTS.map((l) => l.muscle), "neck"])];
+// Neck and obliques have no ranked lift of their own; they are credited as secondary muscles.
+export const MUSCLES = [...new Set([...RANKING_LIFTS.map((l) => l.muscle), "neck", "obliques"])];
 
 /** Share of a lift's score a secondary muscle receives. UNVERIFIED: judgement call. */
 export const SECONDARY_CREDIT = 0.7;

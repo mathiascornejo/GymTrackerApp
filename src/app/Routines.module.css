@@ -575,3 +575,25 @@
 .dayLabelEmpty {
   color: var(--ink-muted);
 }
+
+.step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.stepInput {
+  width: 64px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+}

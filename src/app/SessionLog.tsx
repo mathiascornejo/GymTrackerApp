@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePushState } from "../data/push";
 import type { Profile } from "../data/profile";
-import { useUpdateProfile } from "../data/profile";
 import { discardSession, finishSession, logSet, unlogSet, useBankCounts, useHistory, useOutbox, useSessionSets, lastSets, type SessionRow, type SetRow } from "../data/sessions";
 import type { Exercise } from "../exercises/types";
 import type { Routine } from "../routines/model";
@@ -71,9 +70,11 @@ type RowProps = {
   error?: string;
   onChange: (v: { w: string; r: string }) => void;
   onDone: () => void;
+  /** Warm-up rows only: removes the row. */
+  onRemove?: () => void;
 };
 
-function SetLine({ label, dataSlot, done, input, ghost, unit, warm, pr, error, onChange, onDone }: RowProps) {
+function SetLine({ label, dataSlot, done, input, ghost, unit, warm, pr, error, onChange, onDone, onRemove }: RowProps) {
   const w = done ? fmt(done.weight_kg, unit) : input.w;
   const r = done ? String(done.reps) : input.r;
   return (
@@ -101,6 +102,11 @@ function SetLine({ label, dataSlot, done, input, ghost, unit, warm, pr, error, o
       >
         ✓
       </button>
+      {onRemove && (
+        <button type="button" className={s.removeBtn} aria-label={`Remove ${label}`} onClick={onRemove}>
+          ×
+        </button>
+      )}
       {error && <p className={s.rowError} role="alert">{error}</p>}
     </div>
   );
@@ -121,7 +127,6 @@ export function SessionLog({
   const [draft, setDraft] = useDraft(session.id);
   const { sets } = useSessionSets(session.id);
   const outbox = useOutbox();
-  const updateProfile = useUpdateProfile();
   const [pushState] = usePushState();
   const rest = useRestTimer(pushState);
   const now = useNow(1000);
@@ -232,6 +237,17 @@ export function SessionLog({
   const warmCount = (b: PlanBlock, it: PlanItem) => draft.warm[`${b.key}|${it.itemId}`] ?? 0;
   const addWarm = (b: PlanBlock, it: PlanItem) =>
     patch((d) => ({ ...d, warm: { ...d.warm, [`${b.key}|${it.itemId}`]: warmCount(b, it) + 1 } }));
+  // Only the last warm-up can go, so the numbering of the ones before it never shifts. A logged one is unlogged too.
+  const removeWarm = (b: PlanBlock, it: PlanItem) => {
+    const n = warmCount(b, it);
+    if (n < 1) return;
+    const row = rowFor(b, it, n - 1, true);
+    if (row) unlogSet(row);
+    patch((d) => {
+      const { [slot(b, it.itemId, `w${n - 1}`)]: _typed, ...inputs } = d.inputs;
+      return { ...d, inputs, warm: { ...d.warm, [`${b.key}|${it.itemId}`]: n - 1 } };
+    });
+  };
   const toggleSkip = (b: PlanBlock) =>
     patch((d) => ({ ...d, skipped: d.skipped.includes(b.key) ? d.skipped.filter((k) => k !== b.key) : [...d.skipped, b.key] }));
 
@@ -325,6 +341,7 @@ export function SessionLog({
           done={rowFor(b, it, r, warm)} pr={!warm && prRows.has(rowFor(b, it, r, warm)?.id ?? "")} input={draft.inputs[key] ?? { w: "", r: "" }} ghost={warm ? null : ghostFor(it.ref, r)}
           error={rowError?.key === key ? rowError.msg : undefined}
           onChange={(v) => setInput(key, v)} onDone={() => complete(b, itemIndex, r, warm)}
+          onRemove={warm && r === warmCount(b, it) - 1 ? () => removeWarm(b, it) : undefined}
         />
       );
     };
@@ -380,19 +397,6 @@ export function SessionLog({
               ))}
             <button type="button" className={f.quiet} onClick={() => toggleSkip(b)}>{skipped ? "Undo skip" : "Skip exercise"}</button>
           </div>
-          {b.items.map((it) => (
-            <label key={it.itemId} className={s.step}>
-              Progression step for {nameOf(it.ref)} ({unit})
-              <input
-                className={s.num} inputMode="decimal" defaultValue={fmt(incrementKg(it.ref), unit)}
-                onBlur={(e) => {
-                  const v = Number(e.target.value.replace(",", "."));
-                  if (Number.isFinite(v) && v > 0) updateProfile.mutate({ increments: { ...(profile.increments ?? {}), [it.ref]: toKg(v, unit) } });
-                  else e.target.value = fmt(incrementKg(it.ref), unit);
-                }}
-              />
-            </label>
-          ))}
         </details>
       </article>
     );

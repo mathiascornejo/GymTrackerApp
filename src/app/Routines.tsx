@@ -7,9 +7,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
+import { useUpdateProfile } from "../data/profile";
 import { useRoutineActions, useRoutines } from "../data/routines";
 import { loadDataset } from "../exercises/dataset";
 import { cap, facets } from "../exercises/query";
+import { defaultIncrementKg } from "../session/recommend";
+import { fromKg, toKg } from "../units";
 import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
   removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
@@ -66,6 +69,7 @@ function Column({ target, label, title, children, ids }: { target: Target; label
 export function Routines({ profile }: { profile: Profile }) {
   const routines = useRoutines();
   const actions = useRoutineActions();
+  const updateProfile = useUpdateProfile();
   const dataset = useQuery({ queryKey: ["dataset"], queryFn: loadDataset, staleTime: Infinity });
   const custom = useCustomExercises();
   const desktop = useIsDesktop();
@@ -131,6 +135,8 @@ export function Routines({ profile }: { profile: Profile }) {
     onUnlink: () => edit((r) => unlink(r, b.id)),
     onMove: (to) => edit((r) => moveBlock(r, b.id, to)),
     onSchedule: (p) => edit((r) => updateBlock(r, b.id, p)),
+    stepOf: (ref) => fromKg(profile.increments?.[ref] ?? defaultIncrementKg(info(ref)?.equipment ?? null), profile.weight_unit),
+    onStep: (ref, v) => updateProfile.mutate({ increments: { ...(profile.increments ?? {}), [ref]: toKg(v, profile.weight_unit) } }),
   });
 
   const onDragStart = (e: DragStartEvent) => {
@@ -252,6 +258,7 @@ export function Routines({ profile }: { profile: Profile }) {
             dragging={drag !== null && drag.type !== "item" && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
             info={info}
             actions={blockActions(b)}
+            unit={profile.weight_unit}
           />
         ))}
       </Column>

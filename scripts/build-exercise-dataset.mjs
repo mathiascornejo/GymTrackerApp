@@ -50,7 +50,7 @@ const OVERRIDES = {
 
 // Upstream `target`, `muscle_group` and `secondary_muscles` use different labels; fold them into the app's 17 groups.
 const MUSCLE = {
-  abs: "abdominals", abdominals: "abdominals", core: "abdominals", obliques: "abdominals", "lower abs": "abdominals",
+  abs: "abdominals", abdominals: "abdominals", core: "abdominals", obliques: "obliques", "lower abs": "abdominals",
   pectorals: "chest", chest: "chest", "upper chest": "chest", "serratus anterior": "chest",
   delts: "shoulders", deltoids: "shoulders", "rear deltoids": "shoulders", shoulders: "shoulders", "rotator cuff": "shoulders",
   "upper back": "middle back", rhomboids: "middle back", back: "middle back",
