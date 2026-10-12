@@ -69,6 +69,24 @@
   cursor: pointer;
 }
 
+.pagerOver {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+}
+
+.pagerCount {
+  margin-left: 6px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.itemMeta {
+  flex: none;
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
 .pagerBtn[aria-selected="true"] {
   background: var(--accent);
   border-color: var(--accent);
@@ -79,44 +97,8 @@
 .board {
   display: grid;
   gap: 12px;
-  margin-top: 16px;
-}
-
-@media (min-width: 1024px) {
-  .board {
-    /* Seven equal columns that shrink with the page, so the week never scrolls sideways. */
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    align-items: start;
-  }
-
-  .board .card {
-    padding: 8px;
-  }
-
-  .board .pencil {
-    width: 28px;
-    height: 28px;
-    margin: 0;
-  }
-
-  .board .stepper button {
-    width: 32px;
-    height: 32px;
-    font-size: 18px;
-  }
-
-  .board .stepper output {
-    min-width: 26px;
-  }
-
-  .board .cardFoot {
-    flex-wrap: wrap;
-  }
-
-  .board .cardFoot select {
-    width: 100%;
-    min-width: 0;
-  }
+  max-width: 720px;
+  margin: 16px auto 0;
 }
 
 .column {
@@ -596,4 +578,26 @@
   color: var(--ink);
   font: inherit;
   text-align: center;
+}
+
+/* Collapsed card: the buttons share the first row with the name instead of sitting above it. */
+.compact .cardHead {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.compact .items {
+  padding-right: 136px;
+  min-height: 44px;
+}
+
+.compact .itemName {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 2px 8px;
+}
+
+.compact .itemMeta {
+  white-space: nowrap;
 }

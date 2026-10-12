@@ -42,11 +42,15 @@ const targetOf = (id: string): Target | null => (id === "bank" ? "bank" : id.sta
 // Without one (keyboard), only cards are candidates so Arrow keys reorder; the Move to menu handles other days.
 const collide: CollisionDetection = (args) => {
   if (!args.pointerCoordinates) {
-    const cards = args.droppableContainers.filter((c) => !String(c.id).startsWith("join:") && !targetOf(String(c.id)));
+    const cards = args.droppableContainers.filter((c) => !String(c.id).startsWith("join:") && !String(c.id).startsWith("pager:") && !targetOf(String(c.id)));
     return closestCenter({ ...args, droppableContainers: cards });
   }
   const hits = pointerWithin(args);
-  const pick = hits.find((h) => String(h.id).startsWith("join:")) ?? hits.find((h) => !targetOf(String(h.id))) ?? hits[0];
+  const pick =
+    hits.find((h) => String(h.id).startsWith("pager:")) ??
+    hits.find((h) => String(h.id).startsWith("join:")) ??
+    hits.find((h) => !targetOf(String(h.id))) ??
+    hits[0];
   return pick ? [pick] : closestCenter(args);
 };
 
@@ -63,6 +67,17 @@ function Column({ target, label, title, children, ids }: { target: Target; label
       </SortableContext>
       {ids.length === 0 && <p className={s.empty}>{target === "bank" ? "Accessories that repeat across days go here." : "Rest day"}</p>}
     </section>
+  );
+}
+
+/** A day button that is also a drop target: drag a card onto it to move the card to that day. */
+function DayButton({ id, label, count, selected, onSelect }: { id: string; label: string; count: number; selected: boolean; onSelect: () => void }) {
+  const drop = useDroppable({ id: `pager:${id}` });
+  return (
+    <button ref={drop.setNodeRef} role="tab" aria-selected={selected} className={`${s.pagerBtn} ${drop.isOver ? s.pagerOver : ""}`} onClick={onSelect}>
+      {label}
+      {count > 0 && <span className={s.pagerCount}>{count}</span>}
+    </button>
   );
 }
 
@@ -148,7 +163,7 @@ export function Routines({ profile }: { profile: Profile }) {
     const { active, over } = e;
     const data = active.data.current as Drag | undefined;
     if (!routine || !over || !data) return;
-    const overId = String(over.id);
+    const overId = String(over.id).replace(/^pager:/, "");
 
     if (data.type === "item") {
       // An exercise pulled out of a superset lands as its own block; the superset strips do not apply to it.
@@ -371,20 +386,20 @@ export function Routines({ profile }: { profile: Profile }) {
         <p className={f.lead}>Create a routine to plan your week, or import one from a JSON file.</p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={collide} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDrag(null)}>
-          {!desktop && (
-            <div className={s.pager} role="tablist" aria-label="Day">
-              {[...order, "bank" as const].map((d) => (
-                <button key={d} role="tab" aria-selected={pageDay === d} className={s.pagerBtn} onClick={() => setPageDay(d)}>
-                  {d === "bank" ? "Bank" : WEEKDAY_NAMES[d].slice(0, 3)}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className={s.board}>
-            {desktop ? order.map((d) => renderColumn({ day: d })) : pageDay !== "bank" ? renderColumn({ day: pageDay }) : null}
+          <div className={s.pager} role="tablist" aria-label="Day">
+            {[...order, "bank" as const].map((d) => (
+              <DayButton
+                key={d}
+                id={d === "bank" ? "bank" : `day:${d}`}
+                label={d === "bank" ? "Bank" : WEEKDAY_NAMES[d].slice(0, 3)}
+                count={d === "bank" ? routine.bank.length : containerBlocks(routine, { day: d }).length}
+                selected={pageDay === d}
+                onSelect={() => setPageDay(d)}
+              />
+            ))}
           </div>
-          {(desktop || pageDay === "bank") && <div className={s.bankLane}>{renderColumn("bank")}</div>}
+
+          <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>
 
           {desktop ? (
             <RoutinePicker exercises={all} muscles={muscles} onAdd={(ref, t) => add(ref, t)} />

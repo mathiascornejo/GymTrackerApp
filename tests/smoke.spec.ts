@@ -186,7 +186,7 @@ test.describe("routine builder", () => {
   }
 
   const showDay = async (page: Page, day: string) => {
-    if (isPhone()) await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
+    await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
   };
 
   test("adds an exercise, edits sets, and keeps it after reload", async ({ page }) => {
@@ -195,6 +195,7 @@ test.describe("routine builder", () => {
     await showDay(page, "Monday");
     const card = page.getByRole("article", { name: "Barbell Curl" });
     await expect(card).toBeVisible();
+    await card.getByRole("button", { name: /^Edit / }).click();
     await card.getByRole("button", { name: "Increase Sets" }).click();
     await expect(card.getByRole("group", { name: "Sets" }).getByRole("status")).toHaveText("4");
     await card.getByRole("button", { name: "Increase Rest" }).click();
@@ -204,6 +205,7 @@ test.describe("routine builder", () => {
     await page.reload();
     await showDay(page, "Monday");
     const again = page.getByRole("article", { name: "Barbell Curl" });
+    await again.getByRole("button", { name: /^Edit / }).click();
     await expect(again.getByRole("group", { name: "Sets" }).getByRole("status")).toHaveText("4");
     await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText("Biceps");
   });
@@ -220,6 +222,7 @@ test.describe("routine builder", () => {
     await page.locator('input[type="file"]').setInputFiles({ name: "s.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(routine)) });
     await showDay(page, "Monday");
     await expect(page.getByRole("article")).toHaveCount(1);
+    await page.getByRole("button", { name: /^Edit / }).click();
     await page.getByRole("button", { name: "Unlink" }).click();
     await expect(page.getByRole("article")).toHaveCount(2);
   });
@@ -230,6 +233,7 @@ test.describe("routine builder", () => {
     await showDay(page, "Bank");
     await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*21/);
     const card = page.getByRole("article", { name: "Standing Calf Raises" });
+    await card.getByRole("button", { name: /^Edit / }).click();
     await card.getByLabel("Schedule").selectOption("week");
     await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*6/);
     await card.getByLabel("Move Standing Calf Raises to").selectOption({ label: "Wednesday" });

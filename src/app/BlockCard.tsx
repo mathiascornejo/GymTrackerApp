@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -49,6 +50,7 @@ export function BlockCard({
   actions: BlockActions;
   unit: string;
 }) {
+  const [open, setOpen] = useState(false);
   const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id } });
   const join = useDroppable({ id: `join:${block.id}` });
   const names = block.items.map((i) => info(i.ref)?.name ?? i.ref.replace(/^\w+:/, ""));
@@ -61,11 +63,20 @@ export function BlockCard({
   return (
     <article
       ref={sortable.setNodeRef}
-      className={`${s.card} ${sortable.isDragging ? s.cardDragging : ""}`}
+      className={`${s.card} ${open ? "" : s.compact} ${sortable.isDragging ? s.cardDragging : ""}`}
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       aria-label={names.join(" and ")}
     >
       <header className={s.cardHead}>
+        <button
+          type="button" className={s.iconBtn} aria-expanded={open}
+          aria-label={`${open ? "Close editor for" : "Edit"} ${names.join(" and ")}`} onClick={() => setOpen(!open)}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </button>
         <button type="button" className={s.grip} aria-label={`Reorder ${names.join(" and ")}`} {...sortable.attributes} {...sortable.listeners}>
           ⠿
         </button>
@@ -74,6 +85,30 @@ export function BlockCard({
         </button>
       </header>
 
+      {!open && (
+        <>
+          <ul className={s.items}>
+            {block.items.map((item, i) => (
+              <li key={item.id}>
+                <div className={s.itemName}>
+                  {block.items.length > 1 && <ItemGrip blockId={block.id} itemId={item.id} name={names[i]} />}
+                  <a href={`#/library/${encodeURIComponent(item.ref)}`}>{names[i]}</a>
+                  <span className={s.itemMeta}>{item.repMin}-{item.repMax}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className={s.note}>
+            {block.items.length > 1 ? `${block.sets} rounds` : `${block.sets} sets`} · rest {mmss(block.restS)}
+            {bank && block.weeklyTarget !== null && block.weekdays === null ? ` · ${block.weeklyTarget} a week` : ""}
+            {bank && block.weekdays && block.weekdays.length < 7 ? ` · ${block.weekdays.map((d) => WEEKDAY_NAMES[d].slice(0, 3)).join(", ")}` : ""}
+            {bank && block.weekdays?.length === 7 ? " · every day" : ""}
+          </p>
+        </>
+      )}
+
+      {open && (
+        <>
       <ul className={s.items}>
         {block.items.map((item, i) => (
           <li key={item.id}>
@@ -185,6 +220,9 @@ export function BlockCard({
           <button type="button" className={s.textBtn} onClick={actions.onUnlink}>Unlink</button>
         )}
       </footer>
+
+        </>
+      )}
 
       {dragging && !sortable.isDragging && (
         <div ref={join.setNodeRef} className={`${s.join} ${join.isOver ? s.joinOver : ""}`}>
