@@ -17,15 +17,15 @@
   --blur-bg: rgb(245 245 247 / 0.78);
   --plate: #f5f5f7; /* light in both themes: dataset images have white backgrounds */
 
-  --rank-wood: #8a6a47;
-  --rank-bronze: #b87333;
-  --rank-silver: #aeb4be;
-  --rank-gold: #e2b13c;
-  --rank-platinum: #8fc9cf;
-  --rank-diamond: #bdebff;
-  --rank-master: #9b5de5;
-  --rank-olympian: #d7263d;
-  --rank-olympian-foil: #f2c96b;
+  /* Neighbouring tiers differ in hue and lightness; same in both themes (they are materials). Mirrored in src/ranking/tierColors.ts. */
+  --rank-wood: #80603f;
+  --rank-bronze: #cd7a35;
+  --rank-silver: #bdbfc2;
+  --rank-gold: #c8920e;
+  --rank-platinum: #2f8f91;
+  --rank-diamond: #7fd3ff;
+  --rank-master: #8b4fd8;
+  --rank-olympian: #f2c96b; /* foil gold, never red: red reads as injury on a body */
 
   --radius-sheet: 28px;
   --radius-list: 20px;

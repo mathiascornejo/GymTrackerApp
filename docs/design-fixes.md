@@ -40,7 +40,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** at 390 and 530 px, scrolling Dashboard, Routines and a live session never puts the button over a control or text.
 
-### [ ] D2. Tier colors: red Olympian, and Silver, Platinum and Diamond look the same
+### [x] D2. Tier colors: red Olympian, and Silver, Platinum and Diamond look the same
 **Effort:** high
 
 **Problem:**

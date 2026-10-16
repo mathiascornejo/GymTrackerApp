@@ -77,5 +77,5 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 ## Design tokens
 Light / dark (guarded `:root:not([data-theme="light"])` plus `:root[data-theme="dark"]`), defined in `src/styles/tokens.css`:
 ground #F5F5F7 / #05090F, surface #FFF / #0E151F, ink #1D1D1F / #E9F4FF, ink-muted #6E6E73 / #8EA2B8, accent #0A5CFF / #19E3FF, done #1F7A35 / #7DFF6B (light changed from #34C759 for AA). Dark is the "Chrome and cyan" theme; light is unchanged.
-Ranks: wood #8A6A47, bronze #B87333, silver #AEB4BE, gold #E2B13C, platinum #8FC9CF, diamond #BDEBFF, master #9B5DE5, olympian #D7263D (foil #F2C96B).
+Ranks (same in both themes, mirrored in `src/ranking/tierColors.ts`, a test keeps them equal): wood #80603F, bronze #CD7A35, silver #BDBFC2, gold #C8920E, platinum #2F8F91, diamond #7FD3FF, master #8B4FD8, olympian #F2C96B (banded foil; never red, red reads as injury). Neighbours differ in hue and lightness. The overall tier name uses its color only where it passes 3:1 (large text) on the surface; otherwise ink plus a colored dot.
 Radii: sheets 28, grouped lists 20, controls 12, chips full. UI font: system stack; display: Space Grotesk Variable (self-hosted via @fontsource-variable).

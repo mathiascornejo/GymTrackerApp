@@ -1,14 +1,15 @@
 import { BACK, DECOR, FRONT, MATERIAL_IDS, SILHOUETTE, VIEWBOX, type Region } from "./bodyMapArt";
 import { cap } from "../exercises/query";
 import { TIERS } from "../ranking/standards";
+import { TIER_COLORS as C } from "../ranking/tierColors";
 import s from "./Dashboard.module.css";
 
 const METAL: Record<string, [string, string, string]> = {
   // dark edge, base, specular band
-  bronze: ["#7d4a1f", "#B87333", "#f0c9a4"],
-  silver: ["#7f8590", "#AEB4BE", "#f3f5f8"],
-  gold: ["#a97d1a", "#E2B13C", "#fff0b3"],
-  platinum: ["#5f9aa1", "#8FC9CF", "#e9fcfe"],
+  bronze: ["#8a4a1c", C.bronze, "#f6c9a0"],
+  silver: ["#8a8d92", C.silver, "#f7f8f9"],
+  gold: ["#7a5404", C.gold, "#e2ad25"],
+  platinum: ["#1b5f61", C.platinum, "#9fdedd"],
 };
 
 /** Static materials. Rendered once per page; each map references them by id. */
@@ -21,7 +22,7 @@ export function MaterialDefs() {
           <feColorMatrix type="matrix" values="0 0 0 0 0.2  0 0 0 0 0.12  0 0 0 0 0.04  0 0 0 0.8 -0.2" />
         </filter>
         <pattern id="mat-wood" width="200" height="380" patternUnits="userSpaceOnUse">
-          <rect width="200" height="380" fill="#8A6A47" />
+          <rect width="200" height="380" fill={C.wood} />
           <rect width="200" height="380" filter="url(#grain)" />
         </pattern>
         {Object.entries(METAL).map(([id, [dark, base, spec]]) => (
@@ -34,21 +35,23 @@ export function MaterialDefs() {
           </linearGradient>
         ))}
         <pattern id="mat-diamond" width="26" height="26" patternUnits="userSpaceOnUse">
-          <rect width="26" height="26" fill="#BDEBFF" />
-          <polygon points="0,0 13,0 0,13" fill="#E8F8FF" />
-          <polygon points="13,0 26,0 26,13" fill="#9FD8F5" />
-          <polygon points="26,13 26,26 13,26" fill="#E8F8FF" />
-          <polygon points="0,13 13,26 0,26" fill="#8ACBEF" />
-          <polygon points="13,0 26,13 13,26 0,13" fill="#BDEBFF" fillOpacity="0.6" />
+          <rect width="26" height="26" fill={C.diamond} />
+          <polygon points="0,0 13,0 0,13" fill="#d6f2ff" />
+          <polygon points="13,0 26,0 26,13" fill="#5cbdf3" />
+          <polygon points="26,13 26,26 13,26" fill="#d6f2ff" />
+          <polygon points="0,13 13,26 0,26" fill="#46a9e6" />
+          <polygon points="13,0 26,13 13,26 0,13" fill={C.diamond} fillOpacity="0.6" />
         </pattern>
         <radialGradient id="mat-master" cx="0.5" cy="0.4" r="0.7">
-          <stop offset="0" stopColor="#C9A0F5" />
-          <stop offset="0.55" stopColor="#9B5DE5" />
-          <stop offset="1" stopColor="#6A33B5" />
+          <stop offset="0" stopColor="#bb92f2" />
+          <stop offset="0.55" stopColor={C.master} />
+          <stop offset="1" stopColor="#5a2aa0" />
         </radialGradient>
-        <linearGradient id="mat-olympian" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#E23B52" />
-          <stop offset="1" stopColor="#A31527" />
+        {/* Foil: tight repeating bands, so it reads apart from gold's single broad sweep. */}
+        <linearGradient id="mat-olympian" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="28" y2="20" spreadMethod="reflect">
+          <stop offset="0" stopColor="#cf9c3a" />
+          <stop offset="0.45" stopColor={C.olympian} />
+          <stop offset="1" stopColor="#fffaec" />
         </linearGradient>
         <linearGradient id="sheen" gradientUnits="userSpaceOnUse" x1="-70" y1="0" x2="-10" y2="0">
           <stop offset="0" stopColor="#fff" stopOpacity="0" />
@@ -108,8 +111,6 @@ export function BodyMap({
               region={r}
               className={has ? s.filled : s.neutral}
               fill={id ? `url(#mat-${id})` : undefined}
-              stroke={id === "olympian" ? "#F2C96B" : undefined}
-              strokeWidth={id === "olympian" ? 2 : 1.5}
             />
             {sheen.has(r.muscle) && (
               <Shape region={r} fill={`url(#sheen-run-${view})`} className={s.sheenShape} />

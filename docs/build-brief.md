@@ -213,7 +213,7 @@ Define as CSS custom properties on `:root`, redefine under `prefers-color-scheme
 | `--accent` | `#0A5CFF` | `#4C8DFF` | primary action, focus ring, timer |
 | `--done` | `#34C759` | `#30D158` | completed sets only |
 
-Rank materials (`--rank-wood` through `--rank-olympian`): Wood `#8A6A47`, Bronze `#B87333`, Silver `#AEB4BE`, Gold `#E2B13C`, Platinum `#8FC9CF`, Diamond `#BDEBFF`, Master `#9B5DE5`, Olympian `#D7263D` with a foil edge `#F2C96B`.
+Rank materials (`--rank-wood` through `--rank-olympian`): Wood `#80603F`, Bronze `#CD7A35`, Silver `#BDBFC2`, Gold `#C8920E`, Platinum `#2F8F91`, Diamond `#7FD3FF`, Master `#8B4FD8`, Olympian `#F2C96B` as banded foil (changed in design fix D2: the old red Olympian read as injury, and Silver, Platinum and Diamond looked alike).
 - Wood: faint vertical grain (static SVG turbulence). Bronze, Silver, Gold, Platinum: linear metallic gradient with one specular band (static). Diamond: faceted conic gradient. Master: violet with a soft inner glow. Olympian: crimson with a gold foil edge.
 - Every filled region gets a 1.5 px edge stroke so pale tiers (Diamond, Silver) stay visible on both grounds.
 - Rank is never conveyed by color alone: tapping shows the tier name, and a "Rank patterns" setting overlays a distinct subtle hatch per tier.

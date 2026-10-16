@@ -7,7 +7,9 @@ import { useExercises } from "../exercises/useExercises";
 import { computeRanks, loadModelFor, progressOf, tierOf } from "../ranking/rank";
 import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
 import { e1rmSeries, frequencyGrid, prEvents, volumeBar, WEEKLY_SET_TARGET, weekStart, weeklyVolume } from "../ranking/stats";
+import { readableOn, TIER_COLORS } from "../ranking/tierColors";
 import { fromKg, toKg } from "../units";
+import { MATERIAL_IDS } from "./bodyMapArt";
 import { BodyMap, MaterialDefs } from "./BodyMap";
 import { FrequencyGrid, LineChart, Ring } from "./charts";
 import { Sheet } from "./ExerciseSheet";
@@ -159,11 +161,32 @@ export function Dashboard({ profile }: { profile: Profile }) {
                   <figcaption className={s.sub}>{cap(v)}</figcaption>
                 </figure>
               ))}
+              <ul className={s.legend} aria-label="Tiers, lowest to highest">
+                {TIERS.map((t, i) => (
+                  <li key={t}>
+                    <span className={s.dot} style={{ background: `var(--rank-${MATERIAL_IDS[i]})` }} aria-hidden="true" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
             </div>
             <div className={s.heroSide}>
               <div className={s.overall}>
                 <span className={s.overallLabel}>Overall</span>
-                <span className={s.overallTier}>{overall === null ? "No ranks yet" : TIERS[Math.floor(overall + 1e-9)]}</span>
+                {overall === null ? (
+                  <span className={s.overallTier}>No ranks yet</span>
+                ) : (
+                  (() => {
+                    const id = MATERIAL_IDS[Math.floor(overall + 1e-9)];
+                    // Tier color as text only where it passes AA on the light surface; dark passes for every tier (tierColors.test).
+                    return (
+                      <span className={s.overallTier} data-pale={readableOn(TIER_COLORS[id], "#ffffff") ? undefined : ""} style={{ "--tier": `var(--rank-${id})` } as React.CSSProperties}>
+                        <span className={s.dot} aria-hidden="true" />
+                        {TIERS[Math.floor(overall + 1e-9)]}
+                      </span>
+                    );
+                  })()
+                )}
                 {overall !== null && <span className={s.overallPct}>{Math.round(progressOf(overall) * 100)}% to the next tier</span>}
                 {overall === null && <span className={f.note}>Log your first session to start ranking.</span>}
               </div>
