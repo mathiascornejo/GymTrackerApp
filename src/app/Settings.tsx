@@ -27,6 +27,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     <input
       className={f.toggle}
       type="checkbox"
+      role="switch"
       checked={v}
       onChange={(e) => {
         setV(e.target.checked);

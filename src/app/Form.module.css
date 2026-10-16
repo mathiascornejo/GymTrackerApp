@@ -38,7 +38,8 @@
 }
 
 .label {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .input {
@@ -70,10 +71,34 @@ select.input {
   background-position: right 14px center;
 }
 
+/* A switch drawn on the native checkbox. The transparent border pads the 52x32 track to a 64x44 hit area. */
 .toggle {
-  width: 24px;
-  height: 24px;
-  accent-color: var(--accent);
+  flex: none;
+  appearance: none;
+  width: 64px;
+  height: 44px;
+  margin: -6px -6px -6px 0;
+  border: 6px solid transparent;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, var(--surface) 12px, transparent 12.5px) left / 32px 32px no-repeat,
+    var(--ink-muted);
+  background-clip: padding-box;
+  cursor: pointer;
+  transition: background-position 0.2s;
+}
+
+.toggle:checked {
+  background:
+    radial-gradient(circle, var(--on-accent) 12px, transparent 12.5px) right / 32px 32px no-repeat,
+    var(--accent);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle {
+    transition: none;
+  }
 }
 
 .stack {

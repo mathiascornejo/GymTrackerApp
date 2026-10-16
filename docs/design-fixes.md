@@ -239,7 +239,7 @@ Fix these across `src/app/`:
 - Routines mixes a pencil icon (rename, day label) with the text "Edit" (block cards). Use one: the pencil icon button with an accessible name "Edit <exercise>".
 - "Optional this week (1)" and "More" are `<details>` with no visible chevron. Add one that rotates when open.
 
-### [ ] D22. Settings toggles
+### [x] D22. Settings toggles
 **Effort:** low
 
 `src/app/Settings.tsx:29` renders square checkboxes. Restyle them as switches: keep the native `<input type="checkbox">`, add `role="switch"`, and give a ≥44 px hit area, with accent when on and `--on-accent` for the knob.
