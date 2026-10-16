@@ -257,7 +257,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
         )}
       </section>
 
-      {/* Two balanced columns: the sections differ in height, and a grid would leave holes beside the short ones. */}
+      {/* Phone: one column. Wider: the two short cards stack on the left, the heatmap spans both rows on the right. */}
       <div className={s.masonry}>
       <section aria-label="Weekly volume" className={s.section}>
         <h2 className={s.h2}>Weekly sets by muscle</h2>
@@ -285,7 +285,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
         )}
       </section>
 
-      <section aria-label="Session frequency" className={s.section}>
+      <section aria-label="Session frequency" className={`${s.section} ${s.span}`}>
         <h2 className={s.h2}>Sessions, last 12 weeks</h2>
         {sessions.length === 0 ? <p className={f.note}>Finished sessions fill this grid.</p> : <FrequencyGrid weeks={grid} dayNames={dayNames} />}
       </section>

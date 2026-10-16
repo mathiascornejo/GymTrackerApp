@@ -145,16 +145,27 @@
   grid-column: 1 / -1;
 }
 
-@media (min-width: 760px) {
-  .masonry {
-    column-count: 2;
-    column-gap: 16px;
-  }
+.masonry > .section {
+  margin-bottom: 16px;
 }
 
-.masonry > .section {
-  break-inside: avoid;
-  margin-bottom: 16px;
+/* Rows stretch to the taller side, so neither column ends short; the second row takes the slack. */
+@media (min-width: 760px) {
+  .masonry {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto 1fr;
+    gap: 16px;
+  }
+
+  .masonry > .section {
+    margin-bottom: 0;
+  }
+
+  .masonry > .span {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
 }
 
 .silhouette {

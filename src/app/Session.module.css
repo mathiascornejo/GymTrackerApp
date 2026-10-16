@@ -12,9 +12,42 @@
   color: var(--ink-muted);
 }
 
-.start {
+/* Start screen: one column on phone; on desktop the plan sits beside the controls. */
+.startPage {
   max-width: 560px;
   margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .startPage {
+    max-width: 880px;
+  }
+
+  .start:has(.startPlan) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      "lead plan"
+      "field plan"
+      "actions plan"
+      ". plan";
+    column-gap: 40px;
+    align-items: start;
+  }
+
+  .start > .startPlan {
+    grid-area: plan;
+    margin-top: 0;
+    padding: 4px 20px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-list);
+    background: var(--surface);
+  }
+
+  .startPlan li:last-child {
+    border-bottom: 0;
+  }
 }
 
 .startField {
@@ -538,8 +571,6 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-list);
   background: var(--surface);
-  max-width: 560px;
-  margin-inline: auto;
 }
 
 .past > summary {
@@ -594,4 +625,99 @@
   color: var(--ink-muted);
   font-size: 20px;
   cursor: pointer;
+}
+
+.sideCard {
+  display: none;
+}
+
+.logMain {
+  min-width: 0;
+}
+
+/* Desktop: set logging on the left, rest timer and the current exercise in a sticky panel on the right. */
+@media (min-width: 1024px) {
+  .log {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    column-gap: 32px;
+    align-items: start;
+    padding-bottom: 40px;
+  }
+
+  .logSide {
+    position: sticky;
+    top: 24px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .restBar {
+    position: static;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 16px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-list);
+  }
+
+  .restDone {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .restIdle {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .restIdle .restStart {
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .alarmState {
+    position: static;
+    flex-basis: 100%;
+    text-align: left;
+  }
+
+  /* Ring and time on one line, the three buttons sharing the next. */
+  .restText {
+    flex: 1 1 calc(100% - 64px);
+  }
+
+  .restBar .restBtn {
+    flex: 1;
+  }
+
+  .sideCard {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-list);
+    background: var(--surface);
+  }
+
+  .sideLabel {
+    margin: 0;
+    font: 600 13px/18px var(--font-ui);
+    color: var(--ink-muted);
+  }
+
+  .sideItem > p {
+    margin: 0;
+  }
+
+  .sideItem > .sideRec {
+    margin-top: 4px;
+    font-size: 15px;
+    line-height: 20px;
+    color: var(--accent);
+    font-weight: 600;
+  }
 }

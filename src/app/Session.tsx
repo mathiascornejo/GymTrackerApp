@@ -108,7 +108,7 @@ export function Session({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div>
+    <div className={s.startPage}>
       <StartPanel routine={active} info={info} />
       <PastSessions unit={profile.weight_unit} info={info} />
     </div>

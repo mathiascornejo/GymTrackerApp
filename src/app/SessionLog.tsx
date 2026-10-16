@@ -171,6 +171,8 @@ export function SessionLog({
     return last[r] ?? last[last.length - 1] ?? null;
   };
   const incrementKg = (ref: string) => profile.increments?.[ref] ?? defaultIncrementKg(info(ref)?.equipment ?? null);
+  const recFor = (it: PlanItem) =>
+    recommend(lastSets(history.data, it.ref).map((x) => ({ weightKg: x.weight_kg, reps: x.reps })), { min: it.repMin, max: it.repMax }, incrementKg(it.ref));
 
   const patch = (fn: (d: Draft) => Draft) => setDraft((d) => fn(d));
   const setInput = (key: string, v: { w: string; r: string }) => patch((d) => ({ ...d, inputs: { ...d.inputs, [key]: v } }));
@@ -261,6 +263,8 @@ export function SessionLog({
   // Finish stays quiet until every planned, non-skipped set is logged; optional bank work never holds it back.
   const required = plan.filter((b) => b.group !== "optional" && !draft.skipped.includes(b.key));
   const allDone = required.length > 0 && required.every(blockDone);
+  // Desktop side panel follows the first planned block that still has sets to log.
+  const current = required.find((b) => !blockDone(b)) ?? null;
 
   const finish = async () => {
     setBusy(true);
@@ -320,8 +324,7 @@ export function SessionLog({
     const names = b.items.map((i) => nameOf(i.ref));
 
     const chip = (it: PlanItem) => {
-      const last = lastSets(history.data, it.ref);
-      const rec = recommend(last.map((x) => ({ weightKg: x.weight_kg, reps: x.reps })), { min: it.repMin, max: it.repMax }, incrementKg(it.ref));
+      const rec = recFor(it);
       if (!rec) return null;
       const lastText = rec.lastReps.join(", ");
       const reason =
@@ -416,6 +419,7 @@ export function SessionLog({
 
   return (
     <div className={s.log} data-session-open="">
+      <div className={s.logMain}>
       <div className={s.logHead}>
         {/* Phone hides the tab bar during a session; this is the way back. The session stays open. */}
         <a href="#/dashboard" className={`${f.quiet} ${s.exit}`} aria-label="Exit, the session stays open">Exit</a>
@@ -460,6 +464,29 @@ export function SessionLog({
           onConfirm={() => void discard()}
         />
       </div>
+      </div>
+
+      <aside className={s.logSide} aria-label="Rest and up next">
+        <RestBar rest={rest} suggestedS={suggested} />
+        {current && (
+          <section className={s.sideCard} aria-label="Up next">
+            <h3 className={s.sideLabel}>Up next</h3>
+            {current.items.map((it) => {
+              const last = lastSets(history.data, it.ref);
+              const rec = recFor(it);
+              return (
+                <div key={it.itemId} className={s.sideItem}>
+                  <p className={s.blockTitle}>{nameOf(it.ref)}</p>
+                  <p className={s.blockMeta}>
+                    {last.length ? `Last time: ${last.map((x) => `${fmt(x.weight_kg, unit)} × ${x.reps}`).join(", ")}` : "No earlier sets"}
+                  </p>
+                  {rec && <p className={s.sideRec}>Suggested: {fmt(rec.weightKg, unit)} {unit} × {rec.reps}</p>}
+                </div>
+              );
+            })}
+          </section>
+        )}
+      </aside>
 
       <AddExerciseSheet
         open={adding}
@@ -467,7 +494,6 @@ export function SessionLog({
         onClose={() => setAdding(false)}
         onAdd={(ref) => patch((d) => ({ ...d, adhoc: d.adhoc.includes(ref) ? d.adhoc : [...d.adhoc, ref] }))}
       />
-      <RestBar rest={rest} suggestedS={suggested} />
     </div>
   );
 }

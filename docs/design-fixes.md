@@ -154,7 +154,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** every delete or discard confirmation has a danger-colored confirm button, and axe passes.
 
-### [ ] D11. Desktop wastes space
+### [x] D11. Desktop wastes space
 **Effort:** high
 
 **Problem:**
