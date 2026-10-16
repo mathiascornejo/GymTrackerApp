@@ -72,7 +72,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** at 390 px, every superset row in the Friday Push day is no more than two lines tall.
 
-### [ ] D4. Make the live session a focused mode
+### [x] D4. Make the live session a focused mode
 **Effort:** high
 
 **Problem:** At 390×700 the live session loses about 190 px (27%) to stacked floating layers: the alarm notice, the idle "Rest 3:00" button and the tab bar. "Finish session" is a filled accent button top-right from the first second, so it's the loudest thing on screen for an hour. The page also has two titles ("Session" above "Push").

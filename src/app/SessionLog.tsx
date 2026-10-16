@@ -258,6 +258,9 @@ export function SessionLog({
 
   const blockDone = (b: PlanBlock) =>
     b.items.every((it) => Array.from({ length: roundsOf(b) }, (_, r) => r).every((r) => rowFor(b, it, r, false)));
+  // Finish stays quiet until every planned, non-skipped set is logged; optional bank work never holds it back.
+  const required = plan.filter((b) => b.group !== "optional" && !draft.skipped.includes(b.key));
+  const allDone = required.length > 0 && required.every(blockDone);
 
   const finish = async () => {
     setBusy(true);
@@ -412,15 +415,17 @@ export function SessionLog({
   const optional = plan.filter((b) => b.group === "optional");
 
   return (
-    <div className={s.log}>
+    <div className={s.log} data-session-open="">
       <div className={s.logHead}>
-        <div>
+        {/* Phone hides the tab bar during a session; this is the way back. The session stays open. */}
+        <a href="#/dashboard" className={`${f.quiet} ${s.exit}`} aria-label="Exit, the session stays open">Exit</a>
+        <div className={s.logTitleBlock}>
           <h2 className={s.logTitle}>{title}</h2>
           <p className={s.blockMeta}>
             {mmss(elapsed)} · <span role="status" className={outbox.status === "retry" ? s.warnText : ""}>{saving}</span>
           </p>
         </div>
-        <button type="button" className={f.button} disabled={busy} onClick={() => void finish()}>Finish session</button>
+        <button type="button" className={`${allDone ? f.button : f.quiet} ${s.finish}`} disabled={busy} onClick={() => void finish()}>Finish session</button>
       </div>
       {outbox.failure && <p className={f.error} role="alert">{outbox.failure}</p>}
       {error && <p className={f.error} role="alert">{error}</p>}

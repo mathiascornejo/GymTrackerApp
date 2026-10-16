@@ -176,6 +176,14 @@
   box-shadow: var(--gn-tray-shadow);
 }
 
+/* Phone, during a session: the session header has an Exit link instead (Shell.module.css explains). */
+@media (max-width: 1023px) {
+  :global(body:has([data-session-open])) .dock,
+  :global(body:has([data-session-open])) .profileDock {
+    display: none;
+  }
+}
+
 /* Desktop: the same tray, pinned to the top left. */
 @media (min-width: 1024px) {
   .dock {

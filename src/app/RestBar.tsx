@@ -134,13 +134,14 @@ export type Rest = ReturnType<typeof useRestTimer>;
 const R = 22;
 const C = 2 * Math.PI * R;
 
-/** Sticky at the bottom of the log. The button is labelled with the rest the current block calls for. */
+/** Sticky at the bottom of the log: a slim pill when idle, a full bar while running. The pill is labelled with the rest the current block calls for. */
 export function RestBar({ rest, suggestedS }: { rest: Rest; suggestedS: number }) {
   const running = rest.timer !== null && !rest.finished;
   const fraction = rest.timer ? rest.remaining / rest.timer.totalS : 0;
   return (
-    <div className={`${s.restBar} ${rest.finished ? s.restDone : ""}`} role="region" aria-label="Rest timer">
-      {rest.alarm && <span className={s.alarmState}>{rest.alarm}</span>}
+    <div className={`${s.restBar} ${rest.timer ? "" : s.restIdle} ${rest.finished ? s.restDone : ""}`} role="region" aria-label="Rest timer">
+      {/* The alarm state only matters once a rest is running, so the idle pill stays slim. */}
+      {rest.alarm && rest.timer && <span className={s.alarmState}>{rest.alarm}</span>}
       {!rest.timer && (
         <button type="button" className={s.restStart} onClick={() => rest.start(suggestedS)}>
           Rest {mmss(suggestedS)}

@@ -35,6 +35,25 @@
   padding-top: 8px;
 }
 
+/* Focused session: the session header is the title (the h1 stays for screen readers); on phone the header and tab bar step aside. */
+.shell:has([data-session-open]) .title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 1023px) {
+  .shell:has([data-session-open]) .header {
+    padding: 0;
+  }
+
+  .shell:has([data-session-open]) .body {
+    padding-bottom: 0;
+  }
+}
+
 @media (min-width: 1024px) {
   /* The nav tray is pinned top left, so the page starts below it. */
   .body {

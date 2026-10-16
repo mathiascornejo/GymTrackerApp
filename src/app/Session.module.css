@@ -57,16 +57,49 @@
   margin-inline: auto;
 }
 
+/* Phone: Exit and Finish on a slim top row, the title under them. Desktop has the tab bar, so no Exit. */
 .logHead {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "exit . finish"
+    "title title title";
+  align-items: center;
+  column-gap: 12px;
+}
+
+.exit {
+  grid-area: exit;
+  display: inline-flex;
+  align-items: center;
+  margin-left: -12px; /* the text lines up with the title; the 44 px target keeps its padding */
+  text-decoration: none;
+}
+
+.finish {
+  grid-area: finish;
+}
+
+.logTitleBlock {
+  grid-area: title;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .logHead {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "title finish";
+  }
+
+  .exit {
+    display: none;
+  }
 }
 
 .logTitle {
   margin: 0;
   font: 700 28px/34px var(--font-display);
+  overflow-wrap: anywhere;
 }
 
 .warnText {
@@ -334,29 +367,35 @@
   margin-top: 16px;
 }
 
-/* Sticky above the tab bar on phone, at the bottom of the content column on desktop. */
+/* Fixed to the bottom: the tab bar steps aside on phone during a session, and sits top left on desktop. */
 .restBar {
   position: fixed;
-  left: 0;
+  left: var(--rail-w);
   right: 0;
-  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  bottom: 0;
   z-index: 8;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-height: 72px;
-  padding: 16px var(--gutter) 6px;
+  padding: 16px var(--gutter) calc(6px + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--hairline);
   color: var(--accent);
 }
 
-@media (min-width: 1024px) {
-  .restBar {
-    left: var(--rail-w);
-    bottom: 0;
-  }
+/* Idle: no bar, only the pill, so set rows stay visible behind it. */
+.restIdle {
+  min-height: 0;
+  padding: 0 var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  background: transparent;
+  border-top: 0;
+  pointer-events: none;
+}
+
+.restIdle > * {
+  pointer-events: auto;
 }
 
 .alarmState {
@@ -385,15 +424,15 @@
 }
 
 .restStart {
-  min-height: 52px;
-  min-width: 220px;
-  padding: 0 24px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--on-accent);
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent);
   font-weight: 600;
-  font-size: 17px;
+  font-size: 15px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.14);
   cursor: pointer;
 }
 
