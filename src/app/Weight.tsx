@@ -83,6 +83,7 @@ export function Weight({ profile }: { profile: Profile }) {
         title="Delete this weight?"
         body={deleting ? `${deleting.text} from ${deleting.date} is removed from your log and trend.` : ""}
         confirmLabel="Delete weight"
+        destructive
         onClose={() => setDeleting(null)}
         onConfirm={() => {
           if (deleting) actions.deleteBodyweight.mutate(deleting.id as never);

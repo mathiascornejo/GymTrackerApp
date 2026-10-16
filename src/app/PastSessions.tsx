@@ -73,6 +73,7 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
         title="Delete this session?"
         body={`The session from ${date} and its sets are removed from your history.`}
         confirmLabel="Delete session"
+        destructive
         onClose={() => setConfirming(false)}
         onConfirm={() => {
           setConfirming(false);

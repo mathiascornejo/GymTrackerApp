@@ -140,7 +140,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** the tab bar has exactly five items and theme changes from Settings persist across a reload.
 
-### [ ] D10. Destructive actions look like everything else
+### [x] D10. Destructive actions look like everything else
 **Effort:** low
 
 **Problem:** There's no danger color.

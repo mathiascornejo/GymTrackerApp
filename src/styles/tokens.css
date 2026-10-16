@@ -10,6 +10,8 @@
   /* Text on filled accent and done backgrounds: white on the dark accent is only about 3.4:1, so dark mode flips to black. */
   --on-accent: #ffffff;
   --on-done: #ffffff;
+  --danger: #c9252c; /* 5.6:1 on white, white text 5.6:1 */
+  --on-danger: #ffffff;
   --hairline: rgb(0 0 0 / 0.12);
   --edge: rgb(0 0 0 / 0.55);
   --blur-bg: rgb(245 245 247 / 0.78);
@@ -49,6 +51,8 @@
     --done: #7dff6b;
     --on-accent: #05090f;
     --on-done: #05090f;
+    --danger: #ff6b6b;
+    --on-danger: #05090f;
     --hairline: rgb(255 255 255 / 0.16);
     --edge: rgb(255 255 255 / 0.6);
     --blur-bg: rgb(14 21 31 / 0.78);
@@ -64,6 +68,8 @@
   --done: #7dff6b;
   --on-accent: #05090f;
   --on-done: #05090f;
+  --danger: #ff6b6b;
+  --on-danger: #05090f;
   --hairline: rgb(255 255 255 / 0.16);
   --edge: rgb(255 255 255 / 0.6);
   --blur-bg: rgb(14 21 31 / 0.78);

@@ -439,12 +439,13 @@ export function SessionLog({
 
       <div className={s.logFoot}>
         <button type="button" className={f.quiet} onClick={() => setAdding(true)}>Add exercise</button>
-        <button type="button" className={f.quiet} disabled={busy} onClick={() => setConfirmDiscard(true)}>Discard session</button>
+        <button type="button" className={`${f.quiet} ${f.danger}`} style={{ marginLeft: "auto" }} disabled={busy} onClick={() => setConfirmDiscard(true)}>Discard session</button>
         <ConfirmSheet
           open={confirmDiscard}
           title="Discard this session?"
           body="Its logged sets will be removed."
           confirmLabel="Discard session"
+          destructive
           onClose={() => setConfirmDiscard(false)}
           onConfirm={() => void discard()}
         />

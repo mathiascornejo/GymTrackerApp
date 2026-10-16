@@ -200,7 +200,7 @@ function AccountSection({ profile }: { profile: Profile }) {
             <input className={f.input} autoComplete="off" value={typed} onChange={(e) => setTyped(e.target.value)} style={{ textAlign: "left" }} />
           </label>
           <button
-            className={f.button}
+            className={`${f.button} ${f.danger}`}
             disabled={busy !== "" || !email || typed.trim().toLowerCase() !== email.toLowerCase()}
             onClick={() => void run("delete", () => deleteAccount(email))}
           >

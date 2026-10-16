@@ -344,6 +344,7 @@ export function Routines({ profile }: { profile: Profile }) {
         title={`Delete ${routine?.name ?? "routine"}?`}
         body="Logged sessions keep their sets."
         confirmLabel="Delete routine"
+        destructive
         onClose={() => setConfirmDelete(false)}
         onConfirm={() => {
           if (routine) actions.remove(routine.id);

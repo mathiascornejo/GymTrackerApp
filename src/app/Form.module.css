@@ -105,6 +105,15 @@ select.input {
   cursor: default;
 }
 
+.button.danger {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.quiet.danger {
+  color: var(--danger);
+}
+
 .quiet {
   min-height: 44px;
   padding: 0 12px;

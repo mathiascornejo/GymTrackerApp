@@ -102,6 +102,7 @@ export function CustomExerciseForm({ existing, options, onDone }: { existing: Ex
           title={`Delete ${existing.name}?`}
           body="Past sessions keep their logged sets."
           confirmLabel="Delete exercise"
+          destructive
           onClose={() => setConfirmDelete(false)}
           onConfirm={() => {
             setConfirmDelete(false);
