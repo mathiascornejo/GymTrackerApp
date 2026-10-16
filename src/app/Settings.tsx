@@ -243,6 +243,14 @@ export function Settings({ profile }: { profile: Profile }) {
           </Select>
         </label>
         <label className={f.row}>
+          <span className={f.label}>Theme</span>
+          <Select value={profile.theme} onChange={(v) => set({ theme: v as Profile["theme"] })}>
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </Select>
+        </label>
+        <label className={f.row}>
           <span className={f.label}>Week starts on</span>
           <Select value={profile.week_starts_on} onChange={(v) => set({ week_starts_on: Number(v) })}>
             {WEEKDAYS.map((d, i) => <option key={d} value={i}>{d}</option>)}

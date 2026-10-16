@@ -131,7 +131,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** at 390 px, every line on Routines can be scrolled fully clear of the FAB.
 
-### [ ] D9. The theme toggle looks like a sixth tab
+### [x] D9. The theme toggle looks like a sixth tab
 **Effort:** medium
 
 **Problem:** `GradientNav` includes a theme cycle button (monitor icon) in the tab bar. It reads as a "Desktop" tab.
