@@ -113,9 +113,12 @@ export function Library({ profile }: { profile: Profile }) {
           const pos = [prev?.type !== "item" && s.first, next?.type !== "item" && s.last].filter(Boolean).join(" ");
           return (
             <a key={v.key} href={href(e.ref)} className={`${s.row} ${pos}`} style={style}>
-              <span className={s.name}>{e.name}</span>
-              <span className={s.sub}>
-                {[e.primary[0] && cap(e.primary[0]), e.equipment, e.custom && "Custom"].filter(Boolean).join(" · ")}
+              {e.images[0] ? <img className={s.thumb} src={e.images[0]} alt="" loading="lazy" width={40} height={40} /> : <span className={s.thumb} />}
+              <span className={s.rowText}>
+                <span className={s.name}>{e.name}</span>
+                <span className={s.sub}>
+                  {[e.primary[0] && cap(e.primary[0]), e.equipment, e.custom && "Custom"].filter(Boolean).join(" · ")}
+                </span>
               </span>
             </a>
           );

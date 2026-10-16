@@ -61,9 +61,8 @@
 
 .row {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
+  align-items: center;
+  gap: 12px;
   padding: 0 16px;
   background: var(--surface);
   border-inline: 1px solid var(--hairline);
@@ -83,6 +82,26 @@
 
 .first.last {
   border-radius: var(--radius-list);
+}
+
+/* Dataset images have white backgrounds, so they sit on the light plate in both themes; no image gets the plain tile. */
+.thumb {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--hairline);
+  object-fit: cover;
+}
+
+img.thumb {
+  background: var(--plate);
+}
+
+.rowText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .name {

@@ -215,7 +215,7 @@ Also fix a copy bug: a day labeled "Rest Day" renders as "Sunday · Rest Day · 
 
 `src/app/Weight.tsx:46`: the input's placeholder is the last logged value ("66 kg"), so it looks pre-filled. Change it to "Today's weight". When there are 3 or more entries, draw a 7-day moving average line on the trend chart; make the average a pure function with a test in `src/ranking/stats.ts` or a new `src/weight/` module. Replace the per-row "Delete" link with the same icon-button pattern as D17.
 
-### [ ] D19. Library rows have no thumbnails
+### [x] D19. Library rows have no thumbnails
 **Effort:** medium
 
 `src/app/Library.tsx` is already virtualized; keep it that way. Add a 40 px rounded thumbnail (first image, `loading="lazy"`, empty `alt` because the name is next to it) to each row, and update the virtualizer's row-size estimate. Exercises without media get a neutral placeholder tile. Use the same row in `RoutinePicker` if it shares the component.
