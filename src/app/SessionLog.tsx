@@ -60,6 +60,8 @@ function useWakeLock(enabled: boolean) {
 
 type RowProps = {
   label: string;
+  /** Visible label on its own line above the inputs (superset rows); `label` stays the accessible name. */
+  name?: string;
   dataSlot: string;
   done: SetRow | undefined;
   input: { w: string; r: string };
@@ -74,12 +76,12 @@ type RowProps = {
   onRemove?: () => void;
 };
 
-function SetLine({ label, dataSlot, done, input, ghost, unit, warm, pr, error, onChange, onDone, onRemove }: RowProps) {
+function SetLine({ label, name, dataSlot, done, input, ghost, unit, warm, pr, error, onChange, onDone, onRemove }: RowProps) {
   const w = done ? fmt(done.weight_kg, unit) : input.w;
   const r = done ? String(done.reps) : input.r;
   return (
-    <div className={`${s.setRow} ${done ? s.setDone : ""} ${warm ? s.warm : ""}`} data-slot={dataSlot}>
-      <span className={s.setLabel}>{label}{pr && <span className={s.prBadge} title="Personal best estimated 1RM">PR</span>}</span>
+    <div className={`${s.setRow} ${done ? s.setDone : ""} ${warm ? s.warm : ""} ${name ? s.named : ""}`} data-slot={dataSlot}>
+      <span className={s.setLabel}>{name ?? label}{pr && <span className={s.prBadge} title="Personal best estimated 1RM">PR</span>}</span>
       <label>
         <span className={s.visuallyHidden}>{label} weight ({unit})</span>
         <input
@@ -332,12 +334,12 @@ export function SessionLog({
       );
     };
 
-    const line = (itemIndex: number, r: number, warm: boolean, label: string) => {
+    const line = (itemIndex: number, r: number, warm: boolean, label: string, name?: string) => {
       const it = b.items[itemIndex];
       const key = slot(b, it.itemId, warm ? `w${r}` : r);
       return (
         <SetLine
-          key={key} label={label} dataSlot={key} warm={warm} unit={unit}
+          key={key} label={label} name={name} dataSlot={key} warm={warm} unit={unit}
           done={rowFor(b, it, r, warm)} pr={!warm && prRows.has(rowFor(b, it, r, warm)?.id ?? "")} input={draft.inputs[key] ?? { w: "", r: "" }} ghost={warm ? null : ghostFor(it.ref, r)}
           error={rowError?.key === key ? rowError.msg : undefined}
           onChange={(v) => setInput(key, v)} onDone={() => complete(b, itemIndex, r, warm)}
@@ -368,14 +370,14 @@ export function SessionLog({
             {b.items.map(chip)}
             {b.items.map((it, i) =>
               Array.from({ length: warmCount(b, it) }, (_, n) =>
-                line(i, n, true, `Warm-up ${n + 1}${group ? ` ${nameOf(it.ref)}` : ""}`),
+                line(i, n, true, `Warm-up ${n + 1}${group ? ` ${nameOf(it.ref)}` : ""}`, group ? `${nameOf(it.ref)}, warm-up ${n + 1}` : undefined),
               ),
             )}
             {Array.from({ length: rounds }, (_, r) =>
               group ? (
                 <div key={r} className={s.round}>
                   <h4 className={s.roundTitle}>Round {r + 1}</h4>
-                  {b.items.map((it, i) => line(i, r, false, `${nameOf(it.ref)} round ${r + 1}`))}
+                  {b.items.map((it, i) => line(i, r, false, `${nameOf(it.ref)} round ${r + 1}`, nameOf(it.ref)))}
                 </div>
               ) : (
                 line(0, r, false, `Set ${r + 1}`)

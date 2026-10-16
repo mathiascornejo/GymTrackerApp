@@ -60,7 +60,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** a screenshot of the map with every tier present (temporarily fake the data locally, never commit fake data) has eight clearly different colors in light and dark, and no tier is red.
 
-### [ ] D3. Superset rows wrap into five-line labels
+### [x] D3. Superset rows wrap into five-line labels
 **Effort:** medium
 
 **Problem:** In `src/app/SessionLog.tsx:378`, superset rows are labeled `${nameOf(it.ref)} round ${r + 1}` in a column about 120 px wide. "Cable Standing Overhead Triceps Extension round 1" wraps to five lines, under an `<h4>` that already says "Round 1".

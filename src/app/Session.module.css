@@ -164,6 +164,17 @@
   text-overflow: ellipsis;
 }
 
+/* Superset rows: the exercise name gets its own line; inputs keep their columns below it. */
+.named .setLabel {
+  grid-column: 1 / -1;
+  white-space: nowrap;
+  margin-bottom: -4px;
+}
+
+.named > label:first-of-type {
+  grid-column: 2;
+}
+
 .warm .setLabel {
   color: var(--ink-muted);
 }
