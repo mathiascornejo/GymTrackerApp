@@ -689,3 +689,8 @@
   margin: 14px 0 0;
   text-align: center;
 }
+
+/* Room for the FAB (44 px + 12 px gap) on top of the shell's tab bar padding. */
+.root:has(.addFab) {
+  padding-bottom: 56px;
+}

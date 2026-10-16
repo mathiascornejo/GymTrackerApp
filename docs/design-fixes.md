@@ -122,7 +122,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** at 1024 px there's no picker on Routines until "Add exercise" is pressed, and the picker has a visible close.
 
-### [ ] D8. The phone "Add exercise" button covers content
+### [x] D8. The phone "Add exercise" button covers content
 **Effort:** low
 
 **Problem:** `.addFab` (`Routines.module.css:513`) overlaps the "Most work: …" line and the last rows of "Weekly sets per muscle".
