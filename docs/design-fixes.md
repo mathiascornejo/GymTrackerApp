@@ -220,7 +220,7 @@ Also fix a copy bug: a day labeled "Rest Day" renders as "Sunday · Rest Day · 
 
 `src/app/Library.tsx` is already virtualized; keep it that way. Add a 40 px rounded thumbnail (first image, `loading="lazy"`, empty `alt` because the name is next to it) to each row, and update the virtualizer's row-size estimate. Exercises without media get a neutral placeholder tile. Use the same row in `RoutinePicker` if it shares the component.
 
-### [ ] D20. Exercise sheet details
+### [x] D20. Exercise sheet details
 **Effort:** low
 
 `src/app/ExerciseSheet.tsx` / `ExerciseDemo.tsx`:

@@ -15,6 +15,7 @@
   --hairline: rgb(0 0 0 / 0.12);
   --edge: rgb(0 0 0 / 0.55);
   --blur-bg: rgb(245 245 247 / 0.78);
+  --plate: #f5f5f7; /* light in both themes: dataset images have white backgrounds */
 
   --rank-wood: #8a6a47;
   --rank-bronze: #b87333;
