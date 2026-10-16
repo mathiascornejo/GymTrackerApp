@@ -102,7 +102,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** the chart value and the muscle sheet value match for a bodyweight exercise.
 
-### [ ] D6. Routines puts admin controls before the plan
+### [x] D6. Routines puts admin controls before the plan
 **Effort:** medium
 
 **Problem:** The top of Routines is routine select, "New routine", then Duplicate / Delete routine / Export JSON / Import JSON, all in the same quiet-link style. "Delete routine" looks identical to "Export JSON". The actual plan starts below the fold on phone.

@@ -243,7 +243,8 @@ test.describe("routine builder", () => {
     await openBuilder(page);
     await addExercise(page, "Barbell Curl", "Monday");
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Export JSON" }).click();
+    await page.getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Export JSON" }).click();
     const file = await download;
     const path = await file.path();
     const fs = await import("node:fs/promises");

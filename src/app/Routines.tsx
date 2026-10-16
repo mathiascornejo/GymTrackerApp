@@ -4,7 +4,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { useUpdateProfile } from "../data/profile";
@@ -20,6 +20,7 @@ import {
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
 import { ExerciseDetail, Sheet } from "./ExerciseSheet";
 import { ConfirmSheet } from "./ConfirmSheet";
+import { MoreMenu } from "./MoreMenu";
 import { RoutinePicker } from "./RoutinePicker";
 import f from "./Form.module.css";
 import s from "./Routines.module.css";
@@ -110,6 +111,7 @@ export function Routines({ profile }: { profile: Profile }) {
   const [naming, setNaming] = useState<"new" | "rename" | { day: number } | null>(null);
   const [draft, setDraft] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
   const openNaming = (mode: "new" | "rename" | { day: number }) => {
     setDraft(mode === "new" ? "" : mode === "rename" ? routine?.name ?? "" : routine?.days.find((d) => d.weekday === mode.day)?.label ?? "");
     setNaming(mode);
@@ -302,26 +304,12 @@ export function Routines({ profile }: { profile: Profile }) {
           </select>
         </label>
         <button className={`${f.button} ${s.newRoutine}`} onClick={() => openNaming("new")}>New routine</button>
-        <div className={s.toolbarButtons}>
-          {routine && !routine.isActive && !routine.archivedAt && (
-            <button className={f.quiet} onClick={() => actions.setActive(routine.id)}>Make active</button>
-          )}
-          {routine && <button className={f.quiet} onClick={() => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`)))}>Duplicate</button>}
-          {routine && (
-            <button
-              className={f.quiet}
-              onClick={() => setConfirmDelete(true)}
-            >
-              Delete routine
-            </button>
-          )}
-          {routine && <button className={f.quiet} onClick={exportJson}>Export JSON</button>}
-          <label className={`${f.quiet} ${s.fileBtn}`}>
-            Import JSON
-            <input type="file" accept="application/json,.json" onChange={(e) => { void importFile(e.target.files?.[0]); e.target.value = ""; }} />
-          </label>
-        </div>
       </div>
+
+      <input
+        ref={fileInput} type="file" accept="application/json,.json" className={s.visuallyHidden} tabIndex={-1} aria-hidden="true"
+        onChange={(e) => { void importFile(e.target.files?.[0]); e.target.value = ""; }}
+      />
 
       <Sheet open={naming !== null} onClose={() => setNaming(null)} label={namingTitle}>
         <form onSubmit={saveName}>
@@ -364,17 +352,31 @@ export function Routines({ profile }: { profile: Profile }) {
 
       {routine && (
         <section className={s.overview} aria-label="Routine overview">
-          <h2 className={s.overviewName}>
-            {routine.name}
-            <button className={s.pencil} aria-label="Rename routine" onClick={() => openNaming("rename")}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
-            </button>
-            {routine.isActive && <span className={s.badge}>Active</span>}
-            {routine.archivedAt && <span className={s.badge}>Archived</span>}
-          </h2>
+          <div className={s.overviewHead}>
+            <h2 className={s.overviewName}>
+              {routine.name}
+              <button className={s.pencil} aria-label="Rename routine" onClick={() => openNaming("rename")}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+              </button>
+              {routine.isActive && <span className={s.badge}>Active</span>}
+              {routine.archivedAt && <span className={s.badge}>Archived</span>}
+            </h2>
+            <MoreMenu
+              label="More"
+              items={[
+                { label: "Duplicate", onSelect: () => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`))) },
+                { label: "Export JSON", onSelect: exportJson },
+                { label: "Import JSON", onSelect: () => fileInput.current?.click() },
+                { label: "Delete routine", onSelect: () => setConfirmDelete(true), destructive: true },
+              ]}
+            />
+          </div>
+          {!routine.isActive && !routine.archivedAt && (
+            <button className={`${f.quiet} ${s.makeActive}`} onClick={() => actions.setActive(routine.id)}>Make active</button>
+          )}
           <dl className={s.stats}>
             <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
             <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>
@@ -385,7 +387,10 @@ export function Routines({ profile }: { profile: Profile }) {
       )}
 
       {!routine ? (
-        <p className={f.lead}>Create a routine to plan your week, or import one from a JSON file.</p>
+        <>
+          <p className={f.lead}>Create a routine to plan your week, or import one from a JSON file.</p>
+          <button className={f.quiet} onClick={() => fileInput.current?.click()}>Import JSON</button>
+        </>
       ) : (
         <DndContext sensors={sensors} collisionDetection={collide} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDrag(null)}>
           <div className={s.pager} role="tablist" aria-label="Day">

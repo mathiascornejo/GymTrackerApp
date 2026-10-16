@@ -20,35 +20,9 @@
 
 .toolbar label {
   display: grid;
+  flex: 1;
+  min-width: 0;
   gap: 4px;
-}
-
-.toolbarButtons {
-  flex-basis: 100%;
-  padding-top: 8px;
-  border-top: 1px solid var(--hairline);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-}
-
-.fileBtn {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.fileBtn input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.fileBtn:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 .pager {
@@ -557,6 +531,62 @@
   padding: 16px 16px 18px;
   background: var(--surface);
   border-radius: 20px;
+}
+
+.overviewHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.makeActive {
+  margin: 4px 0 0 -12px;
+}
+
+.menuWrap {
+  position: relative;
+  flex: none;
+  margin-right: -12px;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.menuItem {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: 15px var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--hairline);
+}
+
+/* Delete sits last, set apart from the safe actions. */
+.menuDanger {
+  margin-top: 4px;
+  border-top: 1px solid var(--hairline);
+  border-radius: 0 0 8px 8px;
+  color: var(--danger);
 }
 
 .overviewName {
