@@ -205,7 +205,7 @@ The Dashboard's "Weekly sets by muscle" scales bars to the week's maximum, so wi
 
 Also fix a copy bug: a day labeled "Rest Day" renders as "Sunday · Rest Day · rest day" (`Session.tsx:46`). Skip the " · rest day" suffix when the label already says rest, case-insensitive.
 
-### [ ] D17. Past sessions are hard to read and edit
+### [x] D17. Past sessions are hard to read and edit
 **Effort:** medium
 
 `src/app/PastSessions.tsx`: expanded sessions show unlabeled inputs (1000 / 10) next to a text "Delete" on every row. Add a column header row ("kg" / "reps", in the user's unit), and replace the per-row Delete link with an icon button (accessible name "Delete set N") that confirms through `ConfirmSheet` with the D10 destructive style. Format the volume summary with the unit and grouping that `fromKg` already gives.

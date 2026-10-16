@@ -517,10 +517,17 @@
 
 .pastSet {
   display: grid;
-  grid-template-columns: minmax(60px, 1fr) 88px 72px auto;
+  grid-template-columns: minmax(60px, 1fr) 88px 72px 44px;
   align-items: center;
   gap: 8px;
   margin-top: 4px;
+}
+
+.pastHead {
+  margin-top: 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+  text-align: center;
 }
 
 .prBadge {

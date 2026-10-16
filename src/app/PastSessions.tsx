@@ -4,6 +4,7 @@ import type { Exercise } from "../exercises/types";
 import { summarize } from "../session/summary";
 import { fromKg, toKg, type Unit } from "../units";
 import { ConfirmSheet } from "./ConfirmSheet";
+import { TrashIcon } from "./icons";
 import f from "./Form.module.css";
 import s from "./Session.module.css";
 
@@ -11,6 +12,7 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
   const actions = usePastSessionActions();
   const [error, setError] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [deletingSet, setDeletingSet] = useState<{ id: string; label: string } | null>(null);
   const { session, sets } = past;
   const sum = summarize(sets);
   const date = new Date(session.started_at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
@@ -26,48 +28,72 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
       {groups.map((ref) => (
         <div key={ref} className={s.pastGroup}>
           <h4 className={s.roundTitle}>{info(ref)?.name ?? ref}</h4>
+          <div className={`${s.pastSet} ${s.pastHead}`} aria-hidden="true">
+            <span />
+            <span>{unit}</span>
+            <span>reps</span>
+          </div>
           {sets
             .filter((x) => x.exercise_ref === ref)
             .sort((a, b) => a.completed_at.localeCompare(b.completed_at))
-            .map((x, i) => (
-              <div key={x.id} className={s.pastSet}>
-                <span className={s.setLabel}>{x.is_warmup ? "Warm-up" : `Set ${i + 1}`}</span>
-                <label>
-                  <span className={s.visuallyHidden}>Weight ({unit})</span>
-                  <input
-                    className={s.num} inputMode="decimal" defaultValue={fromKg(x.weight_kg, unit)}
-                    onBlur={(e) => {
-                      const v = Number(e.target.value.replace(",", "."));
-                      if (Number.isFinite(v) && v >= 0 && toKg(v, unit) !== x.weight_kg) void run(actions.updateSet(x.id, { weight_kg: toKg(v, unit) }));
-                      else e.target.value = String(fromKg(x.weight_kg, unit));
-                    }}
-                  />
-                </label>
-                <label>
-                  <span className={s.visuallyHidden}>Reps</span>
-                  <input
-                    className={s.num} inputMode="numeric" defaultValue={x.reps}
-                    onBlur={(e) => {
-                      const v = Number(e.target.value);
-                      if (Number.isInteger(v) && v >= 1 && v !== x.reps) void run(actions.updateSet(x.id, { reps: v }));
-                      else e.target.value = String(x.reps);
-                    }}
-                  />
-                </label>
-                <button type="button" className={f.quiet} onClick={() => void run(actions.deleteSet(x.id))} aria-label={`Delete set ${i + 1} of ${info(ref)?.name ?? ref}`}>
-                  Delete
-                </button>
-              </div>
-            ))}
+            .map((x, i) => {
+              const label = x.is_warmup ? "Warm-up" : `Set ${i + 1}`;
+              return (
+                <div key={x.id} className={s.pastSet}>
+                  <span className={s.setLabel}>{label}</span>
+                  <label>
+                    <span className={s.visuallyHidden}>{label} weight ({unit})</span>
+                    <input
+                      className={s.num} inputMode="decimal" defaultValue={fromKg(x.weight_kg, unit)}
+                      onBlur={(e) => {
+                        const v = Number(e.target.value.replace(",", "."));
+                        if (Number.isFinite(v) && v >= 0 && toKg(v, unit) !== x.weight_kg) void run(actions.updateSet(x.id, { weight_kg: toKg(v, unit) }));
+                        else e.target.value = String(fromKg(x.weight_kg, unit));
+                      }}
+                    />
+                  </label>
+                  <label>
+                    <span className={s.visuallyHidden}>{label} reps</span>
+                    <input
+                      className={s.num} inputMode="numeric" defaultValue={x.reps}
+                      onBlur={(e) => {
+                        const v = Number(e.target.value);
+                        if (Number.isInteger(v) && v >= 1 && v !== x.reps) void run(actions.updateSet(x.id, { reps: v }));
+                        else e.target.value = String(x.reps);
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button" className={f.iconBtn}
+                    aria-label={`Delete ${label.toLowerCase()} of ${info(ref)?.name ?? ref}`}
+                    onClick={() => setDeletingSet({ id: x.id, label: `${label} of ${info(ref)?.name ?? ref}` })}
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
+              );
+            })}
         </div>
       ))}
       {error && <p className={f.error} role="alert">{error}</p>}
       <button
-        type="button" className={f.quiet}
+        type="button" className={`${f.quiet} ${f.danger}`}
         onClick={() => setConfirming(true)}
       >
         Delete session
       </button>
+      <ConfirmSheet
+        open={deletingSet !== null}
+        title="Delete this set?"
+        body={deletingSet ? `${deletingSet.label} from ${date} is removed from your history.` : ""}
+        confirmLabel="Delete set"
+        destructive
+        onClose={() => setDeletingSet(null)}
+        onConfirm={() => {
+          if (deletingSet) void run(actions.deleteSet(deletingSet.id));
+          setDeletingSet(null);
+        }}
+      />
       <ConfirmSheet
         open={confirming}
         title="Delete this session?"
