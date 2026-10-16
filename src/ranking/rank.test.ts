@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyweightAt, computeRanks, effectiveLoad, progressOf, score, tierChanges, tierOf, type RankSet } from "./rank";
+import { bodyweightAt, computeRanks, effectiveLoad, loadModelFor, progressOf, score, tierChanges, tierOf, type RankSet } from "./rank";
 
 const TH = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.1]; // bench-like
 
@@ -133,5 +133,19 @@ describe("tierChanges", () => {
     expect(changes).toHaveLength(1);
     expect(changes[0]).toMatchObject({ muscle: "chest", from: "Silver", to: "Platinum" });
     expect(tierChanges(computeRanks([], BW, "male"), after)).toEqual([]);
+  });
+});
+
+describe("loadModelFor", () => {
+  const info = (ref: string) =>
+    ({
+      "ds:Chest_Dip": { primary: ["chest"], secondary: [], equipment: "body weight" },
+      "ds:Cable_Fly": { primary: ["chest"], secondary: [], equipment: "cable" },
+    })[ref];
+  it("uses the standard's model, the derived model, or external", () => {
+    expect(loadModelFor("ds:Barbell_Bench_Press_-_Medium_Grip", info)).toBe("external");
+    expect(loadModelFor("ds:Chest_Dip", info)).toBe("bodyweight_plus");
+    expect(loadModelFor("ds:Cable_Fly", info)).toBe("external");
+    expect(loadModelFor("ds:Unknown", info)).toBe("external");
   });
 });

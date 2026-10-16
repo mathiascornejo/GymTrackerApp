@@ -93,7 +93,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 ## Priority 2: wrong numbers and structure
 
-### [ ] D5. The e1RM chart and the muscle sheet disagree for bodyweight lifts
+### [x] D5. The e1RM chart and the muscle sheet disagree for bodyweight lifts
 **Effort:** medium
 
 **Problem:** For a Chest Dip, the Dashboard chart says 1333.3 kg and the Chest sheet says 1421.3 kg. Cause: `src/app/Dashboard.tsx:104` takes the load model only from `RANKING_LIFTS` and falls back to `"external"`, while `computeRanks` uses `derivedLift` for exercises without a standard, which here is `bodyweight_plus`. So the chart leaves out bodyweight and the rank includes it.

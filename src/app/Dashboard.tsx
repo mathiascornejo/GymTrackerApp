@@ -4,7 +4,7 @@ import type { Profile } from "../data/profile";
 import { useRoutines } from "../data/routines";
 import { cap } from "../exercises/query";
 import { useExercises } from "../exercises/useExercises";
-import { computeRanks, progressOf, tierOf } from "../ranking/rank";
+import { computeRanks, loadModelFor, progressOf, tierOf } from "../ranking/rank";
 import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
 import { e1rmSeries, frequencyGrid, prEvents, weekStart, weeklyVolume } from "../ranking/stats";
 import { fromKg, toKg } from "../units";
@@ -101,7 +101,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
     return refs.sort((a, b) => Number(ranking.has(b)) - Number(ranking.has(a)) || name(a).localeCompare(name(b)));
   }, [sets, byRef]); // eslint-disable-line react-hooks/exhaustive-deps
   const chosen = liftRef && liftOptions.includes(liftRef) ? liftRef : liftOptions[0] ?? null;
-  const load = RANKING_LIFTS.find((l) => l.ref === chosen)?.load ?? "external";
+  const load = chosen ? loadModelFor(chosen, (ref) => byRef.get(ref)) : "external";
   const since = RANGES.find((r) => r.id === range)!.days;
   const series = chosen
     ? e1rmSeries(sets, chosen, load, bodyweights, since ? new Date(now.getTime() - since * 86_400_000) : null).map((p) => ({ t: p.t, v: fromKg(p.e1rmKg, unit) }))
@@ -210,7 +210,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
       )}
 
       <section aria-label="Estimated 1RM trend" className={`${s.section} ${s.wide}`}>
-        <h2 className={s.h2}>Estimated 1RM</h2>
+        <h2 className={s.h2}>Estimated 1RM{load !== "external" && " (incl. bodyweight)"}</h2>
         {liftOptions.length === 0 ? (
           <p className={f.note}>Log your first session to see your estimated 1RM trend.</p>
         ) : (

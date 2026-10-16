@@ -71,6 +71,17 @@ const median = (xs: number[]) => {
  */
 export type MuscleInfo = { name?: string; primary: string[]; secondary: string[]; equipment: string | null };
 
+/** The standard an exercise ranks against: its own, else one derived from its primary muscle. Stretches never rank. */
+export function liftFor(ref: string, info: (ref: string) => MuscleInfo | undefined): RankingLift | null {
+  const own = RANKING_LIFTS.find((l) => l.ref === ref);
+  if (own) return own;
+  const i = info(ref);
+  return i?.primary[0] && !/stretch/i.test(i.name ?? "") ? derivedLift(ref, i.primary[0], i.equipment) : null;
+}
+
+/** How a set's load counts toward e1RM; the chart and the ranks must agree on it. */
+export const loadModelFor = (ref: string, info: (ref: string) => MuscleInfo | undefined): LoadModel => liftFor(ref, info)?.load ?? "external";
+
 export function computeRanks(
   sets: RankSet[],
   bodyweights: Bodyweight[],
@@ -78,21 +89,16 @@ export function computeRanks(
   overrides: Overrides = {},
   info: (ref: string) => MuscleInfo | undefined = () => undefined,
 ): Ranks {
-  const liftOf = new Map<string, RankingLift | null>(RANKING_LIFTS.map((l) => [l.ref, l]));
-  /** Standards lift if there is one, else a derived standard for any exercise with a known primary muscle. */
-  const liftFor = (ref: string) => {
-    if (!liftOf.has(ref)) {
-      const i = info(ref);
-      // Stretches are not strength work, so they never rank.
-      liftOf.set(ref, i?.primary[0] && !/stretch/i.test(i.name ?? "") ? derivedLift(ref, i.primary[0], i.equipment) : null);
-    }
+  const liftOf = new Map<string, RankingLift | null>();
+  const cachedLift = (ref: string) => {
+    if (!liftOf.has(ref)) liftOf.set(ref, liftFor(ref, info));
     return liftOf.get(ref) ?? undefined;
   };
   const best = new Map<string, LiftRank>();
   const flagged: Flagged[] = [];
 
   for (const s of sets) {
-    const lift = liftFor(s.exercise_ref);
+    const lift = cachedLift(s.exercise_ref);
     if (!lift || s.is_warmup || !rankable(s.reps)) continue;
     const bw = bodyweightAt(s.completed_at, bodyweights);
     if (bw === null) continue; // no bodyweight yet: ranks wait for one
