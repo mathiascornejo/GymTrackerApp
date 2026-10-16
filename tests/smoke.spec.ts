@@ -176,18 +176,13 @@ test.describe("routine builder", () => {
     await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
   };
 
-  // The picker is docked on desktop and a bottom sheet on phone; either way Add puts the exercise on the day being viewed.
+  // "Add exercise" opens the picker: a side panel that stays open on desktop, a bottom sheet on phone. Add puts the exercise on the day being viewed.
   async function addExercise(page: Page, name: string, to: string) {
     await showDay(page, to === "Accessory bank" ? "Bank" : to);
-    if (isPhone()) {
-      await page.getByRole("button", { name: "Add exercise" }).click();
-      await page.getByLabel("Search the picker").fill(name);
-      await page.getByRole("button", { name: `Add ${name} to ${to}`, exact: true }).click();
-      await page.getByRole("button", { name: "Done", exact: true }).click();
-    } else {
-      await page.getByLabel("Search the picker").fill(name);
-      await page.getByRole("button", { name: `Add ${name} to ${to}`, exact: true }).click();
-    }
+    if (await page.getByLabel("Search the picker").isHidden()) await page.getByRole("button", { name: "Add exercise" }).click();
+    await page.getByLabel("Search the picker").fill(name);
+    await page.getByRole("button", { name: `Add ${name} to ${to}`, exact: true }).click();
+    if (isPhone()) await page.getByRole("button", { name: "Done", exact: true }).click();
   }
 
   test("adds an exercise, edits sets, and keeps it after reload", async ({ page }) => {
@@ -289,6 +284,7 @@ test.describe("routine builder", () => {
   test("drags an exercise from the picker onto a day", async ({ page }) => {
     test.skip(isPhone(), "Drag from the docked picker is a desktop interaction; phone uses the Add to menu.");
     await openBuilder(page);
+    await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill("Barbell Curl");
     const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
     const target = page.getByRole("region", { name: "Tuesday" });

@@ -47,7 +47,7 @@ export function RoutinePicker({
   const shown = useMemo(() => search(applyFilters(exercises, { muscle: muscle || undefined }), query), [exercises, query, muscle]);
   return (
     <section aria-label="Exercise picker" className={s.picker}>
-      <p className={f.note}>Adding to {current.label}. Close this and pick another day to add there.</p>
+      <p className={f.note}>Adding to {current.label}.</p>
       <div className={s.pickerControls}>
         <label className={s.grow}>
           <span className={s.visuallyHidden}>Search the picker</span>

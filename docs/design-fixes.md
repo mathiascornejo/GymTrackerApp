@@ -113,7 +113,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** at 390 px, the day chips are visible without scrolling.
 
-### [ ] D7. The desktop routine picker is always open
+### [x] D7. The desktop routine picker is always open
 **Effort:** medium
 
 **Problem:** On desktop (`desktop` branch at `Routines.tsx:406`), `RoutinePicker` renders inline under the day, permanently, with up to 40 filled accent "Add" buttons. Its copy says "Close this and pick another day", but there's no close control. The phone branch already uses a `Sheet` behind an "Add exercise" button.

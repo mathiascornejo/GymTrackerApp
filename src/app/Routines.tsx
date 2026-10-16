@@ -406,13 +406,23 @@ export function Routines({ profile }: { profile: Profile }) {
             ))}
           </div>
 
-          <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>
+          {/* Desktop docks the picker beside the board (not a modal sheet) so exercises can still be dragged onto a day. */}
+          <div className={desktop && pickerOpen ? s.boardSplit : undefined}>
+            <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>
+            {desktop && pickerOpen && (
+              <aside className={s.sidePicker} aria-label="Add exercise">
+                <div className={s.sheetTop}>
+                  <h2 className={s.sheetTitle}>Add exercise</h2>
+                  <button className={f.quiet} onClick={() => setPickerOpen(false)}>Close</button>
+                </div>
+                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
+              </aside>
+            )}
+          </div>
 
-          {desktop ? (
-            <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
-          ) : (
+          {!(desktop && pickerOpen) && <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>}
+          {!desktop && (
             <>
-              <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>
               <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)} label="Add exercise">
                 <div className={s.sheetTop}>
                   <h2 className={s.sheetTitle}>Add exercise</h2>
