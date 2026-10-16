@@ -252,7 +252,7 @@ Fix these across `src/app/`:
 2. Add "Forgot password?" using Supabase `resetPasswordForEmail`, through a new function in `src/data/auth.ts`, never from the component. It also needs a handler for the recovery redirect that lets the user set a new password. With hash routing, check that the redirect URL works on GitHub Pages and in the local stack.
 3. The "Create account" / "Use password" links under the card are indented relative to the card's edge. Align them with it.
 
-### [ ] D24. Optional: last-time hint in set rows
+### [x] D24. Optional: last-time hint in set rows
 **Effort:** medium
 
 Ghost placeholders disappear as soon as you type. Under each set label in `SessionLog.tsx`, show a small muted "Last: 60 × 10" from the same ghost data. Hide it once the set is done. Check the row still fits on one line at 390 px.

@@ -175,6 +175,21 @@
   grid-column: 2;
 }
 
+.lastHint {
+  display: block;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.named .lastHint {
+  display: inline;
+  margin-left: 8px;
+}
+
 .warm .setLabel {
   color: var(--ink-muted);
 }

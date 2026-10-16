@@ -81,7 +81,10 @@ function SetLine({ label, name, dataSlot, done, input, ghost, unit, warm, pr, er
   const r = done ? String(done.reps) : input.r;
   return (
     <div className={`${s.setRow} ${done ? s.setDone : ""} ${warm ? s.warm : ""} ${name ? s.named : ""}`} data-slot={dataSlot}>
-      <span className={s.setLabel}>{name ?? label}{pr && <span className={s.prBadge} title="Personal best estimated 1RM">PR</span>}</span>
+      <span className={s.setLabel}>
+        {name ?? label}{pr && <span className={s.prBadge} title="Personal best estimated 1RM">PR</span>}
+        {ghost && !done && <span className={s.lastHint}>Last: {fmt(ghost.weight_kg, unit)} × {ghost.reps}</span>}
+      </span>
       <label>
         <span className={s.visuallyHidden}>{label} weight ({unit})</span>
         <input
