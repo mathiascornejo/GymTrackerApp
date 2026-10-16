@@ -244,7 +244,7 @@ Fix these across `src/app/`:
 
 `src/app/Settings.tsx:29` renders square checkboxes. Restyle them as switches: keep the native `<input type="checkbox">`, add `role="switch"`, and give a ≥44 px hit area, with accent when on and `--on-accent` for the knob.
 
-### [ ] D23. Sign-in screen
+### [x] D23. Sign-in screen
 **Effort:** medium
 
 `src/app/SignIn.tsx`:

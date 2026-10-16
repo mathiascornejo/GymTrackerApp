@@ -165,6 +165,37 @@ select.input {
   background: var(--hairline);
 }
 
+/* Password input with a show/hide button over its right end. */
+.passwordField {
+  position: relative;
+}
+
+.passwordField input {
+  width: 100%;
+  padding-right: 48px;
+}
+
+.reveal {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+/* Text buttons under a card: their label lines up with the card's edge, the padding hangs outside it. */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  margin-inline: -12px;
+}
+
 .error {
   margin: 0;
   color: var(--ink);

@@ -25,7 +25,7 @@ async function signIn(page: Page, hash = "dashboard") {
   const email = await newUser();
   await page.goto(`#/${hash}`);
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
 }
 
@@ -61,7 +61,7 @@ test("production build ships a CSP meta tag", async ({ page }) => {
 test("sign-in rejects a wrong password with a readable message", async ({ page }) => {
   await page.goto("#/dashboard");
   await page.getByLabel("Email").fill("nobody@test.local");
-  await page.getByLabel("Password").fill("not-the-password");
+  await page.getByLabel("Password", { exact: true }).fill("not-the-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText(/invalid/i);
 });
@@ -481,7 +481,7 @@ test.describe("dashboard and ranks", () => {
   async function open(page: Page, seed: Seed, hash = "dashboard") {
     await page.goto(`#/${hash}`);
     await page.getByLabel("Email").fill(seed.email);
-    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
   }
 
@@ -627,7 +627,7 @@ test.describe("pwa and background alarm", () => {
   async function login(page: Page, email: string, hash: string) {
     await page.goto(`#/${hash}`);
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await page.getByRole("button", { name: "Skip for now" }).click();
   }
@@ -738,7 +738,7 @@ test.describe("polish and account", () => {
   async function login(page: Page, email: string, hash: string, skip = true) {
     await page.goto(`#/${hash}`);
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     if (skip) await page.getByRole("button", { name: "Skip for now" }).click();
   }
@@ -819,7 +819,7 @@ test.describe("polish and account", () => {
     await del.click();
     await expect(page.getByRole("heading", { name: "Tempered" })).toBeVisible(); // signed out
     await page.getByLabel("Email").fill(u.email);
-    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page.getByRole("alert")).toContainText(/invalid/i);
     // The old token no longer reads anything.

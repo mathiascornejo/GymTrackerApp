@@ -1,11 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { useSession } from "../data/auth";
+import { useRecovery, useSession } from "../data/auth";
 import { configured } from "../data/client";
 import { useProfile } from "../data/profile";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { RankingSetup } from "./RankingSetup";
 import { Shell } from "./Shell";
-import { SignIn } from "./SignIn";
+import { SetPassword, SignIn } from "./SignIn";
 import { applyTheme } from "./theme";
 import f from "./Form.module.css";
 
@@ -96,6 +96,7 @@ function Authed() {
 
 export function App() {
   const session = useSession();
+  const [recovering, doneRecovering] = useRecovery();
   if (!configured)
     return (
       <div className={f.center}>
@@ -104,5 +105,6 @@ export function App() {
       </div>
     );
   if (session === undefined) return null;
+  if (session && recovering) return <SetPassword onDone={doneRecovering} />;
   return session ? <Authed /> : <SignIn />;
 }

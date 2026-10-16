@@ -27,7 +27,7 @@ async function seed() {
 async function signIn(page: Page, email: string, hash: string) {
   await page.goto(`#/${hash}`);
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
 }
 
