@@ -14,21 +14,22 @@ Fix list from the October 2026 design review: every screen at 390 px (phone) and
 
 ## Model and effort guide
 
-| Tag | Use | Why |
-|---|---|---|
-| **Sonnet 5.5 · low** | Copy, a CSS value, one-file style fixes | Mechanical; the spec says exactly what to change |
-| **Sonnet 5.5 · medium** | One component plus its CSS, or a small pure function with a test | Needs reading 2–4 files, but no design judgment |
-| **Sonnet 5.5 · high** | Cross-cutting layout touching the shell and every screen | Many places to check; easy to break a screen you didn't look at |
-| **Opus 5.5 · high** | Restructuring a screen, or a palette that has to work as a system (contrast, SVG materials, both themes) | Needs design judgment and trade-offs, not just following a spec |
+Use **Opus 5.5** for every task. Three tasks (D2, D4, D11) need real design judgment, which is where Opus beats Sonnet, and using one model keeps the style consistent across the series. Set the effort per task:
 
-When unsure, start at the listed level. Escalate once if the model gets stuck or the result looks generic.
+| Effort | Tasks | Use |
+|---|---|---|
+| **low** | D8, D10, D12, D13, D20, D21, D22 | Copy, a CSS value, one-file style fixes; the spec says exactly what to change |
+| **medium** | D3, D5, D6, D7, D9, D14–D19, D23, D24 | One component plus its CSS, or a small pure function with a test |
+| **high** | D1, D2, D4, D11 | Layout across every screen, a screen restructure, or a palette that must work as a system (contrast, SVG materials, both themes) |
+
+If a task gets stuck or the result looks generic, rerun it one level higher.
 
 ---
 
 ## Priority 1: mis-taps and the hero visual
 
 ### [ ] D1. The floating profile button covers controls
-**Model:** Sonnet 5.5 · high
+**Effort:** high
 
 **Problem:** `ProfileDock` (`src/app/GradientNav.tsx`, rendered in `src/app/Shell.tsx`) floats top-right and stays put while you scroll.
 - Phone: it covers the done ✓ on whichever set row scrolls under it, and the counts in "Weekly sets by muscle".
@@ -40,7 +41,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** at 390 and 530 px, scrolling Dashboard, Routines and a live session never puts the button over a control or text.
 
 ### [ ] D2. Tier colors: red Olympian, and Silver, Platinum and Diamond look the same
-**Model:** Opus 5.5 · high
+**Effort:** high
 
 **Problem:**
 - Silver `#AEB4BE`, Platinum `#8FC9CF` and Diamond `#BDEBFF` are all pale cool greys, so three of eight tiers can't be told apart on the body map.
@@ -60,7 +61,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** a screenshot of the map with every tier present (temporarily fake the data locally, never commit fake data) has eight clearly different colors in light and dark, and no tier is red.
 
 ### [ ] D3. Superset rows wrap into five-line labels
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 **Problem:** In `src/app/SessionLog.tsx:378`, superset rows are labeled `${nameOf(it.ref)} round ${r + 1}` in a column about 120 px wide. "Cable Standing Overhead Triceps Extension round 1" wraps to five lines, under an `<h4>` that already says "Round 1".
 
@@ -72,7 +73,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** at 390 px, every superset row in the Friday Push day is no more than two lines tall.
 
 ### [ ] D4. Make the live session a focused mode
-**Model:** Opus 5.5 · high
+**Effort:** high
 
 **Problem:** At 390×700 the live session loses about 190 px (27%) to stacked floating layers: the alarm notice, the idle "Rest 3:00" button and the tab bar. "Finish session" is a filled accent button top-right from the first second, so it's the loudest thing on screen for an hour. The page also has two titles ("Session" above "Push").
 
@@ -93,7 +94,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 ## Priority 2: wrong numbers and structure
 
 ### [ ] D5. The e1RM chart and the muscle sheet disagree for bodyweight lifts
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 **Problem:** For a Chest Dip, the Dashboard chart says 1333.3 kg and the Chest sheet says 1421.3 kg. Cause: `src/app/Dashboard.tsx:104` takes the load model only from `RANKING_LIFTS` and falls back to `"external"`, while `computeRanks` uses `derivedLift` for exercises without a standard, which here is `bodyweight_plus`. So the chart leaves out bodyweight and the rank includes it.
 
@@ -102,7 +103,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** the chart value and the muscle sheet value match for a bodyweight exercise.
 
 ### [ ] D6. Routines puts admin controls before the plan
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 **Problem:** The top of Routines is routine select, "New routine", then Duplicate / Delete routine / Export JSON / Import JSON, all in the same quiet-link style. "Delete routine" looks identical to "Export JSON". The actual plan starts below the fold on phone.
 
@@ -113,7 +114,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** at 390 px, the day chips are visible without scrolling.
 
 ### [ ] D7. The desktop routine picker is always open
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 **Problem:** On desktop (`desktop` branch at `Routines.tsx:406`), `RoutinePicker` renders inline under the day, permanently, with up to 40 filled accent "Add" buttons. Its copy says "Close this and pick another day", but there's no close control. The phone branch already uses a `Sheet` behind an "Add exercise" button.
 
@@ -122,7 +123,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** at 1024 px there's no picker on Routines until "Add exercise" is pressed, and the picker has a visible close.
 
 ### [ ] D8. The phone "Add exercise" button covers content
-**Model:** Sonnet 5.5 · low
+**Effort:** low
 
 **Problem:** `.addFab` (`Routines.module.css:513`) overlaps the "Most work: …" line and the last rows of "Weekly sets per muscle".
 
@@ -131,7 +132,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** at 390 px, every line on Routines can be scrolled fully clear of the FAB.
 
 ### [ ] D9. The theme toggle looks like a sixth tab
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 **Problem:** `GradientNav` includes a theme cycle button (monitor icon) in the tab bar. It reads as a "Desktop" tab.
 
@@ -140,7 +141,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** the tab bar has exactly five items and theme changes from Settings persist across a reload.
 
 ### [ ] D10. Destructive actions look like everything else
-**Model:** Sonnet 5.5 · low
+**Effort:** low
 
 **Problem:** There's no danger color.
 - `ConfirmSheet` (`src/app/ConfirmSheet.tsx:21`) always uses the accent button, even for "Discard session" and "Delete routine".
@@ -154,7 +155,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** every delete or discard confirmation has a danger-colored confirm button, and axe passes.
 
 ### [ ] D11. Desktop wastes space
-**Model:** Opus 5.5 · high
+**Effort:** high
 
 **Problem:**
 - At 1024 px, the Session start panel is a small form floating in an empty page.
@@ -170,7 +171,7 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 **Done when:** screenshots at 1024 and 1280 px show no large empty regions, and 390 px looks the same as before.
 
 ### [ ] D12. Content columns don't line up
-**Model:** Sonnet 5.5 · low
+**Effort:** low
 
 **Problem:** The Library list (`src/app/Library.module.css`) and the Routines day board (`.board` in `Routines.module.css`) are inset about 46 px from the search bar and cards above them, so each screen has two left edges.
 
@@ -183,44 +184,44 @@ When unsure, start at the listed level. Escalate once if the model gets stuck or
 ## Priority 3: polish
 
 ### [ ] D13. Chart text is too small
-**Model:** Sonnet 5.5 · low
+**Effort:** low
 
 Axis and value labels in `src/app/charts.tsx` render around 9–10 px ("1333.3 kg", "Oct 12"), and the map's "Front" and "Back" captions are similar. Set a 12 px minimum for chart and map text and check the labels don't collide at 390 px. With a single data point, center it and show its value next to the dot, rather than an empty axis with a lone label.
 
 ### [ ] D14. Weekly sets bars have no target
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 The Dashboard's "Weekly sets by muscle" scales bars to the week's maximum, so with two muscles both bars are full. Draw each bar against a fixed target band instead (e.g. 10–20 sets per muscle per week, a constant marked `// UNVERIFIED`), with the band shaded on the track. Put the scaling in a pure function with a test.
 
 ### [ ] D15. The session heatmap has no axes
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 "Sessions, last 12 weeks" is 84 unlabeled squares. Add weekday initials for alternating rows (honoring `week_starts_on`) and month labels above the columns where a month starts. Give the grid an accessible summary (e.g. "3 sessions in the last 12 weeks").
 
 ### [ ] D16. Session start doesn't show the plan
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 `StartPanel` (`src/app/Session.tsx`) only offers a Day select. Under it, list the chosen day's exercises (name plus "3 × 8–12"), read from the routine already loaded. Changing the day updates the list.
 
 Also fix a copy bug: a day labeled "Rest Day" renders as "Sunday · Rest Day · rest day" (`Session.tsx:46`). Skip the " · rest day" suffix when the label already says rest, case-insensitive.
 
 ### [ ] D17. Past sessions are hard to read and edit
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 `src/app/PastSessions.tsx`: expanded sessions show unlabeled inputs (1000 / 10) next to a text "Delete" on every row. Add a column header row ("kg" / "reps", in the user's unit), and replace the per-row Delete link with an icon button (accessible name "Delete set N") that confirms through `ConfirmSheet` with the D10 destructive style. Format the volume summary with the unit and grouping that `fromKg` already gives.
 
 ### [ ] D18. Weight screen
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 `src/app/Weight.tsx:46`: the input's placeholder is the last logged value ("66 kg"), so it looks pre-filled. Change it to "Today's weight". When there are 3 or more entries, draw a 7-day moving average line on the trend chart; make the average a pure function with a test in `src/ranking/stats.ts` or a new `src/weight/` module. Replace the per-row "Delete" link with the same icon-button pattern as D17.
 
 ### [ ] D19. Library rows have no thumbnails
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 `src/app/Library.tsx` is already virtualized; keep it that way. Add a 40 px rounded thumbnail (first image, `loading="lazy"`, empty `alt` because the name is next to it) to each row, and update the virtualizer's row-size estimate. Exercises without media get a neutral placeholder tile. Use the same row in `RoutinePicker` if it shares the component.
 
 ### [ ] D20. Exercise sheet details
-**Model:** Sonnet 5.5 · low
+**Effort:** low
 
 `src/app/ExerciseSheet.tsx` / `ExerciseDemo.tsx`:
 1. The dataset images have white backgrounds and sit in a dark frame. Wrap them in a deliberate light plate (`#F5F5F7`, radius 20, 12 px padding) in both themes.
@@ -228,7 +229,7 @@ Also fix a copy bug: a day labeled "Rest Day" renders as "Sunday · Rest Day · 
 3. The sheet opens with a circular reveal, but the brief says the only animation is the rank-up sheen. Replace it with the standard sheet transition used by `Sheet.tsx`, and make sure reduced motion gets no animation.
 
 ### [ ] D21. Copy and typography sweep
-**Model:** Sonnet 5.5 · low
+**Effort:** low
 
 Fix these across `src/app/`:
 - Rep ranges use an en dash: `8–12`, not `8-12` (Routines block cards, session block meta).
@@ -239,12 +240,12 @@ Fix these across `src/app/`:
 - "Optional this week (1)" and "More" are `<details>` with no visible chevron. Add one that rotates when open.
 
 ### [ ] D22. Settings toggles
-**Model:** Sonnet 5.5 · low
+**Effort:** low
 
 `src/app/Settings.tsx:29` renders square checkboxes. Restyle them as switches: keep the native `<input type="checkbox">`, add `role="switch"`, and give a ≥44 px hit area, with accent when on and `--on-accent` for the knob.
 
 ### [ ] D23. Sign-in screen
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 `src/app/SignIn.tsx`:
 1. Add a show/hide password toggle inside the password field (icon button with an accessible name that reflects its state).
@@ -252,7 +253,7 @@ Fix these across `src/app/`:
 3. The "Create account" / "Use password" links under the card are indented relative to the card's edge. Align them with it.
 
 ### [ ] D24. Optional: last-time hint in set rows
-**Model:** Sonnet 5.5 · medium
+**Effort:** medium
 
 Ghost placeholders disappear as soon as you type. Under each set label in `SessionLog.tsx`, show a small muted "Last: 60 × 10" from the same ghost data. Hide it once the set is done. Check the row still fits on one line at 390 px.
 
