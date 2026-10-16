@@ -34,8 +34,6 @@
 /* Rows are absolutely positioned by the window virtualizer. */
 .list {
   position: relative;
-  max-width: 720px;
-  margin-inline: auto;
 }
 
 .header,

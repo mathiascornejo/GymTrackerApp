@@ -170,7 +170,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 **Done when:** screenshots at 1024 and 1280 px show no large empty regions, and 390 px looks the same as before.
 
-### [ ] D12. Content columns don't line up
+### [x] D12. Content columns don't line up
 **Effort:** low
 
 **Problem:** The Library list (`src/app/Library.module.css`) and the Routines day board (`.board` in `Routines.module.css`) are inset about 46 px from the search bar and cards above them, so each screen has two left edges.
