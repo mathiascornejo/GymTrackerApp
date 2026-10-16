@@ -6,7 +6,7 @@ import { cap } from "../exercises/query";
 import { useExercises } from "../exercises/useExercises";
 import { computeRanks, loadModelFor, progressOf, tierOf } from "../ranking/rank";
 import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
-import { e1rmSeries, frequencyGrid, prEvents, weekStart, weeklyVolume } from "../ranking/stats";
+import { e1rmSeries, frequencyGrid, prEvents, volumeBar, WEEKLY_SET_TARGET, weekStart, weeklyVolume } from "../ranking/stats";
 import { fromKg, toKg } from "../units";
 import { BodyMap, MaterialDefs } from "./BodyMap";
 import { FrequencyGrid, LineChart, Ring } from "./charts";
@@ -108,7 +108,6 @@ export function Dashboard({ profile }: { profile: Profile }) {
     : [];
 
   const volume = Object.entries(weeklyVolume(sets, (ref) => byRef.get(ref)?.primary ?? [], wkStart)).sort((a, b) => b[1] - a[1]);
-  const volMax = Math.max(1, ...volume.map(([, n]) => n));
   const grid = frequencyGrid(sessions.map((x) => x.started_at), now, profile.week_starts_on, 12);
   const dayNames = Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 7 + ((profile.week_starts_on + i) % 7)).toLocaleDateString(undefined, { weekday: "short" }));
   const prs = prEvents(sets).slice(-8).reverse();
@@ -242,17 +241,24 @@ export function Dashboard({ profile }: { profile: Profile }) {
         {volume.length === 0 ? (
           <p className={f.note}>Sets you log this week appear here.</p>
         ) : (
-          <ul className={s.bars}>
-            {volume.map(([m, n]) => (
-              <li key={m}>
-                <span className={s.barLabel}>{cap(m)}</span>
-                <span className={s.barTrack}>
-                  <span className={s.barFill} style={{ width: `${(n / volMax) * 100}%` }} />
-                </span>
-                <span className={s.barValue}>{n}</span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className={s.bars}>
+              {volume.map(([m, n]) => {
+                const bar = volumeBar(n);
+                return (
+                  <li key={m}>
+                    <span className={s.barLabel}>{cap(m)}</span>
+                    <span className={s.barTrack}>
+                      <span className={s.barBand} style={{ left: `${bar.bandFrom}%`, width: `${bar.bandTo - bar.bandFrom}%` }} />
+                      <span className={s.barFill} style={{ width: `${bar.fill}%` }} />
+                    </span>
+                    <span className={s.barValue}>{n}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className={f.note}>Shaded: {WEEKLY_SET_TARGET.min}–{WEEKLY_SET_TARGET.max} sets a week.</p>
+          </>
         )}
       </section>
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RankSet } from "./rank";
-import { e1rmSeries, frequencyGrid, movingAverage, prEvents, weekStart, weeklyVolume } from "./stats";
+import { e1rmSeries, frequencyGrid, movingAverage, volumeBar, prEvents, weekStart, weeklyVolume } from "./stats";
 
 const s = (id: string, ref: string, w: number, reps: number, at: string, warm = false): RankSet => ({
   id, exercise_ref: ref, weight_kg: w, reps, is_warmup: warm, completed_at: at,
@@ -76,5 +76,13 @@ describe("movingAverage", () => {
   it("averages the trailing seven calendar days, not the last seven entries", () => {
     const pts = [{ t: day(0), v: 70 }, { t: day(3), v: 72 }, { t: day(6), v: 74 }, { t: day(7), v: 76 }];
     expect(movingAverage(pts).map((p) => p.v)).toEqual([70, 71, 72, 74]);
+  });
+});
+
+describe("volumeBar", () => {
+  it("scales against a fixed target, not the week's maximum", () => {
+    expect(volumeBar(15, { min: 10, max: 20 })).toEqual({ fill: 50, bandFrom: (10 / 30) * 100, bandTo: (20 / 30) * 100 });
+    expect(volumeBar(45, { min: 10, max: 20 }).fill).toBe(100);
+    expect(volumeBar(0).fill).toBe(0);
   });
 });

@@ -188,7 +188,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 Axis and value labels in `src/app/charts.tsx` render around 9–10 px ("1333.3 kg", "Oct 12"), and the map's "Front" and "Back" captions are similar. Set a 12 px minimum for chart and map text and check the labels don't collide at 390 px. With a single data point, center it and show its value next to the dot, rather than an empty axis with a lone label.
 
-### [ ] D14. Weekly sets bars have no target
+### [x] D14. Weekly sets bars have no target
 **Effort:** medium
 
 The Dashboard's "Weekly sets by muscle" scales bars to the week's maximum, so with two muscles both bars are full. Draw each bar against a fixed target band instead (e.g. 10–20 sets per muscle per week, a constant marked `// UNVERIFIED`), with the band shaded on the track. Put the scaling in a pure function with a test.

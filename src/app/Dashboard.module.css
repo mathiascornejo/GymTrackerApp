@@ -338,13 +338,23 @@
 }
 
 .barTrack {
+  position: relative;
   height: 12px;
   border-radius: 999px;
   background: var(--hairline);
   overflow: hidden;
 }
 
+/* The weekly target range, shaded on the track behind the fill. */
+.barBand {
+  position: absolute;
+  inset-block: 0;
+  background: var(--ink-muted);
+  opacity: 0.35;
+}
+
 .barFill {
+  position: relative;
   display: block;
   height: 100%;
   border-radius: 999px;

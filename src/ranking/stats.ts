@@ -20,6 +20,16 @@ export function weeklyVolume(sets: RankSet[], primaryOf: (ref: string) => string
   return out;
 }
 
+/** Working sets per muscle per week worth aiming for. UNVERIFIED: a common hypertrophy guideline, not a standard. */
+export const WEEKLY_SET_TARGET = { min: 10, max: 20 }; // UNVERIFIED
+
+/** A weekly-sets bar on a fixed scale (1.5x the target top), so one muscle never fills the track just by leading. Percentages 0..100. */
+export function volumeBar(sets: number, target = WEEKLY_SET_TARGET) {
+  const axis = target.max * 1.5;
+  const pct = (n: number) => Math.min(100, (n / axis) * 100);
+  return { fill: pct(sets), bandFrom: pct(target.min), bandTo: pct(target.max) };
+}
+
 /** `weeks` columns ending with the current week, each with a session count per day (in week order). */
 export function frequencyGrid(startedAt: string[], now: Date, weekStartsOn: number, weeks = 12) {
   const first = weekStart(now, weekStartsOn);
