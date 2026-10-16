@@ -83,7 +83,7 @@ export function BlockCard({
               <li key={item.id} className={s.itemName}>
                 {multi && <ItemGrip blockId={block.id} itemId={item.id} name={names[i]} />}
                 <button type="button" className={s.itemLink} onClick={() => actions.onView(item.ref)}>{names[i]}</button>
-                {!open && <span className={s.itemMeta}>{item.repMin}-{item.repMax}</span>}
+                {!open && <span className={s.itemMeta}>{item.repMin}–{item.repMax}</span>}
                 {open && multi && (
                   <button type="button" className={s.iconBtn} aria-label={`Remove ${names[i]} from block`} onClick={() => actions.onRemoveItem(item.id)}>
                     ×
@@ -106,7 +106,12 @@ export function BlockCard({
           type="button" className={s.editBtn} aria-expanded={open}
           aria-label={`${open ? "Close editor for" : "Edit"} ${label}`} onClick={() => setOpen(!open)}
         >
-          {open ? "Done" : "Edit"}
+          {open ? "Done" : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          )}
         </button>
       </div>
 

@@ -356,7 +356,7 @@ export function SessionLog({
             <p className={s.blockMeta}>
               {group ? `${b.kind === "superset" ? "Superset" : "Circuit"}, ${rounds} rounds` : `${rounds} sets`}
               {" · "}rest {mmss(b.restS)}
-              {b.items.length === 1 && ` · ${b.items[0].repMin}-${b.items[0].repMax} reps`}
+              {b.items.length === 1 && ` · ${b.items[0].repMin}–${b.items[0].repMax} reps`}
               {b.weeklyTarget ? ` · ${bankCounts.get(b.blockId ?? "")?.size ?? 0} of ${b.weeklyTarget} this week` : ""}
             </p>
           </div>

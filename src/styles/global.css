@@ -22,6 +22,10 @@ body {
   outline-offset: 2px;
 }
 
+a {
+  color: var(--accent);
+}
+
 button {
   font: inherit;
   color: inherit;

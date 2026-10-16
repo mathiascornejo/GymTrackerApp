@@ -506,7 +506,7 @@ test.describe("dashboard and ranks", () => {
     const sheet = page.getByRole("dialog", { name: "Chest" });
     await expect(sheet.getByText("Platinum", { exact: true }).first()).toBeVisible();
     await expect(sheet.getByRole("link", { name: "Barbell Bench Press - Medium Grip" }).first()).toBeVisible();
-    await expect(sheet).toContainText("1.46x bodyweight");
+    await expect(sheet).toContainText("1.5× bodyweight");
     await page.keyboard.press("Escape");
     // Unranked muscles are neutral, not Wood.
     await expect(page.getByRole("button", { name: "Calves, no data. Show details" }).first()).toBeVisible();
@@ -528,7 +528,7 @@ test.describe("dashboard and ranks", () => {
     await open(page, seed);
     await expect(page.getByRole("heading", { name: "Check these entries" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Chest, no data. Show details" })).toBeVisible();
-    await page.getByRole("button", { name: "It is right" }).click();
+    await page.getByRole("button", { name: "Yes, it's right" }).click();
     await expect(page.getByRole("heading", { name: "Check these entries" })).toBeHidden();
     await expect(page.getByRole("button", { name: /^Chest, (?!no data)/ })).toBeVisible();
   });

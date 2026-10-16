@@ -197,10 +197,10 @@ export function Dashboard({ profile }: { profile: Profile }) {
               <li key={x.set.id}>
                 <span>
                   {name(x.set.exercise_ref)}: {fromKg(x.set.weight_kg, unit)} {unit} x {x.set.reps}
-                  <span className={s.sub}> ({x.ratio.toFixed(1)}x bodyweight on {new Date(x.set.completed_at).toLocaleDateString()})</span>
+                  <span className={s.sub}> ({x.ratio.toFixed(1)}× bodyweight on {new Date(x.set.completed_at).toLocaleDateString()})</span>
                 </span>
                 <span>
-                  <button className={f.quiet} onClick={() => actions.confirmSet.mutate(x.set.id as never)}>It is right</button>
+                  <button className={f.quiet} onClick={() => actions.confirmSet.mutate(x.set.id as never)}>Yes, it's right</button>
                   <button className={f.quiet} onClick={() => actions.deleteSet.mutate(x.set.id as never)}>Delete set</button>
                 </span>
               </li>
@@ -301,7 +301,7 @@ export function Dashboard({ profile }: { profile: Profile }) {
                 <p style={{ margin: 0 }}>
                   <a href={`#/library/${encodeURIComponent(sel.lift.lift.ref)}`}>{name(sel.lift.lift.ref)}</a>
                   {": "}
-                  {fromKg(sel.lift.e1rmKg, unit)} {unit} estimated 1RM, {sel.lift.ratio.toFixed(2)}x bodyweight
+                  {fromKg(sel.lift.e1rmKg, unit)} {unit} estimated 1RM, {sel.lift.ratio.toFixed(1)}× bodyweight
                 </p>
                 {(() => {
                   const th = thresholds(sel.lift.lift, table ?? "male", profile.standards_overrides ?? {});

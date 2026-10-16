@@ -228,7 +228,7 @@ Also fix a copy bug: a day labeled "Rest Day" renders as "Sunday · Rest Day · 
 2. The selected primary-muscle chip is white; selected chips elsewhere use the accent. Match them.
 3. The sheet opens with a circular reveal, but the brief says the only animation is the rank-up sheen. Replace it with the standard sheet transition used by `Sheet.tsx`, and make sure reduced motion gets no animation.
 
-### [ ] D21. Copy and typography sweep
+### [x] D21. Copy and typography sweep
 **Effort:** low
 
 Fix these across `src/app/`:

@@ -248,6 +248,38 @@
   cursor: pointer;
 }
 
+.more summary,
+.group > summary {
+  list-style: none;
+}
+
+.more summary::-webkit-details-marker,
+.group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.more summary::after,
+.group > summary::after {
+  content: "";
+  width: 12px;
+  height: 8px;
+  margin-left: 8px;
+  background: var(--chevron) no-repeat center;
+  transition: transform 0.2s;
+}
+
+.more[open] > summary::after,
+.group[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .more summary::after,
+  .group > summary::after {
+    transition: none;
+  }
+}
+
 .logFoot {
   display: flex;
   flex-wrap: wrap;
