@@ -210,7 +210,7 @@ Also fix a copy bug: a day labeled "Rest Day" renders as "Sunday · Rest Day · 
 
 `src/app/PastSessions.tsx`: expanded sessions show unlabeled inputs (1000 / 10) next to a text "Delete" on every row. Add a column header row ("kg" / "reps", in the user's unit), and replace the per-row Delete link with an icon button (accessible name "Delete set N") that confirms through `ConfirmSheet` with the D10 destructive style. Format the volume summary with the unit and grouping that `fromKg` already gives.
 
-### [ ] D18. Weight screen
+### [x] D18. Weight screen
 **Effort:** medium
 
 `src/app/Weight.tsx:46`: the input's placeholder is the last logged value ("66 kg"), so it looks pre-filled. Change it to "Today's weight". When there are 3 or more entries, draw a 7-day moving average line on the trend chart; make the average a pure function with a test in `src/ranking/stats.ts` or a new `src/weight/` module. Replace the per-row "Delete" link with the same icon-button pattern as D17.

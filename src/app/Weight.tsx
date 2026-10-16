@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useDashboardActions, useDashboardData } from "../data/dashboard";
 import type { Profile } from "../data/profile";
+import { movingAverage } from "../ranking/stats";
 import { fromKg, toKg } from "../units";
 import { LineChart } from "./charts";
 import { ConfirmSheet } from "./ConfirmSheet";
+import { TrashIcon } from "./icons";
 import f from "./Form.module.css";
 import s from "./Dashboard.module.css";
 import w from "./Weight.module.css";
@@ -20,7 +22,7 @@ export function Weight({ profile }: { profile: Profile }) {
   if (data.isPending) return null;
 
   const entries = data.data.bodyweights;
-  const latest = entries[entries.length - 1]?.weight_kg ?? null;
+  const points = entries.map((b) => ({ t: new Date(`${b.measured_on}T12:00:00`).getTime(), v: fromKg(b.weight_kg, unit) }));
 
   const add = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,14 +38,14 @@ export function Weight({ profile }: { profile: Profile }) {
       <section aria-label="Bodyweight trend" className={`${s.section} ${s.wide}`}>
         <h2 className={s.h2}>Trend</h2>
         {entries.length > 0 ? (
-          <LineChart points={entries.map((b) => ({ t: new Date(`${b.measured_on}T12:00:00`).getTime(), v: fromKg(b.weight_kg, unit) }))} unit={unit} label="Bodyweight" />
+          <LineChart points={points} unit={unit} label="Bodyweight" average={points.length >= 3 ? movingAverage(points) : undefined} />
         ) : (
           <p className={f.note}>No weights yet. Add one to start the trend.</p>
         )}
         <form onSubmit={add} className={s.inline}>
           <label>
             <span className={s.visuallyHidden}>Add bodyweight ({unit})</span>
-            <input className={f.input} inputMode="decimal" placeholder={latest ? `${fromKg(latest, unit)} ${unit}` : unit} value={value} onChange={(e) => setValue(e.target.value)} />
+            <input className={f.input} inputMode="decimal" placeholder="Today's weight" value={value} onChange={(e) => setValue(e.target.value)} />
           </label>
           <button className={f.button} type="submit" disabled={actions.addBodyweight.isPending}>Add weight</button>
         </form>
@@ -65,12 +67,12 @@ export function Weight({ profile }: { profile: Profile }) {
                   <span>{date}</span>
                   <span className={w.value}>{fromKg(b.weight_kg, unit)} {unit}</span>
                   <button
-                    className={f.quiet}
+                    className={f.iconBtn}
                     aria-label={`Delete weight from ${date}`}
                     disabled={actions.deleteBodyweight.isPending}
                     onClick={() => setDeleting({ id: b.id, date, text: `${fromKg(b.weight_kg, unit)} ${unit}` })}
                   >
-                    Delete
+                    <TrashIcon />
                   </button>
                 </li>
               );

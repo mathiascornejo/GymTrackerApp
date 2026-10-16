@@ -75,3 +75,12 @@ export function prEvents(sets: RankSet[]): PrEvent[] {
   }
   return out;
 }
+
+/** Trailing moving average over `days` calendar days ending at each point. Points are sorted by `t` (ms). */
+export function movingAverage(points: { t: number; v: number }[], days = 7): { t: number; v: number }[] {
+  const win = days * 86_400_000;
+  return points.map((p) => {
+    const inWindow = points.filter((q) => q.t <= p.t && q.t > p.t - win);
+    return { t: p.t, v: inWindow.reduce((a, q) => a + q.v, 0) / inWindow.length };
+  });
+}

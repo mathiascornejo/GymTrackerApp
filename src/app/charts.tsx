@@ -5,7 +5,7 @@ export type Point = { t: number; v: number };
 const dateLabel = (t: number) => new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
 /** A plain line chart drawn straight on the page: no card, no gridlines beyond the baseline. */
-export function LineChart({ points, unit, label }: { points: Point[]; unit: string; label: string }) {
+export function LineChart({ points, unit, label, average }: { points: Point[]; unit: string; label: string; average?: Point[] }) {
   if (points.length === 0) return null;
   const W = 600;
   const H = 180;
@@ -25,6 +25,12 @@ export function LineChart({ points, unit, label }: { points: Point[]; unit: stri
     <figure className={s.chart}>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${label}: ${points.length} points, latest ${Math.round(latest.v * 10) / 10} ${unit} on ${dateLabel(latest.t)}`}>
         <line x1={pad.l} x2={W - pad.r} y1={H - pad.b} y2={H - pad.b} stroke="var(--hairline)" />
+        {average && (
+          <path
+            d={average.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)} ${y(p.v).toFixed(1)}`).join(" ")}
+            fill="none" stroke="var(--ink-muted)" strokeWidth="2" strokeDasharray="6 5" strokeLinejoin="round"
+          />
+        )}
         <path d={d} fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
         {points.map((p, i) => (
           <circle key={i} cx={x(p.t)} cy={y(p.v)} r={i === points.length - 1 ? 4.5 : 2.5} fill="var(--accent)" />
@@ -36,7 +42,7 @@ export function LineChart({ points, unit, label }: { points: Point[]; unit: stri
       ) : (
         <figcaption className={s.axisRow} aria-hidden="true">
           <span>{dateLabel(t0)}</span>
-          <span>High {fmt(hi)}</span>
+          <span>{average ? `7-day average ${fmt(average[average.length - 1].v)}` : `High ${fmt(hi)}`}</span>
           <span>{dateLabel(t1)}</span>
         </figcaption>
       )}

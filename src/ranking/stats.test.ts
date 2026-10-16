@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RankSet } from "./rank";
-import { e1rmSeries, frequencyGrid, prEvents, weekStart, weeklyVolume } from "./stats";
+import { e1rmSeries, frequencyGrid, movingAverage, prEvents, weekStart, weeklyVolume } from "./stats";
 
 const s = (id: string, ref: string, w: number, reps: number, at: string, warm = false): RankSet => ({
   id, exercise_ref: ref, weight_kg: w, reps, is_warmup: warm, completed_at: at,
@@ -68,5 +68,13 @@ describe("prEvents", () => {
     ]);
     expect(evs.map((e) => e.at)).toEqual(["2026-01-15T10:00:00Z"]);
     expect(evs[0].previousKg).toBeCloseTo(100 * (1 + 5 / 30), 3);
+  });
+});
+
+describe("movingAverage", () => {
+  const day = (n: number) => n * 86_400_000;
+  it("averages the trailing seven calendar days, not the last seven entries", () => {
+    const pts = [{ t: day(0), v: 70 }, { t: day(3), v: 72 }, { t: day(6), v: 74 }, { t: day(7), v: 76 }];
+    expect(movingAverage(pts).map((p) => p.v)).toEqual([70, 71, 72, 74]);
   });
 });
