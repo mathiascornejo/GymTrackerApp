@@ -28,7 +28,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 ## Priority 1: mis-taps and the hero visual
 
-### [ ] D1. The floating profile button covers controls
+### [x] D1. The floating profile button covers controls
 **Effort:** high
 
 **Problem:** `ProfileDock` (`src/app/GradientNav.tsx`, rendered in `src/app/Shell.tsx`) floats top-right and stays put while you scroll.

@@ -6,20 +6,26 @@
   padding: env(safe-area-inset-top) var(--gutter) calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px);
 }
 
+/* Title centred, profile button at the right end; both scroll with the page so the button never sits on content. */
 .header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 12px;
+  gap: 8px;
   max-width: var(--content-w);
   margin: 0 auto;
-  /* Equal room either side keeps the title centred under the frozen profile button. */
-  padding: 16px 64px 8px;
+  padding: 12px 0 8px;
+}
+
+.header > :last-child {
+  grid-column: 3;
+  justify-self: end;
 }
 
 .title {
+  grid-column: 2;
   margin: 0;
+  text-align: center;
   font: 700 34px/41px var(--font-display);
 }
 

@@ -10,10 +10,10 @@ export function Shell({ children }: { children: (route: Route) => ReactNode }) {
   return (
     <div className={s.shell}>
       <GradientNav tabs={TABS} active={active} />
-      <ProfileDock current={active === "settings"} />
       <div className={s.body}>
         <header className={s.header}>
           <h1 className={s.title}>{route.label}</h1>
+          <ProfileDock current={active === "settings"} />
         </header>
         <main className={s.main}>
           <OfflineNotice />
