@@ -193,7 +193,7 @@ Axis and value labels in `src/app/charts.tsx` render around 9–10 px ("1333.3 k
 
 The Dashboard's "Weekly sets by muscle" scales bars to the week's maximum, so with two muscles both bars are full. Draw each bar against a fixed target band instead (e.g. 10–20 sets per muscle per week, a constant marked `// UNVERIFIED`), with the band shaded on the track. Put the scaling in a pure function with a test.
 
-### [ ] D15. The session heatmap has no axes
+### [x] D15. The session heatmap has no axes
 **Effort:** medium
 
 "Sessions, last 12 weeks" is 84 unlabeled squares. Add weekday initials for alternating rows (honoring `week_starts_on`) and month labels above the columns where a month starts. Give the grid an accessible summary (e.g. "3 sessions in the last 12 weeks").

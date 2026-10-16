@@ -367,9 +367,29 @@
 }
 
 .freq {
+  display: grid;
+  grid-template-columns: 16px repeat(12, minmax(0, 1fr));
+  gap: 4px;
   width: 100%;
   max-width: 460px;
-  height: auto;
+}
+
+.freqMonth,
+.freqDay {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.freqDay {
+  align-self: center;
+}
+
+.freqCell {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  background: var(--hairline);
 }
 
 .prs {

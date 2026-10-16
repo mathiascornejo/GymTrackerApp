@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import s from "./Dashboard.module.css";
 
 export type Point = { t: number; v: number };
@@ -66,25 +67,32 @@ export function Ring({ value, total, label }: { value: number; total: number; la
   );
 }
 
-/** Weeks across, weekdays down. Count is in the cell's title, so colour is not the only signal. */
+/** Weeks across, weekdays down. HTML, not SVG, so labels stay 12 px. Count is in each cell's title, so colour is not the only signal. */
 export function FrequencyGrid({ weeks, dayNames }: { weeks: { weekStart: Date; days: number[] }[]; dayNames: string[] }) {
-  const cell = 18;
-  const gap = 4;
-  const W = weeks.length * (cell + gap);
-  const H = 7 * (cell + gap);
   const total = weeks.reduce((n, w) => n + w.days.reduce((a, b) => a + b, 0), 0);
+  const day = (w: Date, i: number) => new Date(w.getFullYear(), w.getMonth(), w.getDate() + i);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={s.freq} role="img" aria-label={`Sessions over the last ${weeks.length} weeks: ${total}`}>
-      {weeks.map((w, wi) =>
-        w.days.map((n, di) => (
-          <rect
-            key={`${wi}-${di}`} x={wi * (cell + gap)} y={di * (cell + gap)} width={cell} height={cell} rx="5"
-            fill={n === 0 ? "var(--hairline)" : "var(--accent)"} fillOpacity={n === 0 ? 1 : n === 1 ? 0.6 : 1}
-          >
-            <title>{`${dayNames[di]} ${w.weekStart.toLocaleDateString(undefined, { month: "short", day: "numeric" })}: ${n} ${n === 1 ? "session" : "sessions"}`}</title>
-          </rect>
-        )),
-      )}
-    </svg>
+    <div className={s.freq} role="img" aria-label={`${total} ${total === 1 ? "session" : "sessions"} in the last ${weeks.length} weeks`}>
+      <span />
+      {weeks.map((w, wi) => {
+        // Label the column holding the 1st of a month.
+        const first = Array.from({ length: 7 }, (_, i) => day(w.weekStart, i)).find((d) => d.getDate() === 1);
+        return <span key={wi} className={s.freqMonth}>{first?.toLocaleDateString(undefined, { month: "short" })}</span>;
+      })}
+      {dayNames.map((name, di) => (
+        <Fragment key={di}>
+          <span className={s.freqDay}>{di % 2 === 0 ? name.charAt(0) : ""}</span>
+          {weeks.map((w, wi) => {
+            const n = w.days[di];
+            return (
+              <span
+                key={wi} className={s.freqCell} style={n ? { background: "var(--accent)", opacity: n === 1 ? 0.6 : 1 } : undefined}
+                title={`${name} ${day(w.weekStart, di).toLocaleDateString(undefined, { month: "short", day: "numeric" })}: ${n} ${n === 1 ? "session" : "sessions"}`}
+              />
+            );
+          })}
+        </Fragment>
+      ))}
+    </div>
   );
 }

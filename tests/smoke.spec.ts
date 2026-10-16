@@ -559,7 +559,7 @@ test.describe("dashboard and ranks", () => {
     await expect(page.getByRole("img", { name: /Barbell Bench Press - Medium Grip estimated 1RM: 2 points/ })).toBeVisible();
     await page.getByRole("radio", { name: "4 weeks" }).click();
     await expect(page.getByRole("img", { name: /estimated 1RM: 2 points/ })).toBeVisible();
-    await expect(page.getByRole("img", { name: /Sessions over the last 12 weeks: 2/ })).toBeVisible();
+    await expect(page.getByRole("img", { name: "2 sessions in the last 12 weeks" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Recent personal bests" })).toContainText("Barbell Bench Press - Medium Grip");
   });
 
