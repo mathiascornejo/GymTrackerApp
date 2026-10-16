@@ -198,7 +198,7 @@ The Dashboard's "Weekly sets by muscle" scales bars to the week's maximum, so wi
 
 "Sessions, last 12 weeks" is 84 unlabeled squares. Add weekday initials for alternating rows (honoring `week_starts_on`) and month labels above the columns where a month starts. Give the grid an accessible summary (e.g. "3 sessions in the last 12 weeks").
 
-### [ ] D16. Session start doesn't show the plan
+### [x] D16. Session start doesn't show the plan
 **Effort:** medium
 
 `StartPanel` (`src/app/Session.tsx`) only offers a Day select. Under it, list the chosen day's exercises (name plus "3 × 8–12"), read from the routine already loaded. Changing the day updates the list.

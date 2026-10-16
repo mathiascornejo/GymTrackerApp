@@ -23,6 +23,27 @@
   font-size: 15px;
 }
 
+.startPlan {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 15px;
+}
+
+.startPlan li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.startPlanMeta {
+  flex: none;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .startActions {
   display: flex;
   flex-wrap: wrap;

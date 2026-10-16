@@ -3,7 +3,9 @@ import type { Profile } from "../data/profile";
 import { startSession, useOpenSession } from "../data/sessions";
 import { useRoutines } from "../data/routines";
 import { useExercises } from "../exercises/useExercises";
+import type { Exercise } from "../exercises/types";
 import type { Routine } from "../routines/model";
+import { buildPlan } from "../session/plan";
 import { PastSessions } from "./PastSessions";
 import { SessionLog } from "./SessionLog";
 import { SessionSummary, type SummaryData } from "./SessionSummary";
@@ -12,7 +14,7 @@ import s from "./Session.module.css";
 
 const weekdayName = (d: number) => new Date(2024, 0, 7 + d).toLocaleDateString(undefined, { weekday: "long" });
 
-function StartPanel({ routine }: { routine: Routine | null }) {
+function StartPanel({ routine, info }: { routine: Routine | null; info: (ref: string) => Exercise | undefined }) {
   const [day, setDay] = useState(() => new Date().getDay());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -43,12 +45,22 @@ function StartPanel({ routine }: { routine: Routine | null }) {
                 const n = d.blocks.length;
                 return (
                   <option key={d.weekday} value={d.weekday}>
-                    {weekdayName(d.weekday)}{d.label ? ` · ${d.label}` : ""}{n ? "" : " · rest day"}
+                    {weekdayName(d.weekday)}{d.label ? ` · ${d.label}` : ""}{n || /rest/i.test(d.label) ? "" : " · rest day"}
                   </option>
                 );
               })}
             </select>
           </label>
+          <ul className={s.startPlan} aria-label="Planned exercises">
+            {buildPlan(routine, day, [], 0)
+              .filter((b) => b.group !== "optional")
+              .flatMap((b) => b.items.map((i) => (
+                <li key={i.itemId}>
+                  <span>{info(i.ref)?.name ?? i.ref.replace(/^\w+:/, "")}</span>
+                  <span className={s.startPlanMeta}>{b.rounds} × {i.repMin === i.repMax ? i.repMin : `${i.repMin}–${i.repMax}`}</span>
+                </li>
+              )))}
+          </ul>
           <div className={s.startActions}>
             <button className={f.button} disabled={busy} onClick={() => void start(false)}>Start session</button>
             <button className={f.quiet} disabled={busy} onClick={() => void start(true)}>Quick session</button>
@@ -97,7 +109,7 @@ export function Session({ profile }: { profile: Profile }) {
 
   return (
     <div>
-      <StartPanel routine={active} />
+      <StartPanel routine={active} info={info} />
       <PastSessions unit={profile.weight_unit} info={info} />
     </div>
   );
