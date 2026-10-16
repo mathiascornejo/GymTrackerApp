@@ -183,7 +183,7 @@ If a task gets stuck or the result looks generic, rerun it one level higher.
 
 ## Priority 3: polish
 
-### [ ] D13. Chart text is too small
+### [x] D13. Chart text is too small
 **Effort:** low
 
 Axis and value labels in `src/app/charts.tsx` render around 9–10 px ("1333.3 kg", "Oct 12"), and the map's "Front" and "Back" captions are similar. Set a 12 px minimum for chart and map text and check the labels don't collide at 390 px. With a single data point, center it and show its value next to the dot, rather than an empty axis with a lone label.

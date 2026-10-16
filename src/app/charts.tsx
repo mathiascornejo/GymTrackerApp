@@ -9,7 +9,7 @@ export function LineChart({ points, unit, label }: { points: Point[]; unit: stri
   if (points.length === 0) return null;
   const W = 600;
   const H = 180;
-  const pad = { l: 8, r: 8, t: 28, b: 24 };
+  const pad = { l: 8, r: 8, t: 12, b: 12 };
   const ts = points.map((p) => p.t);
   const vs = points.map((p) => p.v);
   const [t0, t1] = [Math.min(...ts), Math.max(...ts)];
@@ -20,6 +20,7 @@ export function LineChart({ points, unit, label }: { points: Point[]; unit: stri
   const y = (v: number) => pad.t + (1 - (v - (lo - span * 0.1)) / (span * 1.2)) * (H - pad.t - pad.b);
   const d = points.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)} ${y(p.v).toFixed(1)}`).join(" ");
   const latest = points[points.length - 1];
+  const fmt = (v: number) => `${Math.round(v * 10) / 10} ${unit}`;
   return (
     <figure className={s.chart}>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${label}: ${points.length} points, latest ${Math.round(latest.v * 10) / 10} ${unit} on ${dateLabel(latest.t)}`}>
@@ -28,10 +29,17 @@ export function LineChart({ points, unit, label }: { points: Point[]; unit: stri
         {points.map((p, i) => (
           <circle key={i} cx={x(p.t)} cy={y(p.v)} r={i === points.length - 1 ? 4.5 : 2.5} fill="var(--accent)" />
         ))}
-        <text x={pad.l} y={H - 6} className={s.axis}>{dateLabel(t0)}</text>
-        <text x={W - pad.r} y={H - 6} textAnchor="end" className={s.axis}>{dateLabel(t1)}</text>
-        <text x={pad.l} y={14} className={s.axis}>{Math.round((hi) * 10) / 10} {unit}</text>
       </svg>
+      {/* Labels are HTML so they stay 12 px however far the SVG scales down. */}
+      {points.length === 1 ? (
+        <figcaption className={s.axis} style={{ textAlign: "center" }} aria-hidden="true">{fmt(latest.v)} · {dateLabel(t0)}</figcaption>
+      ) : (
+        <figcaption className={s.axisRow} aria-hidden="true">
+          <span>{dateLabel(t0)}</span>
+          <span>High {fmt(hi)}</span>
+          <span>{dateLabel(t1)}</span>
+        </figcaption>
+      )}
     </figure>
   );
 }
