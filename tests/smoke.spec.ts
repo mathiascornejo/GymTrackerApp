@@ -354,6 +354,7 @@ test.describe("routine builder", () => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const last = page.getByRole("region", { name: "Wednesday" }).getByRole("button", { name: /^Reorder / }).last();
     const monday = page.getByRole("tab", { name: "Mon" });
+    await monday.evaluate((el) => el.scrollIntoView({ inline: "nearest", block: "nearest" })); // the chips scroll to keep today's day in view on a phone
     const d = await dragTo(page, last, (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 }), monday, 900);
     // Resting on the chip shows that day.
     await expect(monday).toHaveAttribute("aria-selected", "true");
@@ -487,6 +488,40 @@ test.describe("routine builder", () => {
     await page.getByRole("button", { name: "Cancel" }).click();
     await expect(page.getByRole("checkbox")).toHaveCount(0);
     await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(2);
+  });
+
+  test("a new routine's name field has focus and no save status shows before a routine exists", async ({ page }) => {
+    await signInAndSkipSetup(page, "routines");
+    await expect(page.getByText("All changes saved")).toHaveCount(0);
+    await page.getByRole("button", { name: "New routine" }).click();
+    await expect(page.getByLabel("Routine name")).toBeFocused();
+  });
+
+  test("the overview is one line on a phone, and Most work sits with the weekly sets", async ({ page }) => {
+    test.skip(!isPhone(), "Desktop keeps the three tiles.");
+    await importDay(page, 1, [CURL, BENCH]);
+    await expect(page.getByText("1 training day · 2 exercises · 6 sets a week")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Weekly sets per muscle" }).getByText(/^Most work: /)).toBeVisible();
+    await expect(page.getByRole("region", { name: "Routine overview" }).getByText(/^Most work/)).toHaveCount(0);
+  });
+
+  test("the chosen day's chip is scrolled into view on a phone", async ({ page }) => {
+    test.skip(!isPhone(), "Chips only overflow on a phone.");
+    await importDay(page, 1, [CURL]);
+    await page.getByRole("tab", { name: "Bank" }).click();
+    const box = (await page.getByRole("tab", { name: "Bank" }).boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  });
+
+  test("Add exercise sits at the end of the day on a phone and in the day's header on desktop", async ({ page }) => {
+    await importDay(page, 1, [CURL]);
+    const add = page.getByRole("region", { name: "Monday" }).getByRole("button", { name: "Add exercise" });
+    await expect(add).toBeVisible();
+    const card = (await page.getByRole("article", { name: "Barbell Curl" }).boundingBox())!;
+    const b = (await add.boundingBox())!;
+    if (isPhone()) expect(b.y).toBeGreaterThan(card.y + card.height); // below the last card, so it covers nothing
+    else expect(b.y).toBeLessThan(card.y); // in the header, above the cards
   });
 
   test("drags an exercise from the picker onto a day", async ({ page }) => {

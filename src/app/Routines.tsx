@@ -16,7 +16,7 @@ import { defaultIncrementKg } from "../session/recommend";
 import { fromKg, toKg } from "../units";
 import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
-  removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
+  removeItem, routineStats, statsLine, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
 import { dropIntent, insertAfter } from "../routines/dropIntent";
 import { BlockCard, blockMeta, DragCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
@@ -68,7 +68,7 @@ const UNDO_MS = 6000;
 type Drag = { type: "pick"; ref: string } | { type: "block"; id: string } | { type: "item"; blockId: string; itemId: string };
 
 /** `parked` keeps the column the dragged card came from mounted but out of sight after the page moves to another day, so the drag survives. */
-function Column({ target, label, title, children, ids, parked, dragging, action }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean; dragging: boolean; action?: React.ReactNode }) {
+function Column({ target, label, title, children, ids, parked, dragging, action, foot }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean; dragging: boolean; action?: React.ReactNode; foot?: React.ReactNode }) {
   const id = containerId(target);
   const drop = useDroppable({ id, disabled: parked });
   return (
@@ -87,6 +87,7 @@ function Column({ target, label, title, children, ids, parked, dragging, action 
             : target === "bank" ? "Accessories that repeat across days go here. Add one below." : "Rest day. Add an exercise to make this a training day."}
         </p>
       )}
+      {foot}
     </section>
   );
 }
@@ -158,6 +159,17 @@ export function Routines({ profile }: { profile: Profile }) {
     setSelected(new Set());
   };
   useEffect(stopSelecting, [pageDay, pickedId]);
+  // Keep the chosen day's chip on screen, and mark which side of the chips has more (a fade, since the scrollbar is hidden).
+  const pager = useRef<HTMLDivElement>(null);
+  const edges = (el: HTMLElement) => {
+    el.dataset.edge = `${el.scrollLeft > 1 ? "l" : ""}${el.scrollLeft + el.clientWidth < el.scrollWidth - 1 ? "r" : ""}`;
+  };
+  useEffect(() => {
+    const el = pager.current;
+    if (!el) return;
+    el.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: "nearest", block: "nearest" });
+    edges(el);
+  }, [pageDay, pickedId, routines.isPending]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [viewing, setViewing] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
@@ -397,7 +409,15 @@ export function Routines({ profile }: { profile: Profile }) {
       );
     return (
       <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)} parked={parked} dragging={drag !== null}
-        action={blocks.length >= 2 && !selecting ? <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button> : undefined}>
+        action={
+          selecting ? undefined : (
+            <>
+              {desktop && !pickerOpen && <button className={f.quiet} onClick={() => setPickerOpen(true)}>Add exercise</button>}
+              {blocks.length >= 2 && <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button>}
+            </>
+          )
+        }
+        foot={!desktop && !selecting ? <button className={`${f.button} ${s.addEnd}`} onClick={() => setPickerOpen(true)}>Add exercise</button> : undefined}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
@@ -449,7 +469,7 @@ export function Routines({ profile }: { profile: Profile }) {
           </div>
           <label>
             {typeof naming === "object" && naming ? "Label" : "Routine name"}
-            <input autoFocus className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
+            <input data-autofocus className={f.input} value={draft} onChange={(e) => setDraft(e.target.value)} />
           </label>
           <button className={f.button} type="submit" disabled={typeof naming !== "object" && !draft.trim()} style={{ marginTop: 16 }}>
             {typeof naming === "object" && naming ? "Save label" : "Save routine"}
@@ -471,7 +491,7 @@ export function Routines({ profile }: { profile: Profile }) {
         }}
       />
 
-      <p className={f.note} role="status" style={{ margin: "8px 0 0" }}>{actions.saving ? "Saving…" : "All changes saved"}</p>
+      {routine && <p className={f.note} role="status" style={{ margin: "8px 0 0" }}>{actions.saving ? "Saving…" : "All changes saved"}</p>}
       {actions.error && <p className={f.error} role="alert">Could not save your changes: {actions.error.message}. The routine was reloaded from your account.</p>}
       {importErrors.length > 0 && (
         <div className={f.error} role="alert">
@@ -507,12 +527,15 @@ export function Routines({ profile }: { profile: Profile }) {
           {!routine.isActive && !routine.archivedAt && (
             <button className={`${f.quiet} ${s.makeActive}`} onClick={() => { setToast(null); actions.setActive(routine.id); }}>Make active</button>
           )}
-          <dl className={s.stats}>
-            <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
-            <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>
-            <div><dt>Sets per week</dt><dd>{stats!.weeklySets}</dd></div>
-          </dl>
-          {volume.length > 0 && <p className={`${f.note} ${s.mostWork}`}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
+          {desktop ? (
+            <dl className={s.stats}>
+              <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
+              <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>
+              <div><dt>Sets per week</dt><dd>{stats!.weeklySets}</dd></div>
+            </dl>
+          ) : (
+            <p className={f.note} style={{ margin: "8px 0 0" }}>{statsLine(stats!)}</p>
+          )}
         </section>
       )}
 
@@ -523,7 +546,7 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       ) : (
         <DndContext sensors={sensors} collisionDetection={collide} autoScroll={!overChip} onDragStart={onDragStart} onDragMove={onDragMove} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={resetDrag}>
-          <div className={s.pager} role="tablist" aria-label="Day">
+          <div ref={pager} className={s.pager} role="tablist" aria-label="Day" onScroll={(e) => edges(e.currentTarget)}>
             {[...order, "bank" as const].map((d) => (
               <DayButton
                 key={d}
@@ -552,7 +575,6 @@ export function Routines({ profile }: { profile: Profile }) {
             )}
           </div>
 
-          {!(desktop && pickerOpen) && !selecting && <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>}
           {!desktop && (
             <>
               <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)} label="Add exercise">
@@ -567,6 +589,7 @@ export function Routines({ profile }: { profile: Profile }) {
 
           <section className={s.volume} aria-label="Weekly sets per muscle">
             <h2 className={f.groupTitle}>Weekly sets per muscle</h2>
+            {volume.length > 0 && <p className={f.note}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
             {volume.length === 0 ? (
               <p className={f.note}>Add exercises to see weekly sets per muscle.</p>
             ) : (

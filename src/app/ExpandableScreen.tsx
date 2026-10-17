@@ -123,7 +123,10 @@ export function ExpandableScreenContent({
 
   useEffect(() => {
     const d = dialog.current;
-    if (isExpanded && d && !d.open) d.showModal();
+    if (!isExpanded || !d || d.open) return;
+    d.showModal();
+    // React's autoFocus does not survive showModal(), which focuses the first control instead; wait for the content to mount.
+    requestAnimationFrame(() => d.querySelector<HTMLElement>("[data-autofocus]")?.focus());
   }, [isExpanded]);
 
   const from = { opacity: 0, x: origin.current?.x ?? 0, y: origin.current?.y ?? 0, scale: origin.current?.scale ?? 0.92, borderRadius: "999px" };

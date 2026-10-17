@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, importRoutine, link, locate, moveBlock, newBlock,
-  newRoutine, pairNote, removeItem, extractItem, routineStats, unlink, updateItem, weeklySets, type Routine,
+  newRoutine, pairNote, removeItem, extractItem, routineStats, statsLine, unlink, updateItem, weeklySets, type Routine,
 } from "./model";
 
 let r: Routine;
@@ -183,5 +183,12 @@ describe("import and export", () => {
   it("rejects files that are not routine exports", () => {
     expect(importRoutine({ hello: 1 }, exists)).toHaveProperty("errors");
     expect(importRoutine(null, exists)).toHaveProperty("errors");
+  });
+});
+
+describe("statsLine", () => {
+  it("joins the three counts and agrees on singular and plural", () => {
+    expect(statsLine({ trainingDays: 1, exercises: 5, weeklySets: 15 })).toBe("1 training day · 5 exercises · 15 sets a week");
+    expect(statsLine({ trainingDays: 4, exercises: 1, weeklySets: 1 })).toBe("4 training days · 1 exercise · 1 set a week");
   });
 });

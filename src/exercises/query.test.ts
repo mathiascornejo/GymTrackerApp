@@ -29,6 +29,10 @@ describe("search", () => {
   it("returns everything for an empty query", () => {
     expect(search(list, "  ")).toHaveLength(4);
   });
+  it("lists common exercises first, then by name, when there is no query", () => {
+    const l = [ex("Zottman Curl", { equipment: "kettlebell" }), ex("Air Bike", { equipment: "body only" }), ex("Barbell Curl")];
+    expect(search(l, "").map((e) => e.name)).toEqual(["Barbell Curl", "Air Bike", "Zottman Curl"]);
+  });
   it("requires every word and ranks name-prefix matches first", () => {
     expect(search(list, "bench").map((e) => e.name)).toEqual(["Bench Dip", "Barbell Bench Press"]);
     expect(search(list, "bench press").map((e) => e.name)).toEqual(["Barbell Bench Press"]);
