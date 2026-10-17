@@ -88,6 +88,8 @@ export function useRestTimer(push: PushState | null) {
   useEffect(() => {
     if (!timer || remaining > 0 || alarmed.current === timer.endsAt) return;
     alarmed.current = timer.endsAt;
+    // A hidden page can still tick (Android keeps timers running): the push is then the only alert that reaches the user, so keep it.
+    if (document.visibilityState !== "visible") return;
     beep();
     navigator.vibrate?.([300, 150, 300, 150, 300]);
     disarm(); // the on-screen alarm fired, so stop the background push from doubling it

@@ -697,6 +697,30 @@ test.describe("pwa and background alarm", () => {
     await expect.poll(async () => (await timers()).every((t) => t.cancelled_at !== null)).toBe(true);
   });
 
+  test("keeps the server alarm when the rest ends while the page is hidden", async ({ page }) => {
+    await page.addInitScript(stubPush);
+    const u = await userWithToken();
+    await login(page, u.email, "settings");
+    await page.getByRole("button", { name: "Turn on notifications" }).click();
+    await expect(page.getByText("Notifications are on.")).toBeVisible();
+
+    await page.goto("#/log");
+    await page.getByRole("button", { name: "Start quick session" }).click();
+    await page.getByRole("button", { name: "Rest 1:30" }).click();
+    await expect(page.getByText("Background alarm on")).toBeVisible();
+
+    // The phone is locked or the user switched apps, but the page still ticks.
+    await page.evaluate(() => Object.defineProperty(document, "visibilityState", { get: () => "hidden" }));
+    for (let i = 0; i < 6; i++) await page.getByRole("button", { name: "Subtract 15 seconds" }).click();
+    await expect(page.getByText("Rest done")).toBeVisible();
+
+    const timers = async () =>
+      (await (await fetch(`${process.env.E2E_SUPABASE_URL}/rest/v1/rest_timers?select=cancelled_at&order=created_at`, { headers: hdr(u.token) })).json()) as { cancelled_at: string | null }[];
+    await expect.poll(async () => (await timers()).length).toBe(7);
+    await page.waitForTimeout(1500); // give a wrongful cancel time to land
+    expect((await timers()).at(-1)!.cancelled_at).toBeNull();
+  });
+
   test("says the background alarm is off when notifications are not enabled", async ({ page }) => {
     const u = await userWithToken();
     await login(page, u.email, "log");
