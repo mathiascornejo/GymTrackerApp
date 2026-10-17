@@ -39,7 +39,8 @@ export function GradientNav({ tabs, active }: { tabs: readonly NavTab[]; active:
   const reduce = useReducedMotion();
   const spring = reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 400, damping: 30 };
   return (
-    <div className={`${s.dock} ${s.themed}`}>
+    // layoutRoot: the dock is position: fixed, so the ring's layout animation must ignore page scroll (switching tabs resets it).
+    <motion.div layoutRoot className={`${s.dock} ${s.themed}`}>
       <div className={s.tray}>
         <div className={s.bezel} />
         <nav className={s.nav} aria-label="Main">
@@ -64,6 +65,6 @@ export function GradientNav({ tabs, active }: { tabs: readonly NavTab[]; active:
           })}
         </nav>
       </div>
-    </div>
+    </motion.div>
   );
 }
