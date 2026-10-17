@@ -332,6 +332,7 @@ test.describe("routine builder", () => {
     await d.release();
     await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(1);
     await expect(page.getByRole("status").filter({ hasText: "Made a superset" })).toBeVisible();
+    await page.waitForTimeout(100); // dnd-kit swallows clicks for 50 ms after a drop; a person is slower than that
     await page.getByRole("button", { name: "Undo" }).click();
     await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(2);
   });
@@ -359,6 +360,7 @@ test.describe("routine builder", () => {
     await d.release();
     await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(1);
     await expect(page.getByRole("status").filter({ hasText: "Moved to Monday" })).toBeVisible();
+    await page.waitForTimeout(100); // dnd-kit swallows clicks for 50 ms after a drop
     await page.evaluate(() => window.scrollTo(0, 0)); // the page shortened when the drag ended; click the chip where it settles
     await showDay(page, "Wednesday");
     await expect(page.getByRole("region", { name: "Wednesday" }).getByRole("article")).toHaveCount(11);
@@ -373,6 +375,59 @@ test.describe("routine builder", () => {
     await d.release();
     expect(await names(page, "Monday")).toEqual(before);
     await expect(page.getByRole("status").filter({ hasText: /Moved|Made/ })).toHaveCount(0);
+  });
+
+  test("a superset says what it is, and the toggle reads Edit then Done", async ({ page }) => {
+    await signInAndSkipSetup(page, "routines");
+    const routine = {
+      format: "tempered-routine", version: 1, name: "Kinds",
+      days: [{ weekday: 1, label: "", blocks: [{ sets: 3, restS: 90, transitionRestS: 0, items: [{ ref: CURL, repMin: 8, repMax: 12 }, { ref: BENCH, repMin: 8, repMax: 12 }] }] }],
+      bank: [],
+    };
+    await page.locator('input[type="file"]').setInputFiles({ name: "k.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(routine)) });
+    await showDay(page, "Monday");
+    const card = page.getByRole("article", { name: /Barbell Curl and Barbell Bench Press/ });
+    await expect(card.getByText("Superset · 3 rounds · rest 1:30")).toBeVisible();
+    const toggle = card.getByRole("button", { name: /^Edit / });
+    await expect(toggle).toHaveText("Edit");
+    await toggle.click();
+    await expect(card.getByRole("button", { name: /^Done editing / })).toHaveText("Done");
+  });
+
+  test("a card being dragged shows its name and its sets and rest", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH]);
+    const d = await dragTo(page, page.getByRole("button", { name: "Reorder Barbell Curl" }), (b) => ({ x: b.x + b.width / 2, y: b.y + b.height - 6 }), page.getByRole("article", { name: BENCH_NAME }));
+    const overlay = page.locator('[class*="overlay"]').first();
+    await expect(overlay).toContainText("Barbell Curl");
+    await expect(overlay).toContainText("3 sets · rest 1:00");
+    await d.release();
+  });
+
+  test("a picker drag draws a line where it will land and drops there", async ({ page }) => {
+    test.skip(isPhone(), "Dragging from the picker is a desktop interaction.");
+    await importDay(page, 1, [BENCH, ROW]);
+    await page.getByRole("button", { name: "Add exercise" }).click();
+    await page.getByLabel("Search the picker").fill("Barbell Curl");
+    const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
+    const first = page.getByRole("article", { name: BENCH_NAME });
+    // Lower half of the first card: the new exercise lands after it.
+    const d = await dragTo(page, source, (b) => ({ x: b.x + b.width / 2, y: b.y + b.height * 0.85 }), first);
+    await expect(page.locator('[class*="insertAfter"]')).toHaveCount(1);
+    await d.release();
+    await expect.poll(() => names(page, "Monday")).toEqual([BENCH_NAME, "Barbell Curl", "Barbell Bent Over Row"]);
+  });
+
+  test("an empty day says it will take the drop", async ({ page }) => {
+    test.skip(isPhone(), "Dragging from the picker is a desktop interaction.");
+    await openBuilder(page);
+    await showDay(page, "Tuesday");
+    await page.getByRole("button", { name: "Add exercise" }).click();
+    await page.getByLabel("Search the picker").fill("Barbell Curl");
+    const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
+    const d = await dragTo(page, source, (b) => ({ x: b.x + b.width / 2, y: b.y + 60 }), page.getByRole("region", { name: "Tuesday" }));
+    await expect(page.getByText("Drop to add to Tuesday")).toBeVisible();
+    await d.release();
+    await expect(page.getByRole("region", { name: "Tuesday" }).getByRole("article")).toHaveCount(1);
   });
 
   test("drags an exercise from the picker onto a day", async ({ page }) => {

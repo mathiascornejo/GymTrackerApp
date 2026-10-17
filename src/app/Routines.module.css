@@ -423,13 +423,89 @@
   font-weight: 600;
 }
 
+/* A small copy of the card being moved. Picker and item drags fit their text; block drags take the card's width. */
 .overlay {
-  padding: 8px 12px;
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--on-accent);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: min(320px, 80vw);
+  padding: 10px 14px 10px 10px;
+  border-radius: var(--radius-list);
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.3), inset 0 0 0 1px var(--hairline);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .overlay {
+    transform: scale(1.02);
+  }
+}
+
+.overlayBlock {
+  width: 100%;
+  max-width: none;
+}
+
+.overlayGrip {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  color: var(--ink-muted);
+}
+
+.overlayText {
+  min-width: 0;
+}
+
+.overlayName,
+.overlayMeta {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.overlayName {
   font-weight: 600;
-  max-width: 260px;
+}
+
+.overlayMeta {
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* A line where a picker drag will land. */
+.insertBefore::before,
+.insertAfter::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+.insertBefore::before {
+  top: -6px;
+}
+
+.insertAfter::after {
+  bottom: -6px;
+}
+
+.emptyOver {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+/* A rail that joins the exercises of a superset or circuit. */
+.rail {
+  padding-left: 8px;
+  border-left: 3px solid var(--accent);
 }
 
 .picker {
@@ -680,13 +756,15 @@
 }
 
 .itemGrip {
+  display: grid;
+  place-items: center;
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  margin: -14px -10px -14px -14px;
   border: 0;
   background: transparent;
   color: var(--ink-muted);
-  font-size: 18px;
   cursor: grab;
   touch-action: none;
 }

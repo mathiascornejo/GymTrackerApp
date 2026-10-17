@@ -27,23 +27,60 @@ export type BlockActions = {
   onStep: (ref: string, value: number) => void;
 };
 
+/** The six-dot grip, used by cards, exercises inside a superset, and the drag overlay. */
+function Grip({ small }: { small?: boolean }) {
+  return (
+    <svg width={small ? 10 : 14} height={small ? 14 : 20} viewBox="0 0 14 20" fill="currentColor" aria-hidden="true">
+      {[3, 10, 17].flatMap((y) => [3, 11].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
+    </svg>
+  );
+}
+
+/** "Superset · 3 rounds · rest 1:30", with the bank schedule appended. */
+export function blockMeta(block: Block, bank: boolean) {
+  const multi = block.items.length > 1;
+  const kind = block.kind === "superset" ? "Superset · " : block.kind === "circuit" ? `Circuit of ${block.items.length} · ` : "";
+  const schedule =
+    !bank ? ""
+    : block.weeklyTarget !== null && block.weekdays === null ? ` · ${block.weeklyTarget} a week`
+    : block.weekdays?.length === 7 ? " · every day"
+    : block.weekdays ? ` · ${block.weekdays.map((d) => WEEKDAY_NAMES[d].slice(0, 3)).join(", ")}`
+    : "";
+  return `${kind}${block.sets} ${multi ? "rounds" : "sets"} · rest ${mmss(block.restS)}${schedule}`;
+}
+
+/** What follows the pointer while dragging: a small copy of the card. `block` sizes it to the card; otherwise it fits its text. */
+export function DragCard({ names, meta, block }: { names: string; meta: string; block: boolean }) {
+  return (
+    <div className={`${s.overlay} ${block ? s.overlayBlock : ""}`}>
+      <span className={s.overlayGrip}><Grip /></span>
+      <div className={s.overlayText}>
+        <p className={s.overlayName}>{names}</p>
+        <p className={s.overlayMeta}>{meta}</p>
+      </div>
+    </div>
+  );
+}
+
 /** Drag handle for one exercise inside a superset; dropping it on a day or card makes it its own block. */
 function ItemGrip({ blockId, itemId, name }: { blockId: string; itemId: string; name: string }) {
   const drag = useDraggable({ id: `item:${itemId}`, data: { type: "item", blockId, itemId } });
   return (
     <button type="button" className={s.itemGrip} aria-label={`Drag ${name} out of the superset`} ref={drag.setNodeRef} {...drag.attributes} {...drag.listeners}>
-      ⠿
+      <Grip small />
     </button>
   );
 }
 
 export function BlockCard({
-  block, bank, joinArmed, parked, info, actions, unit,
+  block, bank, joinArmed, insert, parked, info, actions, unit,
 }: {
   block: Block;
   bank: boolean;
   /** True while a drag has been held over this card long enough that releasing makes a superset. */
   joinArmed: boolean;
+  /** A picker drag is over this card: a line shows whether it will land before or after it. */
+  insert: "before" | "after" | null;
   /** The column is hidden while a drag from it continues on another day: take no part as a drop target. */
   parked: boolean;
   info: (ref: string) => Exercise | undefined;
@@ -65,7 +102,7 @@ export function BlockCard({
   return (
     <article
       ref={sortable.setNodeRef}
-      className={`${s.card} ${open ? "" : s.compact} ${sortable.isDragging ? s.cardDragging : ""} ${joinArmed ? s.cardJoin : ""}`}
+      className={`${s.card} ${open ? "" : s.compact} ${sortable.isDragging ? s.cardDragging : ""} ${joinArmed ? s.cardJoin : ""} ${!joinArmed && insert === "before" ? s.insertBefore : ""} ${!joinArmed && insert === "after" ? s.insertAfter : ""}`}
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       aria-label={label}
       // Tapping the card body opens the editor; the Edit button stays for keyboard users.
@@ -73,13 +110,11 @@ export function BlockCard({
     >
       <div className={s.cardTop}>
         <button type="button" className={s.grip} aria-label={`Reorder ${label}`} {...sortable.attributes} {...sortable.listeners}>
-          <svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor" aria-hidden="true">
-            {[3, 10, 17].flatMap((y) => [3, 11].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
-          </svg>
+          <Grip />
         </button>
 
         <div className={s.cardMain}>
-          <ul className={s.items}>
+          <ul className={`${s.items} ${multi ? s.rail : ""}`}>
             {block.items.map((item, i) => (
               <li key={item.id} className={s.itemName}>
                 {multi && <ItemGrip blockId={block.id} itemId={item.id} name={names[i]} />}
@@ -94,25 +129,15 @@ export function BlockCard({
             ))}
           </ul>
           {!open && (
-            <p className={s.note}>
-              {multi ? `${block.sets} rounds` : `${block.sets} sets`} · rest {mmss(block.restS)}
-              {bank && block.weeklyTarget !== null && block.weekdays === null ? ` · ${block.weeklyTarget} a week` : ""}
-              {bank && block.weekdays && block.weekdays.length < 7 ? ` · ${block.weekdays.map((d) => WEEKDAY_NAMES[d].slice(0, 3)).join(", ")}` : ""}
-              {bank && block.weekdays?.length === 7 ? " · every day" : ""}
-            </p>
+            <p className={s.note}>{blockMeta(block, bank)}</p>
           )}
         </div>
 
         <button
           type="button" className={s.editBtn} aria-expanded={open}
-          aria-label={`${open ? "Close editor for" : "Edit"} ${label}`} onClick={() => setOpen(!open)}
+          aria-label={`${open ? "Done editing" : "Edit"} ${label}`} onClick={() => setOpen(!open)}
         >
-          {open ? "Done" : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
-          )}
+          {open ? "Done" : "Edit"}
         </button>
       </div>
 

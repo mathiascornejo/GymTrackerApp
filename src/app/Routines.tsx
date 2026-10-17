@@ -18,8 +18,8 @@ import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
   removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
-import { dropIntent } from "../routines/dropIntent";
-import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
+import { dropIntent, insertAfter } from "../routines/dropIntent";
+import { BlockCard, blockMeta, DragCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
 import { ExerciseDetail, Sheet } from "./ExerciseSheet";
 import { ConfirmSheet } from "./ConfirmSheet";
 import { MoreMenu } from "./MoreMenu";
@@ -68,7 +68,7 @@ const UNDO_MS = 6000;
 type Drag = { type: "pick"; ref: string } | { type: "block"; id: string } | { type: "item"; blockId: string; itemId: string };
 
 /** `parked` keeps the column the dragged card came from mounted but out of sight after the page moves to another day, so the drag survives. */
-function Column({ target, label, title, children, ids, parked }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean }) {
+function Column({ target, label, title, children, ids, parked, dragging }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean; dragging: boolean }) {
   const id = containerId(target);
   const drop = useDroppable({ id, disabled: parked });
   return (
@@ -77,7 +77,13 @@ function Column({ target, label, title, children, ids, parked }: { target: Targe
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
       </SortableContext>
-      {ids.length === 0 && <p className={s.empty}>{target === "bank" ? "Accessories that repeat across days go here. Add one below." : "Rest day. Add an exercise to make this a training day."}</p>}
+      {ids.length === 0 && (
+        <p className={`${s.empty} ${dragging && drop.isOver ? s.emptyOver : ""}`}>
+          {dragging && drop.isOver
+            ? `Drop to add to ${label}`
+            : target === "bank" ? "Accessories that repeat across days go here. Add one below." : "Rest day. Add an exercise to make this a training day."}
+        </p>
+      )}
     </section>
   );
 }
@@ -122,6 +128,9 @@ export function Routines({ profile }: { profile: Profile }) {
   // The card the pointer has rested on long enough that releasing makes a superset.
   const [joinArmed, setJoinArmed] = useState<string | null>(null);
   const armedRef = useRef<string | null>(null);
+  // For a picker drag: the card under the pointer and which side of it the new exercise will land on. Cards do not move apart for these.
+  const [pickAt, setPickAt] = useState<{ id: string; after: boolean } | null>(null);
+  const pickRef = useRef<typeof pickAt>(null);
   const hold = useRef<{ key: string | null; timer?: number }>({ key: null });
   const hover = useRef<number | undefined>(undefined);
   const dragging = useRef(false);
@@ -200,7 +209,12 @@ export function Routines({ profile }: { profile: Profile }) {
     armedRef.current = id;
     setJoinArmed(id);
   };
+  const setPick = (v: typeof pickAt) => {
+    pickRef.current = v;
+    setPickAt((o) => (o?.id === v?.id && o?.after === v?.after ? o : v));
+  };
   const resetDrag = () => {
+    setPick(null);
     window.clearTimeout(hold.current.timer);
     hold.current.key = null;
     window.clearTimeout(hover.current);
@@ -224,6 +238,8 @@ export function Routines({ profile }: { profile: Profile }) {
     const data = e.active.data.current as Drag | undefined;
     const y = getEventCoordinates(e.activatorEvent)?.y;
     const id = e.over ? String(e.over.id) : null;
+    const overCard = e.over && id && y !== undefined && !targetOf(id) && !id.startsWith("pager:");
+    setPick(data?.type === "pick" && overCard ? { id: id!, after: insertAfter(y! + e.delta.y, e.over!.rect) } : null);
     const key =
       data && data.type !== "item" && e.over && id && y !== undefined && !targetOf(id) && !id.startsWith("pager:") && !(data.type === "block" && data.id === id) &&
       dropIntent(y + e.delta.y, e.over.rect) === "center"
@@ -248,6 +264,7 @@ export function Routines({ profile }: { profile: Profile }) {
   const where = (t: Target) => (t === "bank" ? "the accessory bank" : WEEKDAY_NAMES[t.day]);
   const onDragEnd = (e: DragEndEvent) => {
     const armed = armedRef.current;
+    const pickSide = pickRef.current;
     resetDrag();
     const { active, over } = e;
     const data = active.data.current as Drag | undefined;
@@ -279,7 +296,7 @@ export function Routines({ profile }: { profile: Profile }) {
       const at = locate(routine, overId);
       if (!at) return;
       target = at.target;
-      index = at.index;
+      index = at.index + (data.type === "pick" && pickSide?.id === overId && pickSide.after ? 1 : 0);
     }
     if (data.type === "pick") edit((r) => addBlock(r, target!, newBlock(data.ref, profile.default_rest_s), index), `Added to ${where(target)}`);
     else {
@@ -297,16 +314,18 @@ export function Routines({ profile }: { profile: Profile }) {
   const stats = routine ? routineStats(routine) : null;
   const current = pageDay === "bank" ? { target: "bank" as Target, label: "Accessory bank" } : { target: { day: pageDay }, label: WEEKDAY_NAMES[pageDay] };
   const nameOf = (id: string) => info(id)?.name ?? id;
-  const overlayText = !drag
-    ? ""
-    : drag.type === "pick"
-      ? nameOf(drag.ref)
-      : drag.type === "item"
-        ? nameOf(routine?.days.flatMap((d) => d.blocks).concat(routine.bank).find((b) => b.id === drag.blockId)?.items.find((i) => i.id === drag.itemId)?.ref ?? "")
-        : (() => {
-          const b = routine && locate(routine, drag.id)?.block;
-          return b ? b.items.map((i) => nameOf(i.ref)).join(" + ") : "";
-        })();
+  const overlay = (() => {
+    if (!drag || !routine) return null;
+    const blocks = routine.days.flatMap((d) => d.blocks).concat(routine.bank);
+    if (drag.type === "pick") return { names: nameOf(drag.ref), meta: blockMeta(newBlock(drag.ref, profile.default_rest_s), false), block: false };
+    if (drag.type === "item") {
+      const from = blocks.find((b) => b.id === drag.blockId);
+      const item = from?.items.find((i) => i.id === drag.itemId);
+      return from && item ? { names: nameOf(item.ref), meta: blockMeta({ ...from, kind: "single", items: [item] }, false), block: false } : null;
+    }
+    const b = locate(routine, drag.id)?.block;
+    return b ? { names: b.items.map((i) => nameOf(i.ref)).join(" + "), meta: blockMeta(b, locate(routine, drag.id)?.target === "bank"), block: true } : null;
+  })();
 
   const exportJson = () => {
     if (!routine) return;
@@ -362,13 +381,14 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       );
     return (
-      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)} parked={parked}>
+      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)} parked={parked} dragging={drag !== null}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
             block={b}
             bank={target === "bank"}
             joinArmed={joinArmed === b.id}
+            insert={pickAt?.id === b.id ? (pickAt.after ? "after" : "before") : null}
             parked={parked}
             info={info}
             actions={blockActions(b)}
@@ -558,7 +578,7 @@ export function Routines({ profile }: { profile: Profile }) {
             </div>
           )}
 
-          <DragOverlay>{drag ? <div className={s.overlay}>{overlayText}</div> : null}</DragOverlay>
+          <DragOverlay>{overlay && <DragCard {...overlay} />}</DragOverlay>
         </DndContext>
       )}
     </div>
