@@ -23,7 +23,7 @@ import { BlockCard, blockMeta, DragCard, WEEKDAY_NAMES, type BlockActions } from
 import { ExerciseDetail, Sheet } from "./ExerciseSheet";
 import { ConfirmSheet } from "./ConfirmSheet";
 import { MoreMenu } from "./MoreMenu";
-import { RoutinePicker } from "./RoutinePicker";
+import { RoutinePicker, type Place } from "./RoutinePicker";
 import f from "./Form.module.css";
 import s from "./Routines.module.css";
 
@@ -68,12 +68,15 @@ const UNDO_MS = 6000;
 type Drag = { type: "pick"; ref: string } | { type: "block"; id: string } | { type: "item"; blockId: string; itemId: string };
 
 /** `parked` keeps the column the dragged card came from mounted but out of sight after the page moves to another day, so the drag survives. */
-function Column({ target, label, title, children, ids, parked, dragging }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean; dragging: boolean }) {
+function Column({ target, label, title, children, ids, parked, dragging, action }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean; dragging: boolean; action?: React.ReactNode }) {
   const id = containerId(target);
   const drop = useDroppable({ id, disabled: parked });
   return (
     <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""} ${parked ? s.parked : ""}`} aria-label={label}>
-      <div className={s.columnHead}>{title}</div>
+      <div className={s.columnTop}>
+        <div className={s.columnHead}>{title}</div>
+        {action}
+      </div>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
       </SortableContext>
@@ -146,6 +149,15 @@ export function Routines({ profile }: { profile: Profile }) {
     window.addEventListener("pointermove", track);
     return () => window.removeEventListener("pointermove", track);
   }, [drag]);
+  // Selection mode: tick cards in the day being viewed, then link them into a superset or circuit.
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const toggle = (id: string) => setSelected((o) => new Set(o.has(id) ? [...o].filter((x) => x !== id) : [...o, id]));
+  const stopSelecting = () => {
+    setSelecting(false);
+    setSelected(new Set());
+  };
+  useEffect(stopSelecting, [pageDay, pickedId]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [viewing, setViewing] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
@@ -191,7 +203,7 @@ export function Routines({ profile }: { profile: Profile }) {
   };
   const add = (ref: string, t: Target, index?: number) => edit((r) => addBlock(r, t, newBlock(ref, profile.default_rest_s), index));
 
-  const blockActions = (b: Block): BlockActions => ({
+  const blockActions = (b: Block, at: Target): BlockActions => ({
     onSets: (v) => edit((r) => updateBlock(r, b.id, { sets: v })),
     onRest: (v) => edit((r) => updateBlock(r, b.id, { restS: v })),
     onTransition: (v) => edit((r) => updateBlock(r, b.id, { transitionRestS: v })),
@@ -200,6 +212,8 @@ export function Routines({ profile }: { profile: Profile }) {
     onRemoveBlock: () => edit((r) => removeBlock(r, b.id)),
     onView: setViewing,
     onUnlink: () => edit((r) => unlink(r, b.id)),
+    moveTargets: places.filter((p) => containerId(p.target) !== containerId(at)),
+    onMove: (t) => edit((r) => moveBlock(r, b.id, t), `Moved to ${where(t)}`),
     onSchedule: (p) => edit((r) => updateBlock(r, b.id, p)),
     stepOf: (ref) => fromKg(profile.increments?.[ref] ?? defaultIncrementKg(info(ref)?.equipment ?? null), profile.weight_unit),
     onStep: (ref, v) => updateProfile.mutate({ increments: { ...(profile.increments ?? {}), [ref]: toKg(v, profile.weight_unit) } }),
@@ -309,6 +323,7 @@ export function Routines({ profile }: { profile: Profile }) {
   // After a hover switches the page, the column the dragged card came from stays mounted (hidden) until the drop.
   const columns = dragFrom && containerId(dragFrom) !== containerId(visible) ? [visible, dragFrom] : [visible];
   const order = Array.from({ length: 7 }, (_, i) => (profile.week_starts_on + i) % 7);
+  const places: Place[] = [...order.map((d) => ({ target: { day: d } as Target, label: WEEKDAY_NAMES[d] })), { target: "bank", label: "Accessory bank" }];
   const volume = routine ? Object.entries(weeklySets(routine, (ref) => info(ref)?.primary ?? [])).sort((a, b) => b[1] - a[1]) : [];
 
   const stats = routine ? routineStats(routine) : null;
@@ -381,7 +396,8 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       );
     return (
-      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)} parked={parked} dragging={drag !== null}>
+      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)} parked={parked} dragging={drag !== null}
+        action={blocks.length >= 2 && !selecting ? <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button> : undefined}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
@@ -391,7 +407,10 @@ export function Routines({ profile }: { profile: Profile }) {
             insert={pickAt?.id === b.id ? (pickAt.after ? "after" : "before") : null}
             parked={parked}
             info={info}
-            actions={blockActions(b)}
+            actions={blockActions(b, target)}
+            selecting={selecting}
+            selected={selected.has(b.id)}
+            onToggle={() => toggle(b.id)}
             unit={profile.weight_unit}
           />
         ))}
@@ -528,12 +547,12 @@ export function Routines({ profile }: { profile: Profile }) {
                   <h2 className={s.sheetTitle}>Add exercise</h2>
                   <button className={f.quiet} onClick={() => setPickerOpen(false)}>Close</button>
                 </div>
-                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} draggable />
+                <RoutinePicker exercises={all} muscles={muscles} current={current} places={places} onAdd={(ref, t) => add(ref, t)} draggable />
               </aside>
             )}
           </div>
 
-          {!(desktop && pickerOpen) && <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>}
+          {!(desktop && pickerOpen) && !selecting && <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>}
           {!desktop && (
             <>
               <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)} label="Add exercise">
@@ -541,7 +560,7 @@ export function Routines({ profile }: { profile: Profile }) {
                   <h2 className={s.sheetTitle}>Add exercise</h2>
                   <button className={f.quiet} onClick={() => setPickerOpen(false)}>Done</button>
                 </div>
-                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} draggable={false} />
+                <RoutinePicker exercises={all} muscles={muscles} current={current} places={places} onAdd={(ref, t) => add(ref, t)} draggable={false} />
               </Sheet>
             </>
           )}
@@ -570,6 +589,25 @@ export function Routines({ profile }: { profile: Profile }) {
               />
             )}
           </Sheet>
+
+          {selecting && (
+            <div className={s.selectBar} role="region" aria-label="Link cards">
+              <span className={s.selectCount} role="status">{selected.size} selected</span>
+              {selected.size >= 2 && (
+                <button
+                  type="button" className={f.quiet}
+                  onClick={() => {
+                    const circuit = selected.size >= 3;
+                    edit((r) => link(r, [...selected]), circuit ? "Made a circuit" : "Made a superset");
+                    stopSelecting();
+                  }}
+                >
+                  {selected.size >= 3 ? "Link as circuit" : "Link as superset"}
+                </button>
+              )}
+              <button type="button" className={f.quiet} onClick={stopSelecting}>Cancel</button>
+            </div>
+          )}
 
           {toast && toast.routineId === routine.id && (
             <div className={s.toast} role="status">

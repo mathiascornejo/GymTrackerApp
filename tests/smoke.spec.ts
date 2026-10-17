@@ -430,6 +430,65 @@ test.describe("routine builder", () => {
     await expect(page.getByRole("region", { name: "Tuesday" }).getByRole("article")).toHaveCount(1);
   });
 
+  test("Move to sends a card to another day and Undo brings it back", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH]);
+    const card = page.getByRole("article", { name: "Barbell Curl" });
+    await card.getByRole("button", { name: /^Edit / }).click();
+    await card.getByRole("button", { name: "Move to…" }).click();
+    await expect(page.getByRole("menuitem", { name: "Monday" })).toHaveCount(0); // not where it already is
+    await page.getByRole("menuitem", { name: "Tuesday" }).click();
+    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(1);
+    await expect(page.getByRole("status").filter({ hasText: "Moved to Tuesday" })).toBeVisible();
+    await showDay(page, "Tuesday");
+    await expect(page.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(page.getByRole("article", { name: "Barbell Curl" })).toBeHidden();
+  });
+
+  test("Add to another day puts a picker exercise on that day", async ({ page }) => {
+    await openBuilder(page);
+    await showDay(page, "Monday");
+    await page.getByRole("button", { name: "Add exercise" }).click();
+    await page.getByLabel("Search the picker").fill("Barbell Curl");
+    await page.getByRole("button", { name: "Add Barbell Curl to another day" }).click();
+    await page.getByRole("menuitem", { name: "Wednesday" }).click();
+    await expect(page.getByText("Added Barbell Curl to Wednesday")).toBeAttached();
+    if (isPhone()) await page.getByRole("button", { name: "Done", exact: true }).click();
+    await showDay(page, "Wednesday");
+    await expect(page.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
+    await showDay(page, "Monday");
+    await expect(page.getByRole("article")).toHaveCount(0);
+  });
+
+  test("Select links two cards as a superset and three as a circuit", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH, ROW]);
+    await page.getByRole("button", { name: "Select", exact: true }).click();
+    await expect(page.getByRole("button", { name: /^Reorder / })).toHaveCount(0); // grips give way to checkboxes
+    await expect(page.getByRole("button", { name: "Link as superset" })).toHaveCount(0);
+    await page.getByRole("checkbox", { name: "Select Barbell Curl" }).check();
+    await page.getByRole("checkbox", { name: "Select Barbell Bench Press" }).check();
+    await page.getByRole("button", { name: "Link as superset" }).click();
+    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(2);
+    await expect(page.getByRole("article", { name: "Barbell Curl and Barbell Bench Press" }).getByText(/^Superset · /)).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Reorder / })).toHaveCount(2); // back to normal
+
+    await page.getByRole("button", { name: "Select", exact: true }).click();
+    await page.getByRole("checkbox", { name: /^Select Barbell Curl and/ }).check();
+    await page.getByRole("checkbox", { name: "Select Barbell Bent Over Row" }).check();
+    await page.getByRole("button", { name: "Link as superset" }).click();
+    await expect(page.getByRole("article", { name: /Barbell Curl and Barbell Bench Press and Barbell Bent Over Row/ }).getByText(/^Circuit of 3 · /)).toBeVisible();
+  });
+
+  test("Select can be cancelled", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH]);
+    await page.getByRole("button", { name: "Select", exact: true }).click();
+    await page.getByRole("checkbox", { name: "Select Barbell Curl" }).check();
+    await expect(page.getByText("1 selected")).toBeVisible();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("checkbox")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(2);
+  });
+
   test("drags an exercise from the picker onto a day", async ({ page }) => {
     test.skip(isPhone(), "Drag from the docked picker is a desktop interaction; phone uses the Add to menu.");
     await openBuilder(page);

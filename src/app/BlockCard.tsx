@@ -4,7 +4,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../exercises/types";
 import { cap } from "../exercises/query";
-import { ALL_WEEKDAYS, pairNote, type Block } from "../routines/model";
+import { ALL_WEEKDAYS, pairNote, type Block, type Target } from "../routines/model";
+import { MoreMenu } from "./MoreMenu";
 import { Stepper } from "./Stepper";
 import s from "./Routines.module.css";
 
@@ -21,6 +22,9 @@ export type BlockActions = {
   /** Opens the exercise popup in place; the tab does not change. */
   onView: (ref: string) => void;
   onUnlink: () => void;
+  /** Where this card can go besides where it is, and how to send it there. */
+  moveTargets: { label: string; target: Target }[];
+  onMove: (target: Target) => void;
   onSchedule: (patch: { weekdays: number[] | null; weeklyTarget: number | null }) => void;
   /** Progression step for an exercise, in the display unit, and how to change it (given in the display unit). */
   stepOf: (ref: string) => number;
@@ -73,7 +77,7 @@ function ItemGrip({ blockId, itemId, name }: { blockId: string; itemId: string; 
 }
 
 export function BlockCard({
-  block, bank, joinArmed, insert, parked, info, actions, unit,
+  block, bank, joinArmed, insert, parked, selecting, selected, onToggle, info, actions, unit,
 }: {
   block: Block;
   bank: boolean;
@@ -81,6 +85,10 @@ export function BlockCard({
   joinArmed: boolean;
   /** A picker drag is over this card: a line shows whether it will land before or after it. */
   insert: "before" | "after" | null;
+  /** Selection mode (to link cards into a superset): the grip gives way to a checkbox. */
+  selecting: boolean;
+  selected: boolean;
+  onToggle: () => void;
   /** The column is hidden while a drag from it continues on another day: take no part as a drop target. */
   parked: boolean;
   info: (ref: string) => Exercise | undefined;
@@ -88,7 +96,7 @@ export function BlockCard({
   unit: string;
 }) {
   const [open, setOpen] = useState(false);
-  const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id }, disabled: { droppable: parked } });
+  const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id }, disabled: { draggable: selecting, droppable: parked } });
   const names = block.items.map((i) => info(i.ref)?.name ?? i.ref.replace(/^\w+:/, ""));
   const note = pairNote(block, (ref) => {
     const e = info(ref);
@@ -106,12 +114,22 @@ export function BlockCard({
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       aria-label={label}
       // Tapping the card body opens the editor; the Edit button stays for keyboard users.
-      onClick={(e) => { if (!open && !(e.target as HTMLElement).closest("a,button,select,input,label")) setOpen(true); }}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest("a,button,select,input,label")) return;
+        if (selecting) onToggle();
+        else if (!open) setOpen(true);
+      }}
     >
       <div className={s.cardTop}>
-        <button type="button" className={s.grip} aria-label={`Reorder ${label}`} {...sortable.attributes} {...sortable.listeners}>
-          <Grip />
-        </button>
+        {selecting ? (
+          <label className={s.select}>
+            <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${label}`} />
+          </label>
+        ) : (
+          <button type="button" className={s.grip} aria-label={`Reorder ${label}`} {...sortable.attributes} {...sortable.listeners}>
+            <Grip />
+          </button>
+        )}
 
         <div className={s.cardMain}>
           <ul className={`${s.items} ${multi ? s.rail : ""}`}>
@@ -133,12 +151,12 @@ export function BlockCard({
           )}
         </div>
 
-        <button
+        {!selecting && <button
           type="button" className={s.editBtn} aria-expanded={open}
           aria-label={`${open ? "Done editing" : "Edit"} ${label}`} onClick={() => setOpen(!open)}
         >
           {open ? "Done" : "Edit"}
-        </button>
+        </button>}
       </div>
 
       {open && (
@@ -227,6 +245,10 @@ export function BlockCard({
 
           <footer className={s.cardFoot}>
             {multi ? <button type="button" className={s.textBtn} onClick={actions.onUnlink}>Unlink</button> : <span />}
+            <MoreMenu
+              label="Move to…" className={s.textBtn} up
+              items={actions.moveTargets.map((t) => ({ label: t.label, onSelect: () => actions.onMove(t.target) }))}
+            />
             <button type="button" className={s.textBtn} aria-label={`Remove ${label}`} onClick={actions.onRemoveBlock}>
               Remove
             </button>

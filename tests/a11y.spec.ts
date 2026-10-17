@@ -69,6 +69,39 @@ for (const scheme of ["light", "dark"] as const) {
       expect(await scan(page), "add exercise sheet").toEqual([]);
     });
 
+    test("routine builder menus and selection mode have no violations", async ({ page }) => {
+      const email = await seed();
+      await signIn(page, email, "routines");
+      await expect(page.getByRole("heading", { level: 1, name: "Routines" })).toBeVisible();
+      const routine = {
+        format: "tempered-routine", version: 1, name: "Scan",
+        days: [{ weekday: new Date().getDay(), label: "", blocks: ["Barbell_Curl", "Bent_Over_Barbell_Row"].map((r) => ({ sets: 3, restS: 60, transitionRestS: 0, items: [{ ref: `ds:${r}`, repMin: 8, repMax: 12 }] })) }],
+        bank: [],
+      };
+      await page.locator('input[type="file"]').setInputFiles({ name: "r.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(routine)) });
+      const card = page.getByRole("article", { name: "Barbell Curl" });
+      await card.getByRole("button", { name: /^Edit / }).click();
+      await card.getByRole("button", { name: "Move to…" }).click();
+      await expect(page.getByRole("menu", { name: "Move to…" })).toBeVisible();
+      expect(await scan(page), "Move to menu").toEqual([]);
+      await page.keyboard.press("Escape");
+      await card.getByRole("button", { name: "Done editing Barbell Curl" }).click();
+
+      await page.getByRole("button", { name: "Add exercise" }).click();
+      await page.getByLabel("Search the picker").fill("Barbell Curl");
+      await page.getByRole("button", { name: "Add Barbell Curl to another day" }).click();
+      await expect(page.getByRole("menu")).toBeVisible();
+      expect(await scan(page), "Add to menu").toEqual([]);
+      await page.keyboard.press("Escape");
+      await page.getByRole("button", { name: /^(Close|Done)$/ }).first().click();
+
+      await page.getByRole("button", { name: "Select", exact: true }).click();
+      await page.getByRole("checkbox", { name: "Select Barbell Curl" }).check();
+      await page.getByRole("checkbox", { name: "Select Barbell Bent Over Row" }).check();
+      await expect(page.getByRole("button", { name: "Link as superset" })).toBeVisible();
+      expect(await scan(page), "selection mode").toEqual([]);
+    });
+
     test("sign-in screen has no violations", async ({ page }) => {
       await page.goto("");
       await expect(page.getByRole("heading", { name: "Tempered" })).toBeVisible();

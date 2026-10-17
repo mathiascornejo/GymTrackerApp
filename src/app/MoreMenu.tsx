@@ -5,7 +5,17 @@ import s from "./Routines.module.css";
 export type MenuItem = { label: string; onSelect: () => void; destructive?: boolean };
 
 /** A menu button (WAI-ARIA menu pattern): arrows move, Escape closes, focus returns to the button. */
-export function MoreMenu({ label, items }: { label: string; items: MenuItem[] }) {
+export function MoreMenu({
+  label, items, trigger, className, up,
+}: {
+  label: string;
+  items: MenuItem[];
+  /** What the button shows when it should not read as `label` (an icon, or a shorter word); `label` is then its accessible name. */
+  trigger?: React.ReactNode;
+  className?: string;
+  /** Open above the button, for menus near the bottom of a card. */
+  up?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -45,13 +55,13 @@ export function MoreMenu({ label, items }: { label: string; items: MenuItem[] })
   return (
     <div className={s.menuWrap}>
       <button
-        ref={btn} type="button" className={f.quiet} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined}
+        ref={btn} type="button" className={className ?? f.quiet} aria-label={trigger ? label : undefined} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined}
         onClick={() => setOpen(!open)}
       >
-        {label}
+        {trigger ?? label}
       </button>
       {open && (
-        <div ref={menu} id={id} role="menu" aria-label={label} className={s.menu} onKeyDown={onKey}>
+        <div ref={menu} id={id} role="menu" aria-label={label} className={`${s.menu} ${up ? s.menuUp : ""}`} onKeyDown={onKey}>
           {items.map((it) => (
             <button
               key={it.label} type="button" role="menuitem" tabIndex={-1} className={`${s.menuItem} ${it.destructive ? s.menuDanger : ""}`}
