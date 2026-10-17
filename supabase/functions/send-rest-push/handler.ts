@@ -44,7 +44,7 @@ export async function run(deps: Deps): Promise<Report> {
 
       const subs = await deps.subscriptions(claimed.user_id);
       // No timer text or user data: the payload carries only what the notification needs to show.
-      const payload = JSON.stringify({ title: "Rest done", body: "Time for your next set.", tag: claimed.id, fireAt: claimed.fire_at });
+      const payload = JSON.stringify({ title: "Rest Done", body: "Time for your next set.", tag: claimed.id, fireAt: claimed.fire_at });
       for (const sub of subs) {
         const res = await deps.send(sub, payload, { ttl: TTL_SECONDS, urgency: "high" });
         if (res.ok) report.sent++;

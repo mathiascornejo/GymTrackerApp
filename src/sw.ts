@@ -32,7 +32,7 @@ self.addEventListener("push", (event) => {
   }
   const receivedAt = Date.now();
   // iOS requires every push to show a notification, so this never suppresses one, even with the app in front.
-  const show = self.registration.showNotification(data.title ?? "Rest done", {
+  const show = self.registration.showNotification(data.title ?? "Rest Done", {
     body: data.body ?? "Time for your next set.",
     tag: data.tag,
     icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
