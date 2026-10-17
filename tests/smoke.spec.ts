@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const PASSWORD = "correct-horse-battery";
 
@@ -218,17 +218,17 @@ test.describe("routine builder", () => {
     await page.locator('input[type="file"]').setInputFiles({ name: "s.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(routine)) });
     await showDay(page, "Monday");
     await expect(page.getByRole("article")).toHaveCount(1);
-    await page.getByRole("button", { name: /^Edit / }).click();
+    await page.getByRole("article").getByRole("button", { name: /^Edit / }).click();
     await page.getByRole("button", { name: "Unlink" }).click();
     await expect(page.getByRole("article")).toHaveCount(2);
   });
 
   test("bank blocks count seven days of volume and a schedule change updates it", async ({ page }) => {
     await openBuilder(page);
-    await addExercise(page, "Standing Calf Raises", "Accessory bank");
+    await addExercise(page, "Barbell Standing Calf Raise", "Accessory bank");
     await showDay(page, "Bank");
     await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*21/);
-    const card = page.getByRole("article", { name: "Standing Calf Raises" });
+    const card = page.getByRole("article", { name: "Barbell Standing Calf Raise" });
     await card.getByRole("button", { name: /^Edit / }).click();
     await card.getByLabel("Schedule").selectOption("week");
     await expect(page.getByRole("region", { name: "Weekly sets per muscle" })).toContainText(/Calves\s*6/);
@@ -267,10 +267,10 @@ test.describe("routine builder", () => {
   test("reorders cards with the keyboard", async ({ page }) => {
     await openBuilder(page);
     await addExercise(page, "Barbell Curl", "Monday");
-    await addExercise(page, "Barbell Bench Press - Medium Grip", "Monday");
+    await addExercise(page, "Barbell Bench Press", "Monday");
     await showDay(page, "Monday");
     const names = () => page.getByRole("region", { name: "Monday" }).getByRole("article").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
-    expect(await names()).toEqual(["Barbell Curl", "Barbell Bench Press - Medium Grip"]);
+    expect(await names()).toEqual(["Barbell Curl", "Barbell Bench Press"]);
     await page.getByRole("button", { name: "Reorder Barbell Curl" }).focus();
     await page.keyboard.press("Space");
     await expect(page.locator("[aria-live]")).toContainText("Draggable item");
@@ -278,7 +278,101 @@ test.describe("routine builder", () => {
     await page.keyboard.press("ArrowDown");
     await page.waitForTimeout(400);
     await page.keyboard.press("Space");
-    await expect.poll(names).toEqual(["Barbell Bench Press - Medium Grip", "Barbell Curl"]);
+    await expect.poll(names).toEqual(["Barbell Bench Press", "Barbell Curl"]);
+  });
+
+  const CURL = "ds:Barbell_Curl";
+  const BENCH = "ds:Barbell_Bench_Press_-_Medium_Grip";
+  const ROW = "ds:Bent_Over_Barbell_Row";
+  async function importDay(page: Page, weekday: number, refs: string[]) {
+    await signInAndSkipSetup(page, "routines");
+    const routine = {
+      format: "tempered-routine", version: 1, name: "Drag",
+      days: [{ weekday, label: "", blocks: refs.map((ref) => ({ sets: 3, restS: 60, transitionRestS: 0, items: [{ ref, repMin: 8, repMax: 12 }] })) }],
+      bank: [],
+    };
+    await page.locator('input[type="file"]').setInputFiles({ name: "d.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(routine)) });
+    await showDay(page, WEEKDAYS[weekday]);
+  }
+  const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  /** Mouse drag from a handle to a point; `hold` rests there before release. Returns after release. */
+  async function dragTo(page: Page, from: Locator, to: (b: { x: number; y: number; width: number; height: number }) => { x: number; y: number }, target: Locator, hold = 0) {
+    // Mid-screen, so the pointer is outside dnd-kit's edge auto-scroll zone; the sticky day chips are left where they are.
+    if ((await target.getAttribute("role")) !== "tab") await target.evaluate((el) => el.scrollIntoView({ block: "center" }));
+    const a = (await from.boundingBox())!;
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(a.x + a.width / 2 + 10, a.y + a.height / 2 + 10, { steps: 4 });
+    const p = to((await target.boundingBox())!);
+    await page.mouse.move(p.x, p.y, { steps: 12 });
+    if (hold) await page.waitForTimeout(hold);
+    return { release: () => page.mouse.up() };
+  }
+  const names = (page: Page, day: string) => page.getByRole("region", { name: day }).getByRole("article").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
+  const BENCH_NAME = "Barbell Bench Press";
+
+  test("dropping on a card without holding reorders and never makes a superset", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH, ROW]);
+    const third = page.getByRole("article", { name: /Row/ });
+    // The lower edge of the last card, where the old superset strip used to sit.
+    const d = await dragTo(page, page.getByRole("button", { name: "Reorder Barbell Curl" }), (b) => ({ x: b.x + b.width / 2, y: b.y + b.height - 6 }), third);
+    await d.release();
+    await expect.poll(() => page.getByRole("region", { name: "Monday" }).getByRole("article").count()).toBe(3);
+    expect((await names(page, "Monday"))[0]).toContain(BENCH_NAME);
+    await expect(page.getByText("Release to make a superset")).toHaveCount(0);
+  });
+
+  test("holding over the middle of a card makes a superset, and Undo restores it", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH]);
+    const bench = page.getByRole("article", { name: BENCH_NAME });
+    const d = await dragTo(page, page.getByRole("button", { name: "Reorder Barbell Curl" }), (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 }), bench, 900);
+    await expect(bench.getByText("Release to make a superset")).toBeVisible();
+    await expect(bench.getByRole("button", { name: /Barbell Curl|Bench/ }).first()).toBeVisible(); // names stay readable while armed
+    await d.release();
+    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(1);
+    await expect(page.getByRole("status").filter({ hasText: "Made a superset" })).toBeVisible();
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(2);
+  });
+
+  test("moving the pointer off the middle before the hold ends does not arm a superset", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH]);
+    const bench = page.getByRole("article", { name: BENCH_NAME });
+    const d = await dragTo(page, page.getByRole("button", { name: "Reorder Barbell Curl" }), (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 }), bench, 300);
+    const b = (await bench.boundingBox())!;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height - 4, { steps: 3 });
+    await page.waitForTimeout(900);
+    await expect(page.getByText("Release to make a superset")).toHaveCount(0);
+    await d.release();
+    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(2);
+  });
+
+  test("a card dragged to a day chip lands on that day even after the page scrolls", async ({ page }) => {
+    await importDay(page, 3, Array.from({ length: 12 }, (_, i) => [CURL, BENCH, ROW][i % 3]));
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const last = page.getByRole("region", { name: "Wednesday" }).getByRole("button", { name: /^Reorder / }).last();
+    const monday = page.getByRole("tab", { name: "Mon" });
+    const d = await dragTo(page, last, (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 }), monday, 900);
+    // Resting on the chip shows that day.
+    await expect(monday).toHaveAttribute("aria-selected", "true");
+    await d.release();
+    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(1);
+    await expect(page.getByRole("status").filter({ hasText: "Moved to Monday" })).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 0)); // the page shortened when the drag ended; click the chip where it settles
+    await showDay(page, "Wednesday");
+    await expect(page.getByRole("region", { name: "Wednesday" }).getByRole("article")).toHaveCount(11);
+  });
+
+  test("releasing over empty space leaves the routine unchanged", async ({ page }) => {
+    await importDay(page, 1, [CURL, BENCH]);
+    const stats = page.getByRole("region", { name: "Weekly sets per muscle" });
+    await stats.scrollIntoViewIfNeeded();
+    const before = await names(page, "Monday");
+    const d = await dragTo(page, page.getByRole("region", { name: "Monday" }).getByRole("button", { name: /^Reorder / }).first(), (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 }), stats);
+    await d.release();
+    expect(await names(page, "Monday")).toEqual(before);
+    await expect(page.getByRole("status").filter({ hasText: /Moved|Made/ })).toHaveCount(0);
   });
 
   test("drags an exercise from the picker onto a day", async ({ page }) => {
@@ -286,6 +380,7 @@ test.describe("routine builder", () => {
     await openBuilder(page);
     await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill("Barbell Curl");
+    await showDay(page, "Tuesday");
     const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
     const target = page.getByRole("region", { name: "Tuesday" });
     const a = (await source.boundingBox())!;
@@ -386,11 +481,11 @@ test.describe("session log", () => {
 
   test("moves focus through a superset and labels the rest button with the block's rest", async ({ page }) => {
     await withRoutine(page);
-    const ss = page.getByRole("article", { name: /Barbell Bench Press - Medium Grip and Bent Over Barbell Row/ });
-    await ss.getByLabel("Barbell Bench Press - Medium Grip round 1 weight (kg)").fill("60");
-    await ss.getByLabel("Barbell Bench Press - Medium Grip round 1 reps").fill("8");
-    await ss.getByRole("button", { name: "Mark Barbell Bench Press - Medium Grip round 1 done" }).click();
-    await expect(ss.getByLabel("Bent Over Barbell Row round 1 weight (kg)")).toBeFocused();
+    const ss = page.getByRole("article", { name: /Barbell Bench Press and Barbell Bent Over Row/ });
+    await ss.getByLabel("Barbell Bench Press round 1 weight (kg)").fill("60");
+    await ss.getByLabel("Barbell Bench Press round 1 reps").fill("8");
+    await ss.getByRole("button", { name: "Mark Barbell Bench Press round 1 done" }).click();
+    await expect(ss.getByLabel("Barbell Bent Over Row round 1 weight (kg)")).toBeFocused();
     // The last logged item sits mid-round with no transition rest, so the block's rest applies.
     await expect(page.getByRole("button", { name: "Rest 1:00" })).toBeVisible();
   });
@@ -439,9 +534,9 @@ test.describe("session log", () => {
     await withRoutine(page);
     const group = page.getByText("Accessories (1)");
     await expect(group).toBeVisible();
-    await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeVisible();
+    await expect(page.getByRole("article", { name: "Barbell Standing Calf Raise" })).toBeVisible();
     await group.click();
-    await expect(page.getByRole("article", { name: "Standing Calf Raises" })).toBeHidden();
+    await expect(page.getByRole("article", { name: "Barbell Standing Calf Raise" })).toBeHidden();
   });
 });
 
@@ -502,7 +597,7 @@ test.describe("dashboard and ranks", () => {
     await page.getByRole("button", { name: "Chest, Platinum. Show details" }).click();
     const sheet = page.getByRole("dialog", { name: "Chest" });
     await expect(sheet.getByText("Platinum", { exact: true }).first()).toBeVisible();
-    await expect(sheet.getByRole("link", { name: "Barbell Bench Press - Medium Grip" }).first()).toBeVisible();
+    await expect(sheet.getByRole("link", { name: "Barbell Bench Press" }).first()).toBeVisible();
     await expect(sheet).toContainText("1.5× bodyweight");
     await page.keyboard.press("Escape");
     // Unranked muscles are neutral, not Wood.
@@ -553,11 +648,11 @@ test.describe("dashboard and ranks", () => {
     await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }], 9);
     await addSession(seed, [{ ref: BENCH, w: 105, reps: 5 }], 2);
     await open(page, seed);
-    await expect(page.getByRole("img", { name: /Barbell Bench Press - Medium Grip estimated 1RM: 2 points/ })).toBeVisible();
+    await expect(page.getByRole("img", { name: /Barbell Bench Press estimated 1RM: 2 points/ })).toBeVisible();
     await page.getByRole("radio", { name: "4 weeks" }).click();
     await expect(page.getByRole("img", { name: /estimated 1RM: 2 points/ })).toBeVisible();
     await expect(page.getByRole("img", { name: "2 sessions in the last 12 weeks" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Recent personal bests" })).toContainText("Barbell Bench Press - Medium Grip");
+    await expect(page.getByRole("region", { name: "Recent personal bests" })).toContainText("Barbell Bench Press");
   });
 
   test("adds and deletes bodyweight on the weight tab", async ({ page }) => {
@@ -578,7 +673,7 @@ test.describe("dashboard and ranks", () => {
     await open(page, seed, "settings");
     await page.getByText("Edit strength standards").click();
     // Diamond for bench defaults to 1.5; making it 1.4 puts the 1.46x lift in Diamond.
-    const diamond = page.getByLabel("Barbell Bench Press - Medium Grip Diamond multiple");
+    const diamond = page.getByLabel("Barbell Bench Press Diamond multiple");
     await diamond.fill("1.4");
     await profileSaved(page, () => diamond.blur());
     await expect(page.getByRole("alert")).toHaveCount(0);
@@ -592,7 +687,7 @@ test.describe("dashboard and ranks", () => {
     const seed = await seededUser();
     await open(page, seed, "settings");
     await page.getByText("Edit strength standards").click();
-    const gold = page.getByLabel("Barbell Bench Press - Medium Grip Gold multiple");
+    const gold = page.getByLabel("Barbell Bench Press Gold multiple");
     await gold.fill("0.4");
     await gold.blur();
     await expect(page.getByRole("alert")).toContainText("higher than the one before");

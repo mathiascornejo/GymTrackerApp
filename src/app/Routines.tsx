@@ -1,10 +1,11 @@
 import {
   closestCenter, DndContext, DragOverlay, KeyboardSensor, MouseSensor, pointerWithin, TouchSensor, useDroppable, useSensor, useSensors,
-  type CollisionDetection, type DragEndEvent, type DragStartEvent,
+  type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
 } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { getEventCoordinates } from "@dnd-kit/utilities";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { useUpdateProfile } from "../data/profile";
@@ -17,6 +18,7 @@ import {
   addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
   removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
+import { dropIntent } from "../routines/dropIntent";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
 import { ExerciseDetail, Sheet } from "./ExerciseSheet";
 import { ConfirmSheet } from "./ConfirmSheet";
@@ -39,29 +41,38 @@ const useIsDesktop = () =>
 const containerId = (t: Target) => (t === "bank" ? "bank" : `day:${t.day}`);
 const targetOf = (id: string): Target | null => (id === "bank" ? "bank" : id.startsWith("day:") ? { day: Number(id.slice(4)) } : null);
 
-// With a pointer, a superset strip wins over the card under it, which wins over the column.
-// Without one (keyboard), only cards are candidates so Arrow keys reorder; the Move to menu handles other days.
+// dnd-kit moves the pointer by the page's scroll, which suits cards but not the sticky day chips, so chips are tested against the real pointer.
+const pointer = { x: 0, y: 0 };
+
+// With a pointer, a day chip wins over the card under it, which wins over the column. Over nothing, there is no target, so releasing cancels.
+// Without a pointer (keyboard), only cards are candidates so Arrow keys reorder.
 const collide: CollisionDetection = (args) => {
   if (!args.pointerCoordinates) {
-    const cards = args.droppableContainers.filter((c) => !String(c.id).startsWith("join:") && !String(c.id).startsWith("pager:") && !targetOf(String(c.id)));
+    const cards = args.droppableContainers.filter((c) => !String(c.id).startsWith("pager:") && !targetOf(String(c.id)));
     return closestCenter({ ...args, droppableContainers: cards });
   }
-  const hits = pointerWithin(args);
-  const pick =
-    hits.find((h) => String(h.id).startsWith("pager:")) ??
-    hits.find((h) => String(h.id).startsWith("join:")) ??
-    hits.find((h) => !targetOf(String(h.id))) ??
-    hits[0];
-  return pick ? [pick] : closestCenter(args);
+  const chip = args.droppableContainers.find((c) => {
+    const r = String(c.id).startsWith("pager:") ? c.node.current?.getBoundingClientRect() : undefined;
+    return r && pointer.x >= r.left && pointer.x <= r.right && pointer.y >= r.top && pointer.y <= r.bottom;
+  });
+  if (chip) return [{ id: chip.id, data: { droppableContainer: chip, value: 0 } }];
+  const hits = pointerWithin(args).filter((h) => !String(h.id).startsWith("pager:"));
+  const pick = hits.find((h) => !targetOf(String(h.id))) ?? hits[0];
+  return pick ? [pick] : [];
 };
+
+const HOLD_TO_JOIN_MS = 600;
+const HOVER_TO_SWITCH_MS = 500;
+const UNDO_MS = 6000;
 
 type Drag = { type: "pick"; ref: string } | { type: "block"; id: string } | { type: "item"; blockId: string; itemId: string };
 
-function Column({ target, label, title, children, ids }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[] }) {
+/** `parked` keeps the column the dragged card came from mounted but out of sight after the page moves to another day, so the drag survives. */
+function Column({ target, label, title, children, ids, parked }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean }) {
   const id = containerId(target);
-  const drop = useDroppable({ id });
+  const drop = useDroppable({ id, disabled: parked });
   return (
-    <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""}`} aria-label={label}>
+    <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""} ${parked ? s.parked : ""}`} aria-label={label}>
       <div className={s.columnHead}>{title}</div>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
@@ -102,8 +113,30 @@ export function Routines({ profile }: { profile: Profile }) {
 
   const [pageDay, setPageDay] = useState<number | "bank">(() => new Date().getDay());
   const [drag, setDrag] = useState<Drag | null>(null);
-  // Keyboard drags reorder only: the superset strips would otherwise be the nearest target for Arrow keys.
-  const [keyboardDrag, setKeyboardDrag] = useState(false);
+  const [dragFrom, setDragFrom] = useState<Target | null>(null);
+  // Switching days mid-drag must not shorten the page: the scroll would reset and the chips would move from under the pointer.
+  const board = useRef<HTMLDivElement>(null);
+  const [boardMin, setBoardMin] = useState<number | undefined>();
+  // Auto-scroll would drag the page away from under a pointer resting on the sticky chips.
+  const [overChip, setOverChip] = useState(false);
+  // The card the pointer has rested on long enough that releasing makes a superset.
+  const [joinArmed, setJoinArmed] = useState<string | null>(null);
+  const armedRef = useRef<string | null>(null);
+  const hold = useRef<{ key: string | null; timer?: number }>({ key: null });
+  const hover = useRef<number | undefined>(undefined);
+  const dragging = useRef(false);
+  const [toast, setToast] = useState<{ text: string; routineId: string; before: Routine } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), UNDO_MS);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+  useEffect(() => {
+    if (!drag) return;
+    const track = (e: PointerEvent) => ((pointer.x = e.clientX), (pointer.y = e.clientY));
+    window.addEventListener("pointermove", track);
+    return () => window.removeEventListener("pointermove", track);
+  }, [drag]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [viewing, setViewing] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
@@ -140,7 +173,13 @@ export function Routines({ profile }: { profile: Profile }) {
     return <p className={f.error} role="alert">Could not load your routines: {routines.error.message}</p>;
   if (routines.isPending) return null;
 
-  const edit = (fn: (r: Routine) => Routine) => routine && actions.update(routine.id, fn);
+  // Any edit hides the undo toast; one that passes `said` shows a new one. Undo restores the routine as it was just before.
+  const edit = (fn: (r: Routine) => Routine, said?: string) => {
+    if (!routine) return;
+    let before: Routine | undefined;
+    actions.update(routine.id, (r) => ((before = r), fn(r)));
+    setToast(said && before ? { text: said, routineId: routine.id, before } : null);
+  };
   const add = (ref: string, t: Target, index?: number) => edit((r) => addBlock(r, t, newBlock(ref, profile.default_rest_s), index));
 
   const blockActions = (b: Block): BlockActions => ({
@@ -157,20 +196,66 @@ export function Routines({ profile }: { profile: Profile }) {
     onStep: (ref, v) => updateProfile.mutate({ increments: { ...(profile.increments ?? {}), [ref]: toKg(v, profile.weight_unit) } }),
   });
 
-  const onDragStart = (e: DragStartEvent) => {
-    setKeyboardDrag(e.activatorEvent instanceof KeyboardEvent);
-    setDrag(e.active.data.current as Drag);
+  const setArmed = (id: string | null) => {
+    armedRef.current = id;
+    setJoinArmed(id);
   };
-  const onDragEnd = (e: DragEndEvent) => {
+  const resetDrag = () => {
+    window.clearTimeout(hold.current.timer);
+    hold.current.key = null;
+    window.clearTimeout(hover.current);
+    dragging.current = false;
+    setArmed(null);
     setDrag(null);
+    setDragFrom(null);
+    setBoardMin(undefined);
+    setOverChip(false);
+  };
+  const onDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as Drag;
+    dragging.current = true;
+    setDrag(data);
+    setBoardMin(board.current?.offsetHeight);
+    const owner = data.type === "block" ? data.id : data.type === "item" ? data.blockId : null;
+    setDragFrom(owner && routine ? locate(routine, owner)?.target ?? null : null);
+  };
+  // Holding the pointer over the middle of another card arms a superset; moving off the middle or the card disarms it.
+  const onDragMove = (e: DragMoveEvent) => {
+    const data = e.active.data.current as Drag | undefined;
+    const y = getEventCoordinates(e.activatorEvent)?.y;
+    const id = e.over ? String(e.over.id) : null;
+    const key =
+      data && data.type !== "item" && e.over && id && y !== undefined && !targetOf(id) && !id.startsWith("pager:") && !(data.type === "block" && data.id === id) &&
+      dropIntent(y + e.delta.y, e.over.rect) === "center"
+        ? id
+        : null;
+    if (key === hold.current.key) return;
+    window.clearTimeout(hold.current.timer);
+    hold.current.key = key;
+    setArmed(null);
+    if (key) hold.current.timer = window.setTimeout(() => setArmed(key), HOLD_TO_JOIN_MS);
+  };
+  // Resting on a day chip switches to that day, so the card can be dropped at an exact spot.
+  const onDragOver = (e: DragOverEvent) => {
+    window.clearTimeout(hover.current);
+    if (!dragging.current) return; // dnd-kit can report one more "over" after the drop; it must not start a switch
+    const id = e.over ? String(e.over.id) : "";
+    setOverChip(id.startsWith("pager:"));
+    if (!id.startsWith("pager:")) return;
+    const day = id === "pager:bank" ? "bank" : Number(id.slice(10));
+    hover.current = window.setTimeout(() => setPageDay(day), HOVER_TO_SWITCH_MS);
+  };
+  const where = (t: Target) => (t === "bank" ? "the accessory bank" : WEEKDAY_NAMES[t.day]);
+  const onDragEnd = (e: DragEndEvent) => {
+    const armed = armedRef.current;
+    resetDrag();
     const { active, over } = e;
     const data = active.data.current as Drag | undefined;
     if (!routine || !over || !data) return;
     const overId = String(over.id).replace(/^pager:/, "");
 
     if (data.type === "item") {
-      // An exercise pulled out of a superset lands as its own block; the superset strips do not apply to it.
-      if (overId.startsWith("join:")) return;
+      // An exercise pulled out of a superset lands as its own block; it never joins another.
       let t = targetOf(overId);
       let at: number | undefined;
       if (!t) {
@@ -179,14 +264,13 @@ export function Routines({ profile }: { profile: Profile }) {
         t = hit.target;
         at = hit.index;
       }
-      edit((r) => extractItem(r, data.blockId, data.itemId, t!, at));
+      edit((r) => extractItem(r, data.blockId, data.itemId, t!, at), "Moved out of the superset");
       return;
     }
 
-    if (overId.startsWith("join:")) {
-      const targetId = overId.slice(5);
-      if (data.type === "pick") edit((r) => addItem(r, targetId, data.ref));
-      else if (data.id !== targetId) edit((r) => link(r, [targetId, data.id]));
+    if (armed === overId && !targetOf(overId)) {
+      if (data.type === "pick") edit((r) => addItem(r, overId, data.ref), "Made a superset");
+      else if (data.id !== overId) edit((r) => link(r, [overId, data.id]), "Made a superset");
       return;
     }
     let target = targetOf(overId);
@@ -197,10 +281,16 @@ export function Routines({ profile }: { profile: Profile }) {
       target = at.target;
       index = at.index;
     }
-    if (data.type === "pick") add(data.ref, target, index);
-    else edit((r) => moveBlock(r, data.id, target!, index));
+    if (data.type === "pick") edit((r) => addBlock(r, target!, newBlock(data.ref, profile.default_rest_s), index), `Added to ${where(target)}`);
+    else {
+      const from = locate(routine, data.id)?.target;
+      edit((r) => moveBlock(r, data.id, target!, index), JSON.stringify(from) === JSON.stringify(target) ? undefined : `Moved to ${where(target)}`);
+    }
   };
 
+  const visible: Target = pageDay === "bank" ? "bank" : { day: pageDay };
+  // After a hover switches the page, the column the dragged card came from stays mounted (hidden) until the drop.
+  const columns = dragFrom && containerId(dragFrom) !== containerId(visible) ? [visible, dragFrom] : [visible];
   const order = Array.from({ length: 7 }, (_, i) => (profile.week_starts_on + i) % 7);
   const volume = routine ? Object.entries(weeklySets(routine, (ref) => info(ref)?.primary ?? [])).sort((a, b) => b[1] - a[1]) : [];
 
@@ -244,7 +334,7 @@ export function Routines({ profile }: { profile: Profile }) {
     setPickedId(actions.addImported(out.routine));
   };
 
-  const renderColumn = (target: Target) => {
+  const renderColumn = (target: Target, parked: boolean) => {
     if (!routine) return null;
     const blocks = containerBlocks(routine, target);
     const cid = containerId(target);
@@ -272,13 +362,14 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       );
     return (
-      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)}>
+      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)} parked={parked}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
             block={b}
             bank={target === "bank"}
-            dragging={drag !== null && drag.type !== "item" && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
+            joinArmed={joinArmed === b.id}
+            parked={parked}
             info={info}
             actions={blockActions(b)}
             unit={profile.weight_unit}
@@ -375,7 +466,7 @@ export function Routines({ profile }: { profile: Profile }) {
             />
           </div>
           {!routine.isActive && !routine.archivedAt && (
-            <button className={`${f.quiet} ${s.makeActive}`} onClick={() => actions.setActive(routine.id)}>Make active</button>
+            <button className={`${f.quiet} ${s.makeActive}`} onClick={() => { setToast(null); actions.setActive(routine.id); }}>Make active</button>
           )}
           <dl className={s.stats}>
             <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
@@ -392,7 +483,7 @@ export function Routines({ profile }: { profile: Profile }) {
           <button className={f.quiet} onClick={() => fileInput.current?.click()}>Import JSON</button>
         </>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={collide} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDrag(null)}>
+        <DndContext sensors={sensors} collisionDetection={collide} autoScroll={!overChip} onDragStart={onDragStart} onDragMove={onDragMove} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={resetDrag}>
           <div className={s.pager} role="tablist" aria-label="Day">
             {[...order, "bank" as const].map((d) => (
               <DayButton
@@ -408,14 +499,16 @@ export function Routines({ profile }: { profile: Profile }) {
 
           {/* Desktop docks the picker beside the board (not a modal sheet) so exercises can still be dragged onto a day. */}
           <div className={desktop && pickerOpen ? s.boardSplit : undefined}>
-            <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>
+            <div ref={board} className={s.board} style={{ minHeight: boardMin }}>
+              {columns.map((t) => renderColumn(t, containerId(t) !== containerId(visible)))}
+            </div>
             {desktop && pickerOpen && (
               <aside className={s.sidePicker} aria-label="Add exercise">
                 <div className={s.sheetTop}>
                   <h2 className={s.sheetTitle}>Add exercise</h2>
                   <button className={f.quiet} onClick={() => setPickerOpen(false)}>Close</button>
                 </div>
-                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
+                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} draggable />
               </aside>
             )}
           </div>
@@ -428,7 +521,7 @@ export function Routines({ profile }: { profile: Profile }) {
                   <h2 className={s.sheetTitle}>Add exercise</h2>
                   <button className={f.quiet} onClick={() => setPickerOpen(false)}>Done</button>
                 </div>
-                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
+                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} draggable={false} />
               </Sheet>
             </>
           )}
@@ -457,6 +550,13 @@ export function Routines({ profile }: { profile: Profile }) {
               />
             )}
           </Sheet>
+
+          {toast && toast.routineId === routine.id && (
+            <div className={s.toast} role="status">
+              <span>{toast.text}</span>
+              <button type="button" className={f.quiet} onClick={() => { actions.update(toast.routineId, () => toast.before); setToast(null); }}>Undo</button>
+            </div>
+          )}
 
           <DragOverlay>{drag ? <div className={s.overlay}>{overlayText}</div> : null}</DragOverlay>
         </DndContext>

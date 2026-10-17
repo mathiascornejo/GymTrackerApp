@@ -8,12 +8,12 @@ import s from "./Routines.module.css";
 
 const LIMIT = 40;
 
-function PickRow({ exercise, onAdd, current }: { exercise: Exercise; onAdd: (t: Target) => void; current: { target: Target; label: string } }) {
+function PickRow({ exercise, onAdd, current, draggable }: { exercise: Exercise; onAdd: (t: Target) => void; current: { target: Target; label: string }; draggable: boolean }) {
   const [added, setAdded] = useState(false);
-  const drag = useDraggable({ id: `pick:${exercise.ref}`, data: { type: "pick", ref: exercise.ref } });
+  const drag = useDraggable({ id: `pick:${exercise.ref}`, data: { type: "pick", ref: exercise.ref }, disabled: !draggable });
   return (
     <li className={s.pickRow} style={{ opacity: drag.isDragging ? 0.5 : 1 }}>
-      <div ref={drag.setNodeRef} className={s.pickName} {...drag.attributes} {...drag.listeners}>
+      <div ref={drag.setNodeRef} className={`${s.pickName} ${draggable ? s.pickDraggable : ""}`} {...drag.attributes} {...drag.listeners}>
         <span>{exercise.name}</span>
         <span className={s.sub}>{[exercise.primary[0] && cap(exercise.primary[0]), exercise.equipment].filter(Boolean).join(" · ")}</span>
       </div>
@@ -34,13 +34,15 @@ function PickRow({ exercise, onAdd, current }: { exercise: Exercise; onAdd: (t: 
 }
 
 export function RoutinePicker({
-  exercises, muscles, onAdd, current,
+  exercises, muscles, onAdd, current, draggable,
 }: {
   exercises: Exercise[];
   muscles: string[];
   onAdd: (ref: string, t: Target) => void;
   /** The day being viewed: the one-tap Add button puts the exercise here. */
   current: { target: Target; label: string };
+  /** Rows can be dragged onto the board. Off on phone, where the picker is a modal sheet and the drop target is hidden. */
+  draggable: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState("");
@@ -65,7 +67,7 @@ export function RoutinePicker({
       </div>
       <ul className={s.pickList}>
         {shown.slice(0, LIMIT).map((e) => (
-          <PickRow key={e.ref} exercise={e} current={current} onAdd={(t) => onAdd(e.ref, t)} />
+          <PickRow key={e.ref} exercise={e} current={current} draggable={draggable} onAdd={(t) => onAdd(e.ref, t)} />
         ))}
       </ul>
       {shown.length > LIMIT && <p className={f.note}>Showing {LIMIT} of {shown.length}. Search to narrow the list.</p>}

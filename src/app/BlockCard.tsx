@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { useDraggable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../exercises/types";
@@ -38,19 +38,20 @@ function ItemGrip({ blockId, itemId, name }: { blockId: string; itemId: string; 
 }
 
 export function BlockCard({
-  block, bank, dragging, info, actions, unit,
+  block, bank, joinArmed, parked, info, actions, unit,
 }: {
   block: Block;
   bank: boolean;
-  /** True while something else is being dragged, which reveals the superset drop strip. */
-  dragging: boolean;
+  /** True while a drag has been held over this card long enough that releasing makes a superset. */
+  joinArmed: boolean;
+  /** The column is hidden while a drag from it continues on another day: take no part as a drop target. */
+  parked: boolean;
   info: (ref: string) => Exercise | undefined;
   actions: BlockActions;
   unit: string;
 }) {
   const [open, setOpen] = useState(false);
-  const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id } });
-  const join = useDroppable({ id: `join:${block.id}` });
+  const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id }, disabled: { droppable: parked } });
   const names = block.items.map((i) => info(i.ref)?.name ?? i.ref.replace(/^\w+:/, ""));
   const note = pairNote(block, (ref) => {
     const e = info(ref);
@@ -64,7 +65,7 @@ export function BlockCard({
   return (
     <article
       ref={sortable.setNodeRef}
-      className={`${s.card} ${open ? "" : s.compact} ${sortable.isDragging ? s.cardDragging : ""}`}
+      className={`${s.card} ${open ? "" : s.compact} ${sortable.isDragging ? s.cardDragging : ""} ${joinArmed ? s.cardJoin : ""}`}
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       aria-label={label}
       // Tapping the card body opens the editor; the Edit button stays for keyboard users.
@@ -208,11 +209,7 @@ export function BlockCard({
         </>
       )}
 
-      {dragging && !sortable.isDragging && (
-        <div ref={join.setNodeRef} className={`${s.join} ${join.isOver ? s.joinOver : ""}`}>
-          Drop to superset
-        </div>
-      )}
+      {joinArmed && <p className={s.joinLabel}>Release to make a superset</p>}
     </article>
   );
 }
