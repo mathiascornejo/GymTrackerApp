@@ -39,8 +39,8 @@ export function GradientNav({ tabs, active }: { tabs: readonly NavTab[]; active:
   const reduce = useReducedMotion();
   const spring = reduce ? { duration: 0 } : { type: "spring" as const, stiffness: 400, damping: 30 };
   return (
-    // layoutRoot: the dock is position: fixed, so the ring's layout animation must ignore page scroll (switching tabs resets it).
-    <motion.div layoutRoot className={`${s.dock} ${s.themed}`}>
+    // layoutScroll: the dock is fixed, so Motion must measure the ring inside it; otherwise a tab switch that resets page scroll drops the ring in from off screen. (layoutRoot does not fix this.)
+    <motion.div layoutScroll className={`${s.dock} ${s.themed}`}>
       <div className={s.tray}>
         <div className={s.bezel} />
         <nav className={s.nav} aria-label="Main">
