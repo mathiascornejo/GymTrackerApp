@@ -697,6 +697,26 @@ test.describe("pwa and background alarm", () => {
     await expect.poll(async () => (await timers()).every((t) => t.cancelled_at !== null)).toBe(true);
   });
 
+  test("times the server alarm by the server clock when the phone clock runs fast", async ({ page }) => {
+    await page.addInitScript(stubPush);
+    await page.addInitScript(() => {
+      const real = Date.now;
+      Date.now = () => real() + 60_000;
+    });
+    const u = await userWithToken();
+    await login(page, u.email, "settings");
+    await page.getByRole("button", { name: "Turn on notifications" }).click();
+    await page.goto("#/log");
+    await page.getByRole("button", { name: "Start quick session" }).click();
+    await page.getByRole("button", { name: "Rest 1:30" }).click();
+    await expect(page.getByText("Background alarm on")).toBeVisible();
+
+    const [armed] = (await (await fetch(`${process.env.E2E_SUPABASE_URL}/rest/v1/rest_timers?select=fire_at`, { headers: hdr(u.token) })).json()) as { fire_at: string }[];
+    const ahead = (Date.parse(armed.fire_at) - Date.now()) / 1000;
+    expect(ahead).toBeGreaterThan(80);
+    expect(ahead).toBeLessThan(95);
+  });
+
   test("keeps the server alarm when the rest ends while the page is hidden", async ({ page }) => {
     await page.addInitScript(stubPush);
     const u = await userWithToken();

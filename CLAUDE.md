@@ -47,7 +47,7 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - After a profile edit, tests wait for the PATCH response (`profileSaved`) before reloading; reloading mid-save correctly shows the old value.
 
 ## Background alarm
-- Client: `src/data/push.ts` (permission, subscription, state), `src/data/restTimers.ts` (arm = cancel the old pending row, insert a new one; serialized). `useRestTimer(pushState)` arms on start/adjust and cancels on skip and on foreground completion.
+- Client: `src/data/push.ts` (permission, subscription, state), `src/data/restTimers.ts` (arm = `arm_rest_timer` RPC: sends the remaining ms, the server sets `fire_at` by its own clock and cancels the old pending row; serialized). Never send a client-computed `fire_at`: phone clocks drift. `useRestTimer(pushState)` arms on start/adjust and cancels on skip and on foreground completion.
 - Server: `pg_cron` every 5 s calls `send-rest-push` only when a timer is due within 6 s. The function sleeps until `fire_at`, THEN claims the row with an atomic update, so a Skip pressed during the wait still cancels it. One pending timer per user is enforced by a unique partial index.
 - Decision logic is `supabase/functions/send-rest-push/handler.ts` with injected dependencies, tested in Vitest. `index.ts` is only wiring and runs on Deno.
 - The service worker (`src/sw.ts`) must show a notification for every push (iOS requires it) and never suppresses one while the app is open.

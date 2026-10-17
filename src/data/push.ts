@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./client";
+import { SKEW_KEY } from "./restTimers";
 
 export type PushState =
   | "unconfigured" // no VAPID key in this build
@@ -84,7 +85,8 @@ export async function lastAlarmDelayS(): Promise<number | null> {
     const res = await (await caches.open("tempered-diag")).match("last-alarm");
     if (!res) return null;
     const { fireAt, receivedAt } = (await res.json()) as { fireAt: string | null; receivedAt: number };
-    return fireAt ? Math.round((receivedAt - new Date(fireAt).getTime()) / 100) / 10 : null;
+    const skew = Number(localStorage.getItem(SKEW_KEY)) || 0; // fireAt is server time, receivedAt is phone time
+    return fireAt ? Math.round((receivedAt - skew - new Date(fireAt).getTime()) / 100) / 10 : null;
   } catch {
     return null;
   }

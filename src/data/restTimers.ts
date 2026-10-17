@@ -8,16 +8,24 @@ const serial = <T,>(job: () => Promise<T>): Promise<T> => {
   return p;
 };
 
+export const SKEW_KEY = "tempered.clockSkew";
+
 const active = () => supabase.from("rest_timers").update({ cancelled_at: new Date().toISOString() }).is("sent_at", null).is("cancelled_at", null);
 
 /** Arms the server-side alarm. Resolves false when it could not be stored; the on-screen timer is unaffected. */
 export function armAlarm(fireAtMs: number, label: string): Promise<boolean> {
   return serial(async () => {
     try {
-      const cancel = await active();
-      if (cancel.error) return false;
-      const { error } = await supabase.from("rest_timers").insert({ fire_at: new Date(fireAtMs).toISOString(), label });
-      return !error;
+      // Send the remaining time, not fireAtMs: the server times it by its own clock, so a phone clock that is off does not delay the push.
+      const { data, error } = await supabase.rpc("arm_rest_timer", { delay_ms: Math.max(0, Math.round(fireAtMs - Date.now())), label });
+      if (error) return false;
+      // Phone clock minus server clock, so Settings can report how late an alarm really was.
+      try {
+        localStorage.setItem(SKEW_KEY, String(fireAtMs - Date.parse(data as string)));
+      } catch {
+        /* diagnostics only */
+      }
+      return true;
     } catch {
       return false;
     }
