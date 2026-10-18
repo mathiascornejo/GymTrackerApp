@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   gap: 4px 8px;
-  padding: 8px 0 4px;
+  padding: 8px 0 12px;
   background: var(--ground);
 }
 
@@ -95,10 +95,10 @@
 }
 
 /* A category title: bold, ink-coloured, with an accent tick, so it reads as a new section rather than a caption.
-   It sticks just under the search row (56px tall) and the browser pushes it up when the next category arrives, so the hand-over is smooth at any scroll speed. */
+   It sticks just under the search row (64px tall) and the browser pushes it up when the next category arrives, so the hand-over is smooth at any scroll speed. */
 .header {
   position: sticky;
-  top: calc(env(safe-area-inset-top) + var(--header-h) + 56px);
+  top: calc(env(safe-area-inset-top) + var(--header-h) + 64px);
   z-index: 3; /* above the rows, below the pinned search row */
   display: flex;
   align-items: flex-end;
@@ -114,7 +114,7 @@
 
 @media (min-width: 1024px) {
   .header {
-    top: calc(var(--header-h) + 56px);
+    top: calc(var(--header-h) + 64px);
   }
 }
 
