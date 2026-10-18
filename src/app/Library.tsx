@@ -12,11 +12,10 @@ import { useRouteArg } from "./routes";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
 
-const FILTERS = ["muscle", "equipment", "category"] as const;
+const FILTERS = ["muscle", "equipment"] as const;
 const LABELS: Record<(typeof FILTERS)[number], string> = {
   muscle: "Muscle",
   equipment: "Equipment",
-  category: "Body area",
 };
 
 const HEADER_H = 34; // matches .header in Library.module.css

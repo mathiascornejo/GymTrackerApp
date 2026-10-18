@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { useMemo, useState } from "react";
-import { applyFilters, cap, search } from "../exercises/query";
+import { applyFilters, cap, facets, search } from "../exercises/query";
 import type { Exercise } from "../exercises/types";
 import type { Target } from "../routines/model";
 import f from "./Form.module.css";
@@ -44,7 +44,12 @@ export function RoutinePicker({
 }) {
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState("");
-  const shown = useMemo(() => search(applyFilters(exercises, { muscle: muscle || undefined }), query), [exercises, query, muscle]);
+  const [equipment, setEquipment] = useState("");
+  const equipmentOptions = useMemo(() => facets(exercises).equipment, [exercises]);
+  const shown = useMemo(
+    () => search(applyFilters(exercises, { muscle: muscle || undefined, equipment: equipment || undefined }), query),
+    [exercises, query, muscle, equipment],
+  );
   return (
     <section aria-label="Exercise picker" className={s.picker}>
       <p className={f.note}>Adding to {current.label}.</p>
@@ -59,6 +64,15 @@ export function RoutinePicker({
             <option value="">Any muscle</option>
             {muscles.map((m) => (
               <option key={m} value={m}>{cap(m)}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className={s.visuallyHidden}>Equipment</span>
+          <select className={f.input} value={equipment} onChange={(e) => setEquipment(e.target.value)}>
+            <option value="">Any equipment</option>
+            {equipmentOptions.map((o) => (
+              <option key={o} value={o}>{cap(o)}</option>
             ))}
           </select>
         </label>

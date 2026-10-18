@@ -469,7 +469,13 @@
 
 .pickerControls {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Search gets its own row so the two selects fit beside each other on a phone. */
+.pickerControls .grow {
+  flex-basis: 100%;
 }
 
 .grow {
