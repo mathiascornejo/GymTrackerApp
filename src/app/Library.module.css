@@ -63,21 +63,29 @@
 
 .filters {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
-  padding: 4px 0 12px; /* padding, not margin: the pinned header offset measures this box */
-  font-size: 15px;
-  line-height: 20px;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+  gap: 8px 10px;
+  width: min(100%, 320px);
+  margin: 0 auto;
+  /* Even air above (under the search row) and below (above the first category title, which brings its own). */
+  padding: 16px 0 8px;
+  font-size: 14px;
+  line-height: 18px;
 }
 
-/* A lone last filter takes the whole row instead of sitting half empty. */
-.filters label:last-of-type:nth-of-type(odd) {
+.filters > button {
   grid-column: 1 / -1;
+}
+
+.filters .input {
+  font-size: 14px;
 }
 
 .filters label {
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
 }
 
 /* A category block is placed by the window virtualizer; its rows sit absolutely inside it, its title in flow so it can stick. */
