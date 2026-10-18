@@ -72,21 +72,22 @@ function StandardsEditor({ profile }: { profile: Profile }) {
         trust a better source for.
       </p>
       {error && <p className={f.error} role="alert">{error}</p>}
+      <div className={f.liftList} data-thumb="">
       {RANKING_LIFTS.map((lift) => {
         const name = byRef.get(lift.ref)?.name ?? lift.ref;
         const current = thresholds(lift, table, overrides);
         const custom = Boolean(overrides[lift.ref]);
         return (
-          <fieldset key={lift.ref} style={{ border: 0, padding: 0, margin: "0 0 16px" }}>
-            <legend style={{ fontWeight: 600, marginBottom: 4 }}>
+          <fieldset key={lift.ref} className={f.lift}>
+            <legend className={f.liftName}>
               {name} <span className={f.note}>({lift.muscle}{custom ? ", edited" : ""})</span>
             </legend>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(84px, 1fr))", gap: 8 }}>
+            <div className={f.liftGrid}>
               {current.map((v, i) => (
-                <label key={`${lift.ref}-${i}-${v}`} style={{ display: "grid", gap: 2, fontSize: 13 }}>
+                <label key={`${lift.ref}-${i}-${v}`} className={f.liftCell}>
                   {BOUNDS[i]}
                   <input
-                    className={f.input} inputMode="decimal" defaultValue={v} style={{ textAlign: "center" }}
+                    className={`${f.input} ${f.liftInput}`} inputMode="decimal" defaultValue={v}
                     aria-label={`${name} ${BOUNDS[i]} multiple`}
                     onBlur={(e) => {
                       const n = Number(e.target.value.replace(",", "."));
@@ -108,7 +109,7 @@ function StandardsEditor({ profile }: { profile: Profile }) {
             </div>
             {custom && (
               <button
-                type="button" className={f.quiet}
+                type="button" className={`${f.quiet} ${f.liftReset}`}
                 onClick={() => {
                   const { [lift.ref]: _removed, ...rest } = overrides;
                   save(rest);
@@ -120,6 +121,7 @@ function StandardsEditor({ profile }: { profile: Profile }) {
           </fieldset>
         );
       })}
+      </div>
     </details>
   );
 }

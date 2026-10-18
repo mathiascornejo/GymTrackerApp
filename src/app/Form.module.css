@@ -322,3 +322,69 @@ details[open] > .summary {
     transition: none;
   }
 }
+
+/* Strength standards editor: the lifts scroll inside their own box like the other long lists. */
+.liftList {
+  margin-top: 12px;
+  max-height: min(60dvh, 520px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .liftList {
+    padding-right: 14px;
+  }
+}
+
+.lift {
+  min-width: 0;
+  margin: 0;
+  padding: 16px 0;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.lift:first-child {
+  padding-top: 4px;
+}
+
+.lift:last-child {
+  border-bottom: 0;
+}
+
+.liftName {
+  margin-bottom: 12px;
+  padding: 0;
+  font-weight: 600;
+}
+
+.liftGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 8px;
+}
+
+@media (min-width: 600px) {
+  .liftGrid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+.liftCell {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--ink-muted);
+}
+
+.liftInput {
+  padding: 0 4px;
+  color: var(--ink);
+  text-align: center;
+}
+
+.liftReset {
+  margin: 8px 0 0 -12px;
+}
