@@ -26,10 +26,22 @@
 }
 
 .pager {
+  position: sticky;
+  top: env(safe-area-inset-top);
+  z-index: 4;
   display: flex;
   gap: 4px;
-  margin: 16px 0 8px;
+  margin: 8px 0 0;
+  padding: 8px 0;
+  background: var(--ground);
   overflow-x: auto;
+}
+
+@media (min-width: 1024px) {
+  /* Clear the pinned nav tray. */
+  .pager {
+    top: calc(16px + var(--nav-h) + 16px);
+  }
 }
 
 .pagerBtn {
