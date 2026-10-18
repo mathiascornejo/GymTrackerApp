@@ -660,18 +660,6 @@
   margin-left: auto;
 }
 
-.itemGrip {
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: 18px;
-  cursor: grab;
-  touch-action: none;
-}
-
 .pencil {
   display: inline-grid;
   place-items: center;
@@ -743,4 +731,48 @@
 /* Room for the FAB (44 px + 12 px gap) on top of the shell's tab bar padding. */
 .root:has(.addFab) {
   padding-bottom: 56px;
+}
+
+.columnTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.select {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -4px 0 -4px -10px;
+  cursor: pointer;
+}
+
+.select input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+
+.selectBar {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 4px 8px 4px 16px;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25), inset 0 0 0 1px var(--hairline);
+}
+
+.selectCount {
+  flex: 1;
 }

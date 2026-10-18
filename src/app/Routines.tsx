@@ -4,7 +4,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { useUpdateProfile } from "../data/profile";
@@ -14,7 +14,7 @@ import { cap, facets } from "../exercises/query";
 import { defaultIncrementKg } from "../session/recommend";
 import { fromKg, toKg } from "../units";
 import {
-  addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
+  addBlock, addItem, containerBlocks, duplicate, exportRoutine, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
   removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
@@ -55,14 +55,17 @@ const collide: CollisionDetection = (args) => {
   return pick ? [pick] : closestCenter(args);
 };
 
-type Drag = { type: "pick"; ref: string } | { type: "block"; id: string } | { type: "item"; blockId: string; itemId: string };
+type Drag = { type: "pick"; ref: string } | { type: "block"; id: string };
 
-function Column({ target, label, title, children, ids }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[] }) {
+function Column({ target, label, title, children, ids, action }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; action?: React.ReactNode }) {
   const id = containerId(target);
   const drop = useDroppable({ id });
   return (
     <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""}`} aria-label={label}>
-      <div className={s.columnHead}>{title}</div>
+      <div className={s.columnTop}>
+        <div className={s.columnHead}>{title}</div>
+        {action}
+      </div>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
       </SortableContext>
@@ -104,6 +107,15 @@ export function Routines({ profile }: { profile: Profile }) {
   const [drag, setDrag] = useState<Drag | null>(null);
   // Keyboard drags reorder only: the superset strips would otherwise be the nearest target for Arrow keys.
   const [keyboardDrag, setKeyboardDrag] = useState(false);
+  // Selection mode: tick cards in the day being viewed, then link them into a superset or circuit.
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const toggle = (id: string) => setSelected((o) => new Set(o.has(id) ? [...o].filter((x) => x !== id) : [...o, id]));
+  const stopSelecting = () => {
+    setSelecting(false);
+    setSelected(new Set());
+  };
+  useEffect(stopSelecting, [pageDay, pickedId]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [viewing, setViewing] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
@@ -168,21 +180,6 @@ export function Routines({ profile }: { profile: Profile }) {
     if (!routine || !over || !data) return;
     const overId = String(over.id).replace(/^pager:/, "");
 
-    if (data.type === "item") {
-      // An exercise pulled out of a superset lands as its own block; the superset strips do not apply to it.
-      if (overId.startsWith("join:")) return;
-      let t = targetOf(overId);
-      let at: number | undefined;
-      if (!t) {
-        const hit = locate(routine, overId);
-        if (!hit) return;
-        t = hit.target;
-        at = hit.index;
-      }
-      edit((r) => extractItem(r, data.blockId, data.itemId, t!, at));
-      return;
-    }
-
     if (overId.startsWith("join:")) {
       const targetId = overId.slice(5);
       if (data.type === "pick") edit((r) => addItem(r, targetId, data.ref));
@@ -211,12 +208,10 @@ export function Routines({ profile }: { profile: Profile }) {
     ? ""
     : drag.type === "pick"
       ? nameOf(drag.ref)
-      : drag.type === "item"
-        ? nameOf(routine?.days.flatMap((d) => d.blocks).concat(routine.bank).find((b) => b.id === drag.blockId)?.items.find((i) => i.id === drag.itemId)?.ref ?? "")
-        : (() => {
-          const b = routine && locate(routine, drag.id)?.block;
-          return b ? b.items.map((i) => nameOf(i.ref)).join(" + ") : "";
-        })();
+      : (() => {
+        const b = routine && locate(routine, drag.id)?.block;
+        return b ? b.items.map((i) => nameOf(i.ref)).join(" + ") : "";
+      })();
 
   const exportJson = () => {
     if (!routine) return;
@@ -272,15 +267,19 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       );
     return (
-      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)}>
+      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)}
+        action={blocks.length >= 2 && !selecting ? <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button> : undefined}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
             block={b}
             bank={target === "bank"}
-            dragging={drag !== null && drag.type !== "item" && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
+            dragging={drag !== null && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
             info={info}
             actions={blockActions(b)}
+            selecting={selecting}
+            selected={selected.has(b.id)}
+            onToggle={() => toggle(b.id)}
             unit={profile.weight_unit}
           />
         ))}
@@ -420,7 +419,7 @@ export function Routines({ profile }: { profile: Profile }) {
             )}
           </div>
 
-          {!(desktop && pickerOpen) && <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>}
+          {!(desktop && pickerOpen) && !selecting && <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>}
           {!desktop && (
             <>
               <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)} label="Add exercise">
@@ -445,6 +444,24 @@ export function Routines({ profile }: { profile: Profile }) {
               </ul>
             )}
           </section>
+
+          {selecting && (
+            <div className={s.selectBar} role="region" aria-label="Link cards">
+              <span className={s.selectCount} role="status">{selected.size} selected</span>
+              {selected.size >= 2 && (
+                <button
+                  type="button" className={f.quiet}
+                  onClick={() => {
+                    edit((r) => link(r, [...selected]));
+                    stopSelecting();
+                  }}
+                >
+                  {selected.size >= 3 ? "Link as circuit" : "Link as superset"}
+                </button>
+              )}
+              <button type="button" className={f.quiet} onClick={stopSelecting}>Cancel</button>
+            </div>
+          )}
 
           <Sheet open={viewing !== null} onClose={() => setViewing(null)} label={info(viewing ?? "")?.name ?? "Exercise"}>
             {viewing && info(viewing) && (

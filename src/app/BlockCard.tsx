@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../exercises/types";
@@ -27,29 +27,23 @@ export type BlockActions = {
   onStep: (ref: string, value: number) => void;
 };
 
-/** Drag handle for one exercise inside a superset; dropping it on a day or card makes it its own block. */
-function ItemGrip({ blockId, itemId, name }: { blockId: string; itemId: string; name: string }) {
-  const drag = useDraggable({ id: `item:${itemId}`, data: { type: "item", blockId, itemId } });
-  return (
-    <button type="button" className={s.itemGrip} aria-label={`Drag ${name} out of the superset`} ref={drag.setNodeRef} {...drag.attributes} {...drag.listeners}>
-      ⠿
-    </button>
-  );
-}
-
 export function BlockCard({
-  block, bank, dragging, info, actions, unit,
+  block, bank, dragging, selecting, selected, onToggle, info, actions, unit,
 }: {
   block: Block;
   bank: boolean;
   /** True while something else is being dragged, which reveals the superset drop strip. */
   dragging: boolean;
+  /** Selection mode (to link cards into a superset): the grip gives way to a checkbox. */
+  selecting: boolean;
+  selected: boolean;
+  onToggle: () => void;
   info: (ref: string) => Exercise | undefined;
   actions: BlockActions;
   unit: string;
 }) {
   const [open, setOpen] = useState(false);
-  const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id } });
+  const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id }, disabled: selecting });
   const join = useDroppable({ id: `join:${block.id}` });
   const names = block.items.map((i) => info(i.ref)?.name ?? i.ref.replace(/^\w+:/, ""));
   const note = pairNote(block, (ref) => {
@@ -68,20 +62,29 @@ export function BlockCard({
       style={{ transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition }}
       aria-label={label}
       // Tapping the card body opens the editor; the Edit button stays for keyboard users.
-      onClick={(e) => { if (!open && !(e.target as HTMLElement).closest("a,button,select,input,label")) setOpen(true); }}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest("a,button,select,input,label")) return;
+        if (selecting) onToggle();
+        else if (!open) setOpen(true);
+      }}
     >
       <div className={s.cardTop}>
-        <button type="button" className={s.grip} aria-label={`Reorder ${label}`} {...sortable.attributes} {...sortable.listeners}>
-          <svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor" aria-hidden="true">
-            {[3, 10, 17].flatMap((y) => [3, 11].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
-          </svg>
-        </button>
+        {selecting ? (
+          <label className={s.select}>
+            <input type="checkbox" checked={selected} onChange={onToggle} aria-label={`Select ${label}`} />
+          </label>
+        ) : (
+          <button type="button" className={s.grip} aria-label={`Reorder ${label}`} {...sortable.attributes} {...sortable.listeners}>
+            <svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor" aria-hidden="true">
+              {[3, 10, 17].flatMap((y) => [3, 11].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
+            </svg>
+          </button>
+        )}
 
         <div className={s.cardMain}>
           <ul className={s.items}>
             {block.items.map((item, i) => (
               <li key={item.id} className={s.itemName}>
-                {multi && <ItemGrip blockId={block.id} itemId={item.id} name={names[i]} />}
                 <button type="button" className={s.itemLink} onClick={() => actions.onView(item.ref)}>{names[i]}</button>
                 {!open && <span className={s.itemMeta}>{item.repMin}–{item.repMax}</span>}
                 {open && multi && (
@@ -102,7 +105,7 @@ export function BlockCard({
           )}
         </div>
 
-        <button
+        {!selecting && <button
           type="button" className={s.editBtn} aria-expanded={open}
           aria-label={`${open ? "Close editor for" : "Edit"} ${label}`} onClick={() => setOpen(!open)}
         >
@@ -112,10 +115,10 @@ export function BlockCard({
               <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
             </svg>
           )}
-        </button>
+        </button>}
       </div>
 
-      {open && (
+      {open && !selecting && (
         <>
           {block.items.map((item, i) => (
             <div key={item.id} className={s.itemEdit}>

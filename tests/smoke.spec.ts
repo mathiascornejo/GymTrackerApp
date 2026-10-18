@@ -281,6 +281,57 @@ test.describe("routine builder", () => {
     await expect.poll(names).toEqual(["Barbell Bench Press - Medium Grip", "Barbell Curl"]);
   });
 
+  async function importMonday(page: Page, blocks: string[][]) {
+    await signInAndSkipSetup(page, "routines");
+    const routine = {
+      format: "tempered-routine", version: 1, name: "Select",
+      days: [{ weekday: 1, label: "", blocks: blocks.map((refs) => ({ sets: 3, restS: 60, transitionRestS: 0, items: refs.map((ref) => ({ ref, repMin: 8, repMax: 12 })) })) }],
+      bank: [],
+    };
+    await page.locator('input[type="file"]').setInputFiles({ name: "s.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(routine)) });
+    await showDay(page, "Monday");
+  }
+  const MON = ["ds:Barbell_Curl", "ds:Barbell_Bench_Press_-_Medium_Grip", "ds:Bent_Over_Barbell_Row"];
+
+  test("exercises inside a superset have no drag handle", async ({ page }) => {
+    await importMonday(page, [[MON[0], MON[1]]]);
+    await expect(page.getByRole("article")).toHaveCount(1);
+    await expect(page.getByRole("button", { name: /out of the superset/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /^Reorder / })).toHaveCount(1);
+  });
+
+  test("Select links two cards as a superset and three as a circuit", async ({ page }) => {
+    await importMonday(page, MON.map((r) => [r]));
+    await page.getByRole("button", { name: "Select", exact: true }).click();
+    await expect(page.getByRole("button", { name: /^Reorder / })).toHaveCount(0); // grips give way to checkboxes
+    await expect(page.getByRole("button", { name: "Link as superset" })).toHaveCount(0);
+    await page.getByRole("checkbox", { name: "Select Barbell Curl" }).check();
+    await page.getByRole("checkbox", { name: "Select Barbell Bench Press" }).check();
+    await page.getByRole("button", { name: "Link as superset" }).click();
+    await expect(page.getByRole("article")).toHaveCount(2);
+    await expect(page.getByRole("button", { name: /^Reorder / })).toHaveCount(2); // back to normal
+
+    await page.getByRole("button", { name: "Select", exact: true }).click();
+    await page.getByRole("checkbox", { name: /^Select Barbell Curl and/ }).check();
+    await page.getByRole("checkbox", { name: /^Select Barbell Bent Over Row/ }).check();
+    await page.getByRole("button", { name: "Link as superset" }).click();
+    await expect(page.getByRole("article")).toHaveCount(1);
+
+    await page.getByRole("button", { name: /^Edit Barbell Curl/ }).click();
+    await page.getByRole("button", { name: "Unlink" }).click();
+    await expect(page.getByRole("article")).toHaveCount(3);
+  });
+
+  test("Select can be cancelled", async ({ page }) => {
+    await importMonday(page, MON.slice(0, 2).map((r) => [r]));
+    await page.getByRole("button", { name: "Select", exact: true }).click();
+    await page.getByRole("checkbox", { name: "Select Barbell Curl" }).check();
+    await expect(page.getByText("1 selected")).toBeVisible();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("checkbox")).toHaveCount(0);
+    await expect(page.getByRole("article")).toHaveCount(2);
+  });
+
   test("drags an exercise from the picker onto a day", async ({ page }) => {
     test.skip(isPhone(), "Drag from the docked picker is a desktop interaction; phone uses the Add to menu.");
     await openBuilder(page);
