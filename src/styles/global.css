@@ -71,10 +71,12 @@ button {
   }
 }
 
-/* Touch screens: hide the native bar; touchScrollbars.ts draws the accent one instead (iOS ignores scrollbar styling).
-   The bar is a zero-footprint sticky ::before inside each [data-thumb] box: it sticks --th-y below the top of the box's visible
-   area (a sticky element ignores its own margin once stuck, so the offset must be the sticky top), so it travels and clips with the box. --th-edge is its distance past the content's right edge (negative = inside it).
-   Boxes using it must be block containers (a grid or flex gap would make the pseudo-element take up a row). */
+/* Touch screens: hide the native bar; touchScrollbars.ts sizes an accent one instead (iOS ignores scrollbar styling).
+   The bar is a zero-footprint sticky ::before inside each [data-thumb] box, pinned just below the top of the box's visible area,
+   so it travels and clips with the box. Its height is --th-h, and it slides down by --th-travel as the box scrolls: with a
+   scroll-driven animation where supported, otherwise by the --th-t offset the script sets. --th-edge is its distance past the
+   content's right edge (negative = inside it). Boxes using it must be block containers (a grid or flex gap would give the
+   pseudo-element a row). */
 @media (hover: none) and (pointer: coarse) {
   * {
     scrollbar-width: none;
@@ -91,7 +93,7 @@ button {
   [data-thumb]::before {
     content: "";
     position: sticky;
-    top: var(--th-y, 0px);
+    top: 4px;
     z-index: 1;
     display: block;
     width: 4px;
@@ -100,5 +102,25 @@ button {
     border-radius: 4px;
     background: var(--accent);
     pointer-events: none;
+    transform: translateY(var(--th-t, 0px));
+    will-change: transform;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    [data-thumb]::before {
+      animation: thumb-slide linear both;
+      animation-duration: auto !important; /* beats the reduced-motion rule above, which would flatten the slide */
+      animation-timeline: scroll(nearest);
+    }
+  }
+
+  @keyframes thumb-slide {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(var(--th-travel, 0px));
+    }
   }
 }

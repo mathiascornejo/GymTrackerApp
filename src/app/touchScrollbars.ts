@@ -1,75 +1,66 @@
-// Touch screens (iOS above all) ignore scrollbar styling, so draw our own thin accent bar.
-// Scroll boxes opt in with a data-thumb attribute. Their bar is a sticky ::before inside the box (see global.css), so it moves with
-// the box when the page or a popup moves and is clipped by it: it can never sit outside. This file only sets its size and offset.
-// The page itself gets a fixed bar at the screen edge that shows only while the page is scrolling. Native bars are hidden for touch.
+// Touch screens (iOS above all) ignore scrollbar styling, so scroll boxes draw their own thin accent bar.
+// A box opts in with a data-thumb attribute. Its bar is a sticky ::before inside the box (see global.css), so it moves with the box
+// and is clipped by it. This file sets the bar's size and travel; the bar's position comes from the browser where it can:
+//  - browsers with scroll-driven animations move it on the compositor from the box's scroll position (no JavaScript per frame);
+//  - elsewhere the scroll handler sets one transform offset synchronously, which is cheap and never waits for a frame.
+// The page itself gets no bar on touch screens.
 
 const TOUCH = "(hover: none) and (pointer: coarse)";
-const WIDTH = 4;
 const MIN = 28;
 const INSET = 4;
 
 export function installTouchScrollbars() {
   if (!window.matchMedia(TOUCH).matches) return;
 
-  const page = document.createElement("div");
-  page.setAttribute("aria-hidden", "true");
-  page.style.cssText = `position:fixed;z-index:2147483647;width:${WIDTH}px;border-radius:${WIDTH}px;background:var(--accent);pointer-events:none;display:none;opacity:0;transition:opacity .25s`;
-  document.body.appendChild(page);
+  const native = CSS.supports("animation-timeline", "scroll()");
 
-  const root = document.documentElement;
-
-  const sync = () => {
-    for (const el of document.querySelectorAll<HTMLElement>("[data-thumb]")) {
-      const viewH = el.clientHeight;
-      const total = el.scrollHeight;
-      if (total <= viewH + 1) {
-        el.style.setProperty("--th-h", "0px");
-        continue;
-      }
-      const track = viewH - 2 * INSET;
-      const size = Math.max(MIN, (viewH / total) * track);
-      el.style.setProperty("--th-h", `${size}px`);
-      el.style.setProperty("--th-y", `${INSET + (el.scrollTop / (total - viewH)) * (track - size)}px`);
-    }
-
-    const viewH = window.innerHeight;
-    if (root.scrollHeight <= viewH + 1) {
-      page.style.display = "none";
+  const size = (el: HTMLElement) => {
+    const viewH = el.clientHeight;
+    const total = el.scrollHeight;
+    if (total <= viewH + 1) {
+      el.style.setProperty("--th-h", "0px");
       return;
     }
-    const size = Math.max(MIN, (viewH / root.scrollHeight) * viewH);
-    page.style.display = "block";
-    page.style.height = `${size}px`;
-    page.style.top = `${(root.scrollTop / (root.scrollHeight - viewH)) * (viewH - size)}px`;
-    page.style.left = `${window.innerWidth - WIDTH - 2}px`;
+    const track = viewH - 2 * INSET;
+    const h = Math.max(MIN, (viewH / total) * track);
+    el.style.setProperty("--th-h", `${h}px`);
+    el.style.setProperty("--th-travel", `${track - h}px`);
   };
 
+  // Clamped, because overscroll bounce takes scrollTop below 0 and past the end.
+  const move = (el: HTMLElement) => {
+    const range = el.scrollHeight - el.clientHeight;
+    const travel = el.clientHeight - 2 * INSET - Math.max(MIN, (el.clientHeight / el.scrollHeight) * (el.clientHeight - 2 * INSET));
+    const p = range > 0 ? Math.min(1, Math.max(0, el.scrollTop / range)) : 0;
+    el.style.setProperty("--th-t", `${p * travel}px`);
+  };
+
+  const boxes = () => document.querySelectorAll<HTMLElement>("[data-thumb]");
+
   let queued = false;
-  const kick = () => {
+  const sync = () => {
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      sync();
+      boxes().forEach((el) => {
+        size(el);
+        if (!native) move(el);
+      });
     });
   };
 
-  // The page bar fades in while the page scrolls and out a moment after it stops.
-  let fade = 0;
-  document.addEventListener(
-    "scroll",
-    (e) => {
-      if (e.target === document) {
-        page.style.opacity = "1";
-        clearTimeout(fade);
-        fade = window.setTimeout(() => (page.style.opacity = "0"), 900);
-      }
-      kick();
-    },
-    { capture: true, passive: true },
-  );
-  window.addEventListener("resize", kick);
-  new MutationObserver(kick).observe(document.body, { childList: true, subtree: true });
-  new ResizeObserver(kick).observe(document.body);
-  kick();
+  if (!native)
+    document.addEventListener(
+      "scroll",
+      (e) => {
+        const el = e.target;
+        if (el instanceof HTMLElement && el.hasAttribute("data-thumb")) move(el);
+      },
+      { capture: true, passive: true },
+    );
+
+  window.addEventListener("resize", sync);
+  new MutationObserver(sync).observe(document.body, { childList: true, subtree: true });
+  sync();
 }
