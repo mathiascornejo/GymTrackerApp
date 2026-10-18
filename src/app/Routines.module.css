@@ -105,9 +105,8 @@
 
 .column {
   min-width: 0;
-  padding: 0 0 4px;
+  padding: 0;
   border-radius: var(--radius-list);
-  min-height: 120px;
 }
 
 .columnOver {
