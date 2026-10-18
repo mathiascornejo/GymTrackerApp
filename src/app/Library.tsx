@@ -65,7 +65,7 @@ export function Library({ profile }: { profile: Profile }) {
       <div className={s.controls}>
         <label className={s.search}>
           <span className={s.visuallyHidden}>Search exercises</span>
-          <input className={f.input} type="search" placeholder={dataset.isPending ? "Search exercises" : `Search ${resultCount} ${resultCount === 1 ? "exercise" : "exercises"}`} value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input className={f.input} type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
         <button className={f.quiet} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
           {activeFilters ? `Filters (${activeFilters})` : "Filters"}

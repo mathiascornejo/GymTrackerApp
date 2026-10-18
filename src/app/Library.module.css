@@ -3,7 +3,6 @@
   top: calc(env(safe-area-inset-top) + var(--header-h)); /* just under the pinned page header */
   z-index: 4;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
   padding: 8px 0 4px;
@@ -17,7 +16,14 @@
 }
 
 .search {
-  flex: 1 1 220px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.controls > button {
+  flex: none;
+  padding: 0 8px;
+  white-space: nowrap;
 }
 
 .visuallyHidden {
