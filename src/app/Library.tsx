@@ -87,7 +87,7 @@ export function Library({ profile }: { profile: Profile }) {
   return (
     <div>
       <div className={s.pin}>
-      <div className={s.controls}>
+      <div className={`${s.controls} ${query.trim() ? s.searching : ""}`}>
         <label className={s.search}>
           <span className={s.visuallyHidden}>Search exercises</span>
           <input className={f.input} type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
