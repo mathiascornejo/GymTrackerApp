@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useDroppable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../exercises/types";
@@ -28,14 +27,12 @@ export type BlockActions = {
 };
 
 export function BlockCard({
-  block, bank, position, dragging, selecting, selected, onToggle, info, actions, unit,
+  block, bank, position, selecting, selected, onToggle, info, actions, unit,
 }: {
   block: Block;
   bank: boolean;
   /** 1-based order within the day; absent in the bank, where order means nothing. */
   position?: number;
-  /** True while something else is being dragged, which reveals the superset drop strip. */
-  dragging: boolean;
   /** Selection mode (to link cards into a superset): the grip gives way to a checkbox. */
   selecting: boolean;
   selected: boolean;
@@ -46,7 +43,6 @@ export function BlockCard({
 }) {
   const [open, setOpen] = useState(false);
   const sortable = useSortable({ id: block.id, data: { type: "block", id: block.id }, disabled: selecting });
-  const join = useDroppable({ id: `join:${block.id}` });
   const names = block.items.map((i) => info(i.ref)?.name ?? i.ref.replace(/^\w+:/, ""));
   const note = pairNote(block, (ref) => {
     const e = info(ref);
@@ -225,12 +221,6 @@ export function BlockCard({
             </button>
           </footer>
         </>
-      )}
-
-      {dragging && !sortable.isDragging && (
-        <div ref={join.setNodeRef} className={`${s.join} ${join.isOver ? s.joinOver : ""}`}>
-          Drop to superset
-        </div>
       )}
     </article>
   );

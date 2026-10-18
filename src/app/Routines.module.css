@@ -453,25 +453,6 @@
   color: var(--danger);
 }
 
-/* An overlay on the lower part of the card, so starting a drag never shifts the layout. */
-.join {
-  position: absolute;
-  inset: auto 6px 6px 6px;
-  display: grid;
-  place-items: center;
-  min-height: 44px;
-  background: var(--surface);
-  border: 1px dashed var(--ink-muted);
-  border-radius: var(--radius-control);
-  color: var(--ink-muted);
-  font-size: 13px;
-}
-
-.joinOver {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
 .overlay {
   padding: 8px 12px;
   border-radius: var(--radius-control);

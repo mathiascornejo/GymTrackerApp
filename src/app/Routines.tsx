@@ -14,7 +14,7 @@ import { cap, facets } from "../exercises/query";
 import { defaultIncrementKg } from "../session/recommend";
 import { fromKg, toKg } from "../units";
 import {
-  addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
+  addBlock, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
   routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
@@ -28,17 +28,16 @@ import s from "./Routines.module.css";
 const containerId = (t: Target) => (t === "bank" ? "bank" : `day:${t.day}`);
 const targetOf = (id: string): Target | null => (id === "bank" ? "bank" : id.startsWith("day:") ? { day: Number(id.slice(4)) } : null);
 
-// With a pointer, a superset strip wins over the card under it, which wins over the column.
-// Without one (keyboard), only cards are candidates so Arrow keys reorder; the Move to menu handles other days.
+// With a pointer, a card wins over the column. Without one (keyboard), only cards are candidates so Arrow keys
+// reorder; the Move to menu handles other days.
 const collide: CollisionDetection = (args) => {
   if (!args.pointerCoordinates) {
-    const cards = args.droppableContainers.filter((c) => !String(c.id).startsWith("join:") && !String(c.id).startsWith("pager:") && !targetOf(String(c.id)));
+    const cards = args.droppableContainers.filter((c) => !String(c.id).startsWith("pager:") && !targetOf(String(c.id)));
     return closestCenter({ ...args, droppableContainers: cards });
   }
   const hits = pointerWithin(args);
   const pick =
     hits.find((h) => String(h.id).startsWith("pager:")) ??
-    hits.find((h) => String(h.id).startsWith("join:")) ??
     hits.find((h) => !targetOf(String(h.id))) ??
     hits[0];
   return pick ? [pick] : closestCenter(args);
@@ -89,8 +88,6 @@ export function Routines({ profile }: { profile: Profile }) {
 
   const [pageDay, setPageDay] = useState<number | "bank">(() => new Date().getDay());
   const [drag, setDrag] = useState<Drag | null>(null);
-  // Keyboard drags reorder only: the superset strips would otherwise be the nearest target for Arrow keys.
-  const [keyboardDrag, setKeyboardDrag] = useState(false);
   // Selection mode: tick cards in the day being viewed, then link them into a superset or circuit.
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -154,10 +151,7 @@ export function Routines({ profile }: { profile: Profile }) {
     onStep: (ref, v) => updateProfile.mutate({ increments: { ...(profile.increments ?? {}), [ref]: toKg(v, profile.weight_unit) } }),
   });
 
-  const onDragStart = (e: DragStartEvent) => {
-    setKeyboardDrag(e.activatorEvent instanceof KeyboardEvent);
-    setDrag(e.active.data.current as Drag);
-  };
+  const onDragStart = (e: DragStartEvent) => setDrag(e.active.data.current as Drag);
   const onDragEnd = (e: DragEndEvent) => {
     setDrag(null);
     const { active, over } = e;
@@ -165,12 +159,6 @@ export function Routines({ profile }: { profile: Profile }) {
     if (!routine || !over || !data) return;
     const overId = String(over.id).replace(/^pager:/, "");
 
-    if (overId.startsWith("join:")) {
-      const targetId = overId.slice(5);
-      if (data.type === "pick") edit((r) => addItem(r, targetId, data.ref));
-      else if (data.id !== targetId) edit((r) => link(r, [targetId, data.id]));
-      return;
-    }
     let target = targetOf(overId);
     let index: number | undefined;
     if (!target) {
@@ -275,7 +263,6 @@ export function Routines({ profile }: { profile: Profile }) {
             block={b}
             bank={target === "bank"}
             position={target === "bank" ? undefined : i + 1}
-            dragging={drag !== null && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
             info={info}
             actions={blockActions(b)}
             selecting={selecting}
