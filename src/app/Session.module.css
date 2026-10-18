@@ -21,7 +21,7 @@
   margin-inline: auto;
 }
 
-/* The start panel stays put; only the list of past sessions scrolls. A long plan scrolls inside its own box so past sessions keep at least half the screen. */
+/* The start panel stays put; only the list of past sessions scrolls. A long plan scrolls inside its own box so past sessions keep at least a third of the screen on phone and half on desktop. */
 .start {
   display: flex;
   flex: 0 1 auto;
@@ -31,7 +31,7 @@
 
 .pastSection {
   display: flex;
-  flex: 1 0 50%;
+  flex: 1 0 33.333%;
   flex-direction: column;
   min-height: 0;
 }
@@ -45,6 +45,10 @@
 @media (min-width: 1024px) {
   .startPage {
     max-width: 880px;
+  }
+
+  .pastSection {
+    flex-basis: 50%;
   }
 
   .start:has(.startPlan) {
