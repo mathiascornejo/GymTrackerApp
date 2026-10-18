@@ -327,8 +327,8 @@
 /* Small unit in the bottom right corner of the box. */
 .unit {
   position: absolute;
-  right: 12px;
-  bottom: 4px;
+  right: 7px;
+  bottom: 3px;
   font-size: 7px;
   line-height: 8px;
   color: var(--ink-muted);
