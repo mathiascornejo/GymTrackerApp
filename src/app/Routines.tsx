@@ -112,6 +112,18 @@ export function Routines({ profile }: { profile: Profile }) {
   const [draft, setDraft] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  // The day tabs and the day header stick below the overview, so they need its current height.
+  const overviewRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = overviewRef.current;
+    if (!el) return;
+    const root = el.parentElement!;
+    const sync = () => root.style.setProperty("--overview-h", `${el.offsetHeight}px`);
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [routine?.id]);
   const openNaming = (mode: "new" | "rename" | { day: number }) => {
     setDraft(mode === "new" ? "" : mode === "rename" ? routine?.name ?? "" : routine?.days.find((d) => d.weekday === mode.day)?.label ?? "");
     setNaming(mode);
@@ -343,7 +355,7 @@ export function Routines({ profile }: { profile: Profile }) {
       )}
 
       {routine && (
-        <section className={s.overview} aria-label="Routine overview">
+        <section ref={overviewRef} className={s.overview} aria-label="Routine overview">
           <div className={s.overviewHead}>
             <h2 className={s.overviewName}>
               {routine.name}

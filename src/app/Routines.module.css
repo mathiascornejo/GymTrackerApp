@@ -26,10 +26,16 @@
 }
 
 .pager {
+  /* Stays under the sticky overview (its height is measured into --overview-h). */
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + var(--header-h) + var(--overview-h, 0px));
+  z-index: 3;
   display: flex;
   gap: 4px;
-  margin: 16px 0 8px;
+  margin: 12px 0 0;
+  padding-bottom: 8px;
   overflow-x: auto;
+  background: var(--ground);
 }
 
 .pagerBtn {
@@ -495,26 +501,32 @@
 
 .volume {
   margin-top: 16px;
-  padding: 16px 20px;
+  padding: 16px;
   background: var(--surface);
   border-radius: var(--radius-list);
 }
 
 .volume ul {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 4px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
-  max-width: 720px;
 }
 
 .volume li {
   display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--hairline);
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--ground);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.volume li span:last-child {
+  color: var(--ink-muted);
 }
 
 .overview {
@@ -707,6 +719,12 @@
 }
 
 .columnTop {
+  /* 52px = the sticky pager: 44px buttons plus 8px padding. */
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + var(--header-h) + var(--overview-h, 0px) + 52px);
+  z-index: 2;
+  padding-top: 4px;
+  background: var(--ground);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
