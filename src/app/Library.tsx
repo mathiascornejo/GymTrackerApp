@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { loadDataset } from "../exercises/dataset";
@@ -19,9 +19,11 @@ const LABELS: Record<(typeof FILTERS)[number], string> = {
   category: "Body area",
 };
 
-const PINNED_H = 40; // matches .pinned in Library.module.css
-// The first header has no gap above it and is the same size as the pinned bar, so it never moves before the bar takes over.
-const rowSize = (rows: { type: string }[], i: number) => (rows[i].type === "header" ? (i === 0 ? PINNED_H : 56) : 68);
+const HEADER_H = 34; // matches .header in Library.module.css
+const FADE_H = 10; // clear space under the title where rows fade out beneath a pinned title
+const GAP_H = 16; // space above every category title except the first
+const ITEM_H = 68;
+const rowSize = (rows: { type: string }[], i: number) => (rows[i].type === "header" ? HEADER_H + FADE_H + (i === 0 ? 0 : GAP_H) : ITEM_H);
 const href = (ref: string) => `#/library/${encodeURIComponent(ref)}`;
 
 export function Library({ profile }: { profile: Profile }) {
@@ -51,49 +53,25 @@ export function Library({ profile }: { profile: Profile }) {
     scrollMargin: listRef.current?.offsetTop ?? 0,
   });
 
-  // The pinned category bar is driven straight from scroll events (never through React state, which lags behind a fast scroll): the current header's label shows at the controls, and the next one pushes it up under them until it takes over.
-  // Rows are fixed-size, so every header's offset in the list is known without measuring.
-  const pinRef = useRef<HTMLDivElement>(null);
-  const pinnedRef = useRef<HTMLDivElement>(null);
-  const pinLabel = useRef<HTMLSpanElement>(null);
-  const pinCount = useRef<HTMLSpanElement>(null);
-  const headers = useMemo(() => {
+  // Each category is a block holding its title and rows. The title is `position: sticky`, so the browser pins it and
+  // pushes it away at the end of its block on the compositor, in step with the scroll (no scroll handler to lag behind).
+  // The virtualizer still decides which rows exist; a block is drawn while any of its rows is in range.
+  const layout = useMemo(() => {
+    const groups: { start: number; size: number; label?: string; count: number }[] = [];
+    const groupOf: number[] = [];
+    const offs: number[] = [];
     let off = 0;
-    const out: { off: number; label: string; count: number }[] = [];
     rows.forEach((r, i) => {
-      if (r.type === "header") out.push({ off, label: cap(r.label), count: r.count });
-      off += rowSize(rows, i);
+      if (r.type === "header" || groups.length === 0) groups.push({ start: off, size: 0, label: r.type === "header" ? cap(r.label) : undefined, count: r.type === "header" ? r.count : 0 });
+      const h = rowSize(rows, i);
+      groups[groups.length - 1].size += h;
+      groupOf[i] = groups.length - 1;
+      offs[i] = off;
+      off += h;
     });
-    return out;
+    return { groups, groupOf, offs };
   }, [rows]);
-  const applyPin = () => {
-    const el = pinnedRef.current;
-    if (!el || !pinRef.current || !listRef.current) return;
-    const bar = pinRef.current.getBoundingClientRect().bottom;
-    const listTop = listRef.current.getBoundingClientRect().top;
-    // Later header rows are 16px taller than the bar (the gap above their label), so they take over once the label reaches the bar's top.
-    const at = (h: number) => listTop + headers[h].off + (h === 0 ? 0 : 16);
-    let cur = -1;
-    while (cur + 1 < headers.length && at(cur + 1) <= bar) cur++;
-    el.style.visibility = cur < 0 ? "hidden" : "visible";
-    if (cur < 0) return;
-    if (el.dataset.i !== String(cur)) {
-      el.dataset.i = String(cur);
-      pinLabel.current!.textContent = headers[cur].label;
-      pinCount.current!.textContent = String(headers[cur].count);
-    }
-    const push = cur + 1 < headers.length ? Math.max(-PINNED_H, Math.min(0, at(cur + 1) - bar - PINNED_H)) : 0;
-    el.style.transform = `translateY(${push}px)`;
-    el.toggleAttribute("data-pushed", push < 0);
-  };
-  useLayoutEffect(() => {
-    delete pinnedRef.current?.dataset.i; // the rows changed: refill the label
-    applyPin();
-  });
-  useEffect(() => {
-    window.addEventListener("scroll", applyPin, { passive: true });
-    return () => window.removeEventListener("scroll", applyPin);
-  });
+  const items = virtual.getVirtualItems();
 
   const selected = arg ? all.find((e) => e.ref === arg) : undefined;
   const close = () => {
@@ -109,7 +87,7 @@ export function Library({ profile }: { profile: Profile }) {
 
   return (
     <div>
-      <div ref={pinRef} className={s.pin}>
+      <div className={s.pin}>
       <div className={s.controls}>
         <label className={s.search}>
           <span className={s.visuallyHidden}>Search exercises</span>
@@ -120,11 +98,6 @@ export function Library({ profile }: { profile: Profile }) {
         </button>
         <button className={f.quiet} onClick={() => setEditing("new")}>New exercise</button>
       </div>
-      {headers.length > 0 && (
-        <div ref={pinnedRef} className={`${s.header} ${s.pinned}`} style={{ visibility: "hidden" }} aria-hidden="true">
-          <span ref={pinLabel} className={s.pinLabel} /> <span ref={pinCount} />
-        </div>
-      )}
       </div>
 
       {showFilters && (
@@ -152,29 +125,36 @@ export function Library({ profile }: { profile: Profile }) {
       {!dataset.isPending && resultCount === 0 && <p className={f.lead}>No exercises match. Try a different word or clear the filters.</p>}
 
       <div ref={listRef} className={s.list} style={{ height: virtual.getTotalSize() }}>
-        {virtual.getVirtualItems().map((v) => {
-          const row = rows[v.index];
-          const style = { height: v.size, transform: `translateY(${v.start - virtual.options.scrollMargin}px)` };
-          if (row.type === "header")
-            return (
-              <h2 key={v.key} className={`${s.header} ${v.index === 0 ? s.headerFirst : ""}`} style={style}>
-                {cap(row.label)} <span>{row.count}</span>
-              </h2>
-            );
-          const e = row.exercise;
-          const prev = rows[v.index - 1];
-          const next = rows[v.index + 1];
-          const pos = [prev?.type !== "item" && s.first, next?.type !== "item" && s.last].filter(Boolean).join(" ");
+        {[...new Set(items.map((v) => layout.groupOf[v.index]))].map((gi) => {
+          const g = layout.groups[gi];
+          const inGroup = items.filter((v) => layout.groupOf[v.index] === gi && rows[v.index].type === "item");
           return (
-            <a key={v.key} href={href(e.ref)} className={`${s.row} ${pos}`} style={style}>
-              {e.images[0] ? <img className={s.thumb} src={e.images[0]} alt="" loading="lazy" width={40} height={40} /> : <span className={s.thumb} />}
-              <span className={s.rowText}>
-                <span className={s.name}>{e.name}</span>
-                <span className={s.sub}>
-                  {[e.primary[0] && cap(e.primary[0]), e.equipment, e.custom && "Custom"].filter(Boolean).join(" · ")}
-                </span>
-              </span>
-            </a>
+            <div key={g.label ?? "all"} className={s.group} style={{ top: g.start, height: g.size, paddingTop: g.label !== undefined && gi > 0 ? GAP_H : 0 }}>
+              {g.label !== undefined && (
+                <h2 className={s.header}>
+                  {g.label} <span>{g.count}</span>
+                </h2>
+              )}
+              {inGroup.map((v) => {
+                const row = rows[v.index];
+                if (row.type !== "item") return null;
+                const e = row.exercise;
+                const first = rows[v.index - 1]?.type !== "item";
+                const last = rows[v.index + 1]?.type !== "item";
+                const pos = [first && s.first, last && s.last].filter(Boolean).join(" ");
+                return (
+                  <a key={v.key} href={href(e.ref)} className={`${s.row} ${pos}`} style={{ height: ITEM_H, top: layout.offs[v.index] - g.start }}>
+                    {e.images[0] ? <img className={s.thumb} src={e.images[0]} alt="" loading="lazy" width={40} height={40} /> : <span className={s.thumb} />}
+                    <span className={s.rowText}>
+                      <span className={s.name}>{e.name}</span>
+                      <span className={s.sub}>
+                        {[e.primary[0] && cap(e.primary[0]), e.equipment, e.custom && "Custom"].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
           );
         })}
       </div>

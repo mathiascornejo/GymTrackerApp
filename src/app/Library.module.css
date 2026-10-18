@@ -72,29 +72,47 @@
   gap: 8px;
 }
 
-/* Rows are absolutely positioned by the window virtualizer. */
+/* A category block is placed by the window virtualizer; its rows sit absolutely inside it, its title in flow so it can stick. */
 .list {
   position: relative;
 }
 
-.header,
+.group {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .row {
   position: absolute;
-  top: 0;
   left: 0;
   width: 100%;
   margin: 0;
 }
 
-/* A category starts with a gap and a bold, ink-coloured title with an accent tick, so it reads as a new section rather than a caption. */
+/* A category title: bold, ink-coloured, with an accent tick, so it reads as a new section rather than a caption.
+   It sticks just under the search row (56px tall) and the browser pushes it up when the next category arrives, so the hand-over is smooth at any scroll speed. */
 .header {
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + var(--header-h) + 56px);
+  z-index: 3; /* above the rows, below the pinned search row */
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding: 0 4px 10px;
+  height: 34px;
+  margin: 0;
+  padding: 0 4px 2px;
+  background: var(--ground);
   font: 700 18px/24px var(--font-display);
   color: var(--ink);
   text-transform: none;
+}
+
+@media (min-width: 1024px) {
+  .header {
+    top: calc(var(--header-h) + 56px);
+  }
 }
 
 .header::before {
@@ -112,35 +130,12 @@
   color: var(--ink-muted);
 }
 
-.header .pinLabel {
-  font: inherit;
-  color: inherit;
-}
-
-.headerFirst {
-  padding-bottom: 8px;
-}
-
-/* after .header so top wins: hangs below the controls without taking layout space */
-.pinned {
-  top: 100%;
-  z-index: 0;
-  will-change: transform;
-  height: 40px;
-  padding-bottom: 8px;
-  background: var(--ground);
-}
-
-.pinned[data-pushed]::after {
-  display: none;
-}
-
 /* Rows scroll out under a soft edge instead of a hard-cut band. */
-.pinned::after {
+.header::after {
   content: "";
   position: absolute;
   inset: 100% 0 auto;
-  height: 12px;
+  height: 10px; /* the clear space under the title; no row starts inside it */
   background: linear-gradient(var(--ground), transparent);
   pointer-events: none;
 }
