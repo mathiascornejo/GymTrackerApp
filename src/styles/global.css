@@ -40,11 +40,8 @@ button {
   }
 }
 
-/* Scroll areas still scroll, but their bars are hidden so they never cover content. */
+/* Thin, faint scrollbars. Inner scroll areas keep a right-hand gutter so the bar sits beside the content, not over it. */
 * {
-  scrollbar-width: none;
-}
-
-*::-webkit-scrollbar {
-  display: none;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink-muted) 55%, transparent) transparent;
 }

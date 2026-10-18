@@ -434,7 +434,7 @@
   display: grid;
   gap: 8px;
   margin: 0;
-  padding: 0;
+  padding: 0 10px 0 0;
   list-style: none;
   /* Fills the popup (max 80dvh or 680px) minus its title, controls and footnote, so the popup itself never needs a second scrollbar. */
   max-height: calc(min(80dvh, 680px) - 300px);
