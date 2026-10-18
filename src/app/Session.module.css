@@ -16,6 +16,7 @@
 .startPage {
   display: flex;
   flex-direction: column;
+  gap: 16px;
   height: var(--fit-h);
   max-width: 560px;
   margin-inline: auto;
@@ -68,14 +69,6 @@
     grid-area: plan;
     max-height: calc(var(--fit-h) / 2 - 16px);
     margin-top: 0;
-    padding: 4px 20px;
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius-list);
-    background: var(--surface);
-  }
-
-  .startPlan li:last-child {
-    border-bottom: 0;
   }
 }
 
@@ -87,12 +80,19 @@
 
 .startPlan {
   margin: 12px 0 0;
-  padding: 0;
+  padding: 4px 20px;
   list-style: none;
   font-size: 15px;
   flex: 1 1 auto;
   min-height: 88px;
   overflow-y: auto;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-list);
+  background: var(--surface);
+}
+
+.startPlan li:last-child {
+  border-bottom: 0;
 }
 
 .startPlan li {

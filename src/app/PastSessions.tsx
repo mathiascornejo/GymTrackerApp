@@ -7,6 +7,7 @@ import { ConfirmSheet } from "./ConfirmSheet";
 import { TrashIcon } from "./icons";
 import f from "./Form.module.css";
 import s from "./Session.module.css";
+import d from "./Dashboard.module.css";
 
 function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (ref: string) => Exercise | undefined }) {
   const actions = usePastSessionActions();
@@ -115,8 +116,8 @@ export function PastSessions({ unit, info }: { unit: Unit; info: (ref: string) =
   if (past.isPending) return null;
   if (past.error) return <p className={f.error} role="alert">Could not load past sessions: {past.error.message}</p>;
   return (
-    <section aria-label="Past sessions" className={s.pastSection}>
-      <h2 className={f.groupTitle}>Past sessions</h2>
+    <section aria-label="Past sessions" className={`${d.section} ${s.pastSection}`}>
+      <h2 className={d.h2}>Past sessions</h2>
       <div className={s.pastScroll} data-thumb="">
         {past.data.length === 0 ? (
           <p className={f.note}>Finished sessions appear here, and you can correct any set.</p>
