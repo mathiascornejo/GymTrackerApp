@@ -117,7 +117,7 @@ export function PastSessions({ unit, info }: { unit: Unit; info: (ref: string) =
   return (
     <section aria-label="Past sessions" className={s.pastSection}>
       <h2 className={f.groupTitle}>Past sessions</h2>
-      <div className={s.pastScroll}>
+      <div className={s.pastScroll} data-thumb="">
         {past.data.length === 0 ? (
           <p className={f.note}>Finished sessions appear here, and you can correct any set.</p>
         ) : (

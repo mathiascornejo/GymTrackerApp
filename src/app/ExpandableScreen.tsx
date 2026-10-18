@@ -142,6 +142,7 @@ export function ExpandableScreenContent({
           <motion.div
             key={layoutId}
             data-layout-id={layoutId}
+            data-thumb=""
             className={`${s.panel} ${className}`}
             initial={from}
             animate={{ opacity: 1, x: 0, y: 0, scale: 1, borderRadius: contentRadius }}

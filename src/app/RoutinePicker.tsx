@@ -63,7 +63,7 @@ export function RoutinePicker({
           </select>
         </label>
       </div>
-      <ul className={s.pickList}>
+      <ul className={s.pickList} data-thumb="">
         {shown.slice(0, LIMIT).map((e) => (
           <PickRow key={e.ref} exercise={e} current={current} onAdd={(t) => onAdd(e.ref, t)} />
         ))}

@@ -60,7 +60,7 @@ export function Weight({ profile }: { profile: Profile }) {
           {entries.length === 0 ? (
             <p className={f.note}>Nothing logged yet.</p>
           ) : (
-            <ul className={w.list}>
+            <ul className={w.list} data-thumb="">
               {[...entries].reverse().map((b) => {
                 const date = new Date(`${b.measured_on}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
                 return (

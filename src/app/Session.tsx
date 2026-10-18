@@ -51,7 +51,7 @@ function StartPanel({ routine, info }: { routine: Routine | null; info: (ref: st
               })}
             </select>
           </label>
-          <ul className={s.startPlan} aria-label="Planned exercises">
+          <ul className={s.startPlan} aria-label="Planned exercises" data-thumb="">
             {buildPlan(routine, day, [], 0)
               .filter((b) => b.group !== "optional")
               .flatMap((b) => b.items.map((i) => (

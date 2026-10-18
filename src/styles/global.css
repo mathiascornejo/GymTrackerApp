@@ -63,3 +63,14 @@ button {
     scrollbar-color: var(--accent) transparent;
   }
 }
+
+/* Touch screens: hide the native bar; touchScrollbars.ts draws the accent one instead (iOS ignores scrollbar styling). */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
