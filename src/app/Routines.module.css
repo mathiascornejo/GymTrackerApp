@@ -661,6 +661,9 @@
 
 .newRoutine {
   margin-left: auto;
+  flex: none;
+  padding: 0 14px;
+  white-space: nowrap;
 }
 
 .pencil {
