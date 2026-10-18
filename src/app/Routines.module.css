@@ -297,6 +297,12 @@
   color: var(--ink-muted);
 }
 
+/* Sets and rest sit under the name row, lined up with the name (grip width + gap), so the name itself stays level with the grip and pencil. */
+.cardNote {
+  margin-top: -6px;
+  padding-left: 30px;
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;
@@ -791,7 +797,7 @@
   flex: none;
   width: 44px;
   height: 44px;
-  margin: -4px 0 -4px -10px;
+  margin: -4px -8px -4px -10px;
   cursor: pointer;
 }
 

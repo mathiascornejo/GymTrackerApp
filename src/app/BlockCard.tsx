@@ -95,14 +95,6 @@ export function BlockCard({
               </li>
             ))}
           </ul>
-          {!open && (
-            <p className={s.note}>
-              {multi ? `${block.sets} rounds` : `${block.sets} sets`} · rest {mmss(block.restS)}
-              {bank && block.weeklyTarget !== null && block.weekdays === null ? ` · ${block.weeklyTarget} a week` : ""}
-              {bank && block.weekdays && block.weekdays.length < 7 ? ` · ${block.weekdays.map((d) => WEEKDAY_NAMES[d].slice(0, 3)).join(", ")}` : ""}
-              {bank && block.weekdays?.length === 7 ? " · every day" : ""}
-            </p>
-          )}
         </div>
 
         {!selecting && <button
@@ -117,6 +109,15 @@ export function BlockCard({
           )}
         </button>}
       </div>
+
+      {!open && (
+        <p className={`${s.note} ${s.cardNote}`}>
+          {multi ? `${block.sets} rounds` : `${block.sets} sets`} · rest {mmss(block.restS)}
+          {bank && block.weeklyTarget !== null && block.weekdays === null ? ` · ${block.weeklyTarget} a week` : ""}
+          {bank && block.weekdays && block.weekdays.length < 7 ? ` · ${block.weekdays.map((d) => WEEKDAY_NAMES[d].slice(0, 3)).join(", ")}` : ""}
+          {bank && block.weekdays?.length === 7 ? " · every day" : ""}
+        </p>
+      )}
 
       {open && !selecting && (
         <>
