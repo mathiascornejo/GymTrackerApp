@@ -1,5 +1,5 @@
 import {
-  closestCenter, DndContext, DragOverlay, KeyboardSensor, MouseSensor, pointerWithin, TouchSensor, useDroppable, useSensor, useSensors,
+  closestCenter, DndContext, DragOverlay, KeyboardSensor, MouseSensor, pointerWithin, TouchSensor, useDndContext, useDroppable, useSensor, useSensors,
   type CollisionDetection, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -48,8 +48,10 @@ type Drag = { type: "pick"; ref: string } | { type: "block"; id: string };
 function Column({ target, label, children, ids }: { target: Target; label: string; children: React.ReactNode; ids: string[] }) {
   const id = containerId(target);
   const drop = useDroppable({ id });
+  // Lit for the whole drag, not on isOver: the pointer crossing cards and gaps made the outline blink.
+  const { active } = useDndContext();
   return (
-    <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""}`} aria-label={label}>
+    <section ref={drop.setNodeRef} className={`${s.column} ${active ? s.columnOver : ""}`} aria-label={label}>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
       </SortableContext>
