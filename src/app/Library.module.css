@@ -91,6 +91,10 @@
   color: var(--ink-muted);
 }
 
+.headerFirst {
+  padding-bottom: 8px;
+}
+
 /* after .header so top wins: hangs below the controls without taking layout space */
 .pinned {
   top: 100%;

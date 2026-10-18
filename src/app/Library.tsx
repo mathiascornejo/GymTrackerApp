@@ -43,7 +43,8 @@ export function Library({ profile }: { profile: Profile }) {
   const listRef = useRef<HTMLDivElement>(null);
   const virtual = useWindowVirtualizer({
     count: rows.length,
-    estimateSize: (i) => (rows[i].type === "header" ? 56 : 68),
+    // The first header has no gap above it and is the same size as the pinned bar, so it never moves before the bar takes over.
+    estimateSize: (i) => (rows[i].type === "header" ? (i === 0 ? 40 : 56) : 68),
     overscan: 8,
     scrollMargin: listRef.current?.offsetTop ?? 0,
   });
@@ -51,9 +52,9 @@ export function Library({ profile }: { profile: Profile }) {
   // The category label stays pinned under the controls; it swaps when the next header reaches it.
   const pinRef = useRef<HTMLDivElement>(null);
   const headerIdx = useMemo(() => rows.flatMap((r, i) => (r.type === "header" ? [i] : [])), [rows]);
-  // A header row is 16px taller than the pinned bar (the gap above its label), so swap once its label reaches the bar's top: until then it hides under the bar.
-  const pinBottom = (pinRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY - 16;
-  const passed = headerIdx.filter((i) => (virtual.measurementsCache[i]?.start ?? Infinity) <= pinBottom).pop();
+  // Later header rows are 16px taller than the pinned bar (the gap above their label), so swap once the label reaches the bar's top: until then it hides under the bar.
+  const pinBottom = (pinRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY;
+  const passed = headerIdx.filter((i) => (virtual.measurementsCache[i]?.start ?? Infinity) <= pinBottom - (i === 0 ? 0 : 16)).pop();
   const pinnedRow = passed === undefined ? undefined : rows[passed];
 
   const selected = arg ? all.find((e) => e.ref === arg) : undefined;
@@ -118,7 +119,7 @@ export function Library({ profile }: { profile: Profile }) {
           const style = { height: v.size, transform: `translateY(${v.start - virtual.options.scrollMargin}px)` };
           if (row.type === "header")
             return (
-              <h2 key={v.key} className={s.header} style={style}>
+              <h2 key={v.key} className={`${s.header} ${v.index === 0 ? s.headerFirst : ""}`} style={style}>
                 {cap(row.label)} <span>{row.count}</span>
               </h2>
             );
