@@ -19,7 +19,6 @@ const LABELS: Record<(typeof FILTERS)[number], string> = {
   category: "Body area",
 };
 
-const PINNED_H = 40; // matches .pinned in Library.module.css
 const href = (ref: string) => `#/library/${encodeURIComponent(ref)}`;
 
 export function Library({ profile }: { profile: Profile }) {
