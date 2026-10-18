@@ -26,6 +26,12 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
         <span>{date}</span>
         <span className={s.sub}>{sum.workingSets} sets · {Math.round(fromKg(sum.volumeKg, unit)).toLocaleString()} {unit}</span>
       </summary>
+      <button
+        type="button" className={`${f.quiet} ${f.danger} ${s.pastDelete}`}
+        onClick={() => setConfirming(true)}
+      >
+        Delete session
+      </button>
       {groups.map((ref) => (
         <div key={ref} className={s.pastGroup}>
           <h4 className={s.roundTitle}>{info(ref)?.name ?? ref}</h4>
@@ -77,12 +83,6 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
         </div>
       ))}
       {error && <p className={f.error} role="alert">{error}</p>}
-      <button
-        type="button" className={`${f.quiet} ${f.danger}`}
-        onClick={() => setConfirming(true)}
-      >
-        Delete session
-      </button>
       <ConfirmSheet
         open={deletingSet !== null}
         title="Delete this set?"

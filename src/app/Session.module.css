@@ -629,7 +629,13 @@
 }
 
 .pastGroup {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+/* Top right of the open session, so it is not at the foot of a long list of sets. */
+.pastDelete {
+  display: block;
+  margin: -4px -12px 0 auto;
 }
 
 .pastSet {
