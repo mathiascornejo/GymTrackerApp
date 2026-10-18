@@ -617,7 +617,6 @@
 .overviewName {
   display: flex;
   flex: 1;
-  flex-wrap: wrap;
   min-width: 0;
   align-items: center;
   gap: 0 8px;
@@ -625,6 +624,17 @@
   /* Same inset as the numbers in the stat cards below. */
   padding-left: 14px;
   font: 700 1.375rem/1.2 var(--font-display);
+}
+
+/* A long name wraps inside its own box, so the icon and badge stay beside it. */
+.nameText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.overviewName .pencil,
+.overviewName .badge {
+  flex: none;
 }
 
 /* Pulled in so the icon and the Active badge sit close to the end of the name. */

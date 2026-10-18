@@ -359,7 +359,7 @@ export function Routines({ profile }: { profile: Profile }) {
           <section className={s.overview} aria-label="Routine overview">
             <div className={s.overviewHead}>
               <h2 className={s.overviewName}>
-                {routine.name}
+                <span className={s.nameText}>{routine.name}</span>
                 <button className={s.pencil} aria-label="Rename routine" onClick={() => openNaming("rename")}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M12 20h9" />
