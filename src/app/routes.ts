@@ -6,6 +6,7 @@ export const TABS = [
   { id: "routines", label: "Routines", hint: "Build a weekly routine to plan your sessions." },
   { id: "library", label: "Exercises", hint: "Search exercises and see how to perform them." },
   { id: "weight", label: "Weight", hint: "Log your bodyweight to see its trend." },
+  { id: "steps", label: "Steps", hint: "Log your daily steps to see their trend." },
 ] as const;
 
 export type TabId = (typeof TABS)[number]["id"];

@@ -94,3 +94,11 @@ export function movingAverage(points: { t: number; v: number }[], days = 7): { t
     return { t: p.t, v: inWindow.reduce((a, q) => a + q.v, 0) / inWindow.length };
   });
 }
+
+/** Mean of the points on the last `days` calendar days including today (local time); null when there are none. */
+export function averageOver(points: { t: number; v: number }[], days: number, now = new Date()): number | null {
+  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1)).getTime();
+  const to = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
+  const inWindow = points.filter((p) => p.t >= from && p.t < to);
+  return inWindow.length ? inWindow.reduce((a, p) => a + p.v, 0) / inWindow.length : null;
+}

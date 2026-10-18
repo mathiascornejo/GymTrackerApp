@@ -13,6 +13,7 @@ import f from "./Form.module.css";
 const Dashboard = lazy(() => import("./Dashboard").then((m) => ({ default: m.Dashboard })));
 const Library = lazy(() => import("./Library").then((m) => ({ default: m.Library })));
 const Weight = lazy(() => import("./Weight").then((m) => ({ default: m.Weight })));
+const Steps = lazy(() => import("./Steps").then((m) => ({ default: m.Steps })));
 const Routines = lazy(() => import("./Routines").then((m) => ({ default: m.Routines })));
 const Session = lazy(() => import("./Session").then((m) => ({ default: m.Session })));
 const Settings = lazy(() => import("./Settings").then((m) => ({ default: m.Settings })));
@@ -76,6 +77,8 @@ function Authed() {
         return <Library profile={p} />;
       case "weight":
         return <Weight profile={p} />;
+      case "steps":
+        return <Steps />;
       case "settings":
         return <Settings profile={p} />;
       case "about":

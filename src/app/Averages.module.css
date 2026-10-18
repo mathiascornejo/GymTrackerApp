@@ -1,0 +1,18 @@
+.row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.row dt {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.row dd {
+  margin: 0;
+  font: 700 18px/24px var(--font-display);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

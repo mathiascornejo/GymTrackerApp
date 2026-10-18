@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RankSet } from "./rank";
-import { e1rmSeries, frequencyGrid, movingAverage, volumeBar, prEvents, weekStart, weeklyVolume } from "./stats";
+import { e1rmSeries, frequencyGrid, averageOver, movingAverage, volumeBar, prEvents, weekStart, weeklyVolume } from "./stats";
 
 const s = (id: string, ref: string, w: number, reps: number, at: string, warm = false): RankSet => ({
   id, exercise_ref: ref, weight_kg: w, reps, is_warmup: warm, completed_at: at,
@@ -76,6 +76,21 @@ describe("movingAverage", () => {
   it("averages the trailing seven calendar days, not the last seven entries", () => {
     const pts = [{ t: day(0), v: 70 }, { t: day(3), v: 72 }, { t: day(6), v: 74 }, { t: day(7), v: 76 }];
     expect(movingAverage(pts).map((p) => p.v)).toEqual([70, 71, 72, 74]);
+  });
+});
+
+describe("averageOver", () => {
+  const now = new Date(2026, 9, 18, 9, 0); // Sunday 18 Oct 2026, 09:00
+  const at = (day: number, hour = 12) => new Date(2026, 9, day, hour).getTime();
+  it("counts today's entry even though its noon timestamp is later than now", () => {
+    expect(averageOver([{ t: at(18), v: 80 }], 7, now)).toBe(80);
+  });
+  it("covers the last N calendar days and no more", () => {
+    const pts = [{ t: at(11), v: 100 }, { t: at(12), v: 70 }, { t: at(18), v: 80 }];
+    expect(averageOver(pts, 7, now)).toBe(75); // 12 Oct to 18 Oct; the 11th is outside
+  });
+  it("is null with no entries in range", () => {
+    expect(averageOver([{ t: at(1), v: 70 }], 7, now)).toBeNull();
   });
 });
 

@@ -40,6 +40,7 @@ const tabs = [
   ["routines", "Routines"],
   ["library", "Exercises"],
   ["weight", "Weight"],
+  ["steps", "Steps"],
 ];
 
 for (const [id, label] of tabs) {
@@ -605,6 +606,23 @@ test.describe("dashboard and ranks", () => {
     await page.getByRole("button", { name: /^Delete weight from/ }).first().click();
     await page.getByRole("dialog", { name: "Delete this weight?" }).getByRole("button", { name: "Delete weight" }).click();
     await expect(page.getByRole("img", { name: /Bodyweight: 1 points/ })).toBeVisible();
+  });
+
+  test("logs steps, replaces a day's total and deletes it on the steps tab", async ({ page }) => {
+    const seed = await seededUser();
+    await open(page, seed, "steps");
+    await expect(page.getByText("No steps yet")).toBeVisible();
+    await expect(page.getByLabel("Averages")).toContainText("–");
+    await page.getByLabel("Add steps for today").fill("8000");
+    await page.getByRole("button", { name: "Add steps" }).click();
+    await expect(page.getByRole("img", { name: /Steps: 1 points, latest 8000 steps/ })).toBeVisible();
+    await expect(page.getByLabel("Averages")).toContainText("8,000 steps");
+    await page.getByLabel("Add steps for today").fill("9000");
+    await page.getByRole("button", { name: "Add steps" }).click();
+    await expect(page.getByRole("img", { name: /Steps: 1 points, latest 9000 steps/ })).toBeVisible();
+    await page.getByRole("button", { name: /^Delete steps from/ }).click();
+    await page.getByRole("dialog", { name: "Delete these steps?" }).getByRole("button", { name: "Delete steps" }).click();
+    await expect(page.getByText("No steps yet")).toBeVisible();
   });
 
   test("edited standards persist", async ({ page }) => {

@@ -9,6 +9,8 @@ insert into auth.users (id, email, aud, role) values
 
 insert into public.bodyweight_entries (id, user_id, measured_on, weight_kg) values
   ('a0000000-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000001', '2026-01-01', 80);
+insert into public.step_entries (id, user_id, logged_on, steps) values
+  ('a0000000-0000-0000-0000-00000000000b', 'aaaaaaaa-0000-0000-0000-000000000001', '2026-01-01', 8000);
 insert into public.custom_exercises (id, user_id, name) values
   ('a0000000-0000-0000-0000-000000000002', 'aaaaaaaa-0000-0000-0000-000000000001', 'Neck curl');
 insert into public.routines (id, user_id, name, is_active) values

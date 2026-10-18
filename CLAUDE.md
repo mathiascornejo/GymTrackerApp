@@ -3,7 +3,7 @@
 Personal gym tracker. Spec: `docs/build-brief.md` (read it before changing behavior). Repo: github.com/mathiascornejo/GymTrackerApp, deployed to GitHub Pages.
 
 ## Stack
-Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines`, `#/library`, `#/weight`), CSS custom properties + CSS Modules (no component kit), `dnd-kit`, `motion`, hand-rolled SVG charts, Supabase (Auth, Postgres+RLS, Edge Functions), TanStack Query over a repository layer in `src/data/`, `vite-plugin-pwa` (injectManifest). npm only.
+Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines`, `#/library`, `#/weight`, `#/steps`), CSS custom properties + CSS Modules (no component kit), `dnd-kit`, `motion`, hand-rolled SVG charts, Supabase (Auth, Postgres+RLS, Edge Functions), TanStack Query over a repository layer in `src/data/`, `vite-plugin-pwa` (injectManifest). npm only.
 
 ## Commands
 - `npm run dev` / `npm run build` / `npm run preview`

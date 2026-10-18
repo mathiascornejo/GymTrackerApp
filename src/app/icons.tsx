@@ -22,6 +22,14 @@ const paths: Record<TabId, ReactNode> = {
       <path d="m12 12 2 3" />
     </>
   ),
+  steps: (
+    <>
+      <path d="M8 4c2 0 3 1.5 3 4s-1 4-3 4-3-1.5-3-4 1-4 3-4Z" />
+      <path d="M6 15h4v1.5a2 2 0 0 1-4 0Z" />
+      <path d="M16 9c2 0 3 1.5 3 4s-1 4-3 4-3-1.5-3-4 1-4 3-4Z" />
+      <path d="M14 20h4v.5a2 2 0 0 1-4 0Z" />
+    </>
+  ),
   library: (
     <>
       <path d="M2.5 9.5v5m3-7v9m2.5-4.5h8m2.5-4.5v9m3-7v5" />

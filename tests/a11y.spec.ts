@@ -14,6 +14,7 @@ async function seed() {
   const post = (p: string, b: unknown, m = "POST") => fetch(REST(p), { method: m, headers: h, body: JSON.stringify(b) });
   await post(`profiles?id=eq.${j.user.id}`, { standards_table: "male" }, "PATCH");
   await post("bodyweight_entries", { measured_on: "2026-01-01", weight_kg: 80 });
+  await post("step_entries", { logged_on: "2026-01-01", steps: 8000 });
   const sid = crypto.randomUUID();
   const start = new Date(Date.now() - 2 * 86_400_000);
   await post("sessions", { id: sid, started_at: start.toISOString(), ended_at: new Date(start.getTime() + 3_600_000).toISOString() });
@@ -37,6 +38,7 @@ const screens = [
   ["routines", "Routines"],
   ["library", "Exercises"],
   ["weight", "Weight"],
+  ["steps", "Steps"],
   ["settings", "Settings"],
 ] as const;
 
@@ -106,7 +108,7 @@ test.describe("motion and touch", () => {
     const email = await seed();
     await signIn(page, email, "settings");
     const small: string[] = [];
-    for (const hash of ["dashboard", "log", "routines", "library", "weight", "settings"]) {
+    for (const hash of ["dashboard", "log", "routines", "library", "weight", "steps", "settings"]) {
       await page.goto(`#/${hash}`);
       await page.waitForLoadState("networkidle");
       const found = await page.evaluate(() =>

@@ -3,6 +3,7 @@ import { useDashboardActions, useDashboardData } from "../data/dashboard";
 import type { Profile } from "../data/profile";
 import { movingAverage } from "../ranking/stats";
 import { fromKg, toKg } from "../units";
+import { Averages } from "./Averages";
 import { LineChart } from "./charts";
 import { ConfirmSheet } from "./ConfirmSheet";
 import { TrashIcon } from "./icons";
@@ -38,6 +39,7 @@ export function Weight({ profile }: { profile: Profile }) {
       <div className={w.fit}>
         <section aria-label="Bodyweight trend" className={`${s.section} ${s.wide}`}>
           <h2 className={s.h2}>Trend</h2>
+          <Averages points={points} format={(v) => `${Math.round(v * 10) / 10} ${unit}`} />
           {entries.length > 0 ? (
             <LineChart points={points} unit={unit} label="Bodyweight" average={points.length >= 3 ? movingAverage(points) : undefined} />
           ) : (
