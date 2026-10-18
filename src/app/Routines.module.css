@@ -26,21 +26,23 @@
 }
 
 /* Day tabs and day header are one sticky block, so they can never overlap each other. The overview above scrolls away, so a phone keeps most of its screen for the exercises.
-   It sticks 12px below the app header; its backdrop reaches past the block on both sides and 12px above, so nothing scrolling shows around it or in that gap. */
+   The block's own background fills the 12px between it and the app header, and it tucks 2px behind the header, so no seam can show scrolling cards.
+   Its backdrop reaches past the block on both sides so nothing scrolling shows beside it. */
 .sticky {
   position: sticky;
-  top: calc(env(safe-area-inset-top) + var(--header-h) + 12px);
+  top: calc(env(safe-area-inset-top) + var(--header-h) - 2px);
   z-index: 4;
   isolation: isolate;
-  margin-top: 16px;
-  padding-bottom: 12px;
+  margin-top: 2px;
+  padding: 14px 0 12px;
+  background: var(--ground);
 }
 
 .sticky::before {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -12px -100vmax 0;
+  inset: 0 -100vmax;
   background: var(--ground);
 }
 
