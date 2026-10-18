@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { loadDataset } from "../exercises/dataset";
@@ -57,9 +57,23 @@ export function Library({ profile }: { profile: Profile }) {
   const pinBottom = (pinRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY;
   const passed = headerIdx.filter((i) => (virtual.measurementsCache[i]?.start ?? Infinity) <= pinBottom - (i === 0 ? 0 : 16)).pop();
   const pinnedRow = passed === undefined ? undefined : rows[passed];
-  // The next header's label pushes the pinned bar up (under the controls) until it takes its place.
+  // The next header's label pushes the pinned bar up (under the controls) until it takes its place. The offset is written straight to the DOM on every scroll event, not through React state, so it never lags a frame behind the page.
+  const pinnedRef = useRef<HTMLDivElement>(null);
+  const nextStart = useRef(Infinity);
   const nextHeader = passed === undefined ? undefined : headerIdx.find((i) => i > passed);
-  const push = nextHeader === undefined ? 0 : Math.max(-PINNED_H, Math.min(0, (virtual.measurementsCache[nextHeader]?.start ?? Infinity) + 16 - (pinBottom + PINNED_H)));
+  nextStart.current = nextHeader === undefined ? Infinity : (virtual.measurementsCache[nextHeader]?.start ?? Infinity);
+  const applyPush = () => {
+    const el = pinnedRef.current;
+    if (!el || !pinRef.current) return;
+    const push = Math.max(-PINNED_H, Math.min(0, nextStart.current - window.scrollY + 16 - (pinRef.current.getBoundingClientRect().bottom + PINNED_H)));
+    el.style.transform = `translateY(${push}px)`;
+    el.toggleAttribute("data-pushed", push < 0);
+  };
+  useLayoutEffect(applyPush);
+  useEffect(() => {
+    window.addEventListener("scroll", applyPush, { passive: true });
+    return () => window.removeEventListener("scroll", applyPush);
+  });
 
   const selected = arg ? all.find((e) => e.ref === arg) : undefined;
   const close = () => {
@@ -87,7 +101,7 @@ export function Library({ profile }: { profile: Profile }) {
         <button className={f.quiet} onClick={() => setEditing("new")}>New exercise</button>
       </div>
       {pinnedRow?.type === "header" && (
-        <div className={`${s.header} ${s.pinned}`} style={{ transform: `translateY(${push}px)` }} data-pushed={push < 0 || undefined} aria-hidden="true">
+        <div ref={pinnedRef} className={`${s.header} ${s.pinned}`} aria-hidden="true">
           {cap(pinnedRow.label)} <span>{pinnedRow.count}</span>
         </div>
       )}

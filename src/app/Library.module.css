@@ -101,6 +101,7 @@
 .pinned {
   top: 100%;
   z-index: 0;
+  will-change: transform;
   height: 40px;
   padding-bottom: 8px;
   background: var(--ground);
