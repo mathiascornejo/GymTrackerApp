@@ -21,17 +21,24 @@
   margin-inline: auto;
 }
 
-/* The start panel stays put; only the list of past sessions scrolls. */
+/* The start panel stays put; only the list of past sessions scrolls. A long plan scrolls inside its own box so past sessions keep at least half the screen. */
+.start {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .pastSection {
   display: flex;
-  flex: 1;
+  flex: 1 0 50%;
   flex-direction: column;
   min-height: 0;
 }
 
 .pastScroll {
   flex: 1;
-  min-height: 160px;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -55,6 +62,7 @@
 
   .start > .startPlan {
     grid-area: plan;
+    max-height: calc(var(--fit-h) / 2 - 16px);
     margin-top: 0;
     padding: 4px 20px;
     border: 1px solid var(--hairline);
@@ -78,6 +86,9 @@
   padding: 0;
   list-style: none;
   font-size: 15px;
+  flex: 1 1 auto;
+  min-height: 88px;
+  overflow-y: auto;
 }
 
 .startPlan li {
