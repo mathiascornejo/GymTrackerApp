@@ -286,17 +286,17 @@
 
 .setRow {
   display: grid;
-  grid-template-columns: minmax(56px, 1fr) minmax(0, 88px) minmax(0, 72px) 44px;
+  grid-template-columns: minmax(56px, 1fr) minmax(0, 88px) minmax(0, 80px) 40px;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .setLabel {
   /* Centred on the inputs' row; long names wrap and stay left. */
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 40px;
   font-size: 15px;
   line-height: 20px;
   text-align: left;
@@ -311,8 +311,8 @@
 /* Small unit in the bottom right corner of the box. */
 .unit {
   position: absolute;
-  right: 7px;
-  bottom: 3px;
+  right: 11px;
+  bottom: 5px;
   font-size: 10px;
   line-height: 12px;
   color: var(--ink-muted);
@@ -325,8 +325,9 @@
 
 .num {
   width: 100%;
-  min-height: 44px;
-  padding: 0 10px;
+  min-height: 40px;
+  /* Number rides slightly high so it clears the unit in the bottom corner. */
+  padding: 0 10px 6px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-control);
   background: var(--ground);
@@ -349,8 +350,8 @@
 }
 
 .doneBtn {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--hairline);
   border-radius: 50%;
   background: transparent;
@@ -658,14 +659,14 @@
 
 /* A warm-up row has one more button: remove. */
 .setRow.warm {
-  grid-template-columns: minmax(56px, 1fr) minmax(0, 88px) minmax(0, 72px) 44px 44px;
+  grid-template-columns: minmax(56px, 1fr) minmax(0, 88px) minmax(0, 80px) 40px 40px;
 }
 
 .removeBtn {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: 0;
   background: transparent;
   color: var(--ink-muted);
