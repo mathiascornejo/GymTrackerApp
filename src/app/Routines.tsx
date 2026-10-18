@@ -2,7 +2,7 @@ import {
   closestCenter, DndContext, DragOverlay, KeyboardSensor, MouseSensor, pointerWithin, TouchSensor, useDroppable, useSensor, useSensors,
   type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragOverEvent, type DragStartEvent,
 } from "@dnd-kit/core";
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useQuery } from "@tanstack/react-query";
 import { getEventCoordinates } from "@dnd-kit/utilities";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -68,16 +68,16 @@ const UNDO_MS = 6000;
 type Drag = { type: "pick"; ref: string } | { type: "block"; id: string } | { type: "item"; blockId: string; itemId: string };
 
 /** `parked` keeps the column the dragged card came from mounted but out of sight after the page moves to another day, so the drag survives. */
-function Column({ target, label, title, children, ids, parked, dragging, action, foot }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean; dragging: boolean; action?: React.ReactNode; foot?: React.ReactNode }) {
+function Column({ target, label, title, children, ids, parked, dragging, action, foot, wide }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; parked: boolean; dragging: boolean; action?: React.ReactNode; foot?: React.ReactNode; wide?: boolean }) {
   const id = containerId(target);
   const drop = useDroppable({ id, disabled: parked });
   return (
     <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""} ${parked ? s.parked : ""}`} aria-label={label}>
       <div className={s.columnTop}>
         <div className={s.columnHead}>{title}</div>
-        {action}
+        {action && <div className={s.columnActions}>{action}</div>}
       </div>
-      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+      <SortableContext items={ids} strategy={wide ? rectSortingStrategy : verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
       </SortableContext>
       {ids.length === 0 && (
@@ -151,11 +151,11 @@ export function Routines({ profile }: { profile: Profile }) {
     return () => window.removeEventListener("pointermove", track);
   }, [drag]);
   // Selection mode: tick cards in the day being viewed, then link them into a superset or circuit.
-  const [selecting, setSelecting] = useState(false);
+  const [selecting, setSelecting] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const toggle = (id: string) => setSelected((o) => new Set(o.has(id) ? [...o].filter((x) => x !== id) : [...o, id]));
   const stopSelecting = () => {
-    setSelecting(false);
+    setSelecting(null);
     setSelected(new Set());
   };
   useEffect(stopSelecting, [pageDay, pickedId]);
@@ -171,6 +171,13 @@ export function Routines({ profile }: { profile: Profile }) {
     edges(el);
   }, [pageDay, pickedId, routines.isPending]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  useEffect(() => {
+    const col = week.current?.querySelector<HTMLElement>(`section[aria-label="${WEEKDAY_NAMES[new Date().getDay()]}"]`);
+    if (week.current && col) week.current.scrollLeft = col.offsetLeft - 4;
+  }, [desktop, pickedId, routines.isPending]);
+  // Desktop shows every day at once, so the picker adds to the column whose Add button opened it.
+  const [addTo, setAddTo] = useState<Target>(() => ({ day: new Date().getDay() }));
+  const week = useRef<HTMLDivElement>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   // One popup for both: a new routine is only stored when saved, and a rename only applies on save.
@@ -339,7 +346,8 @@ export function Routines({ profile }: { profile: Profile }) {
   const volume = routine ? Object.entries(weeklySets(routine, (ref) => info(ref)?.primary ?? [])).sort((a, b) => b[1] - a[1]) : [];
 
   const stats = routine ? routineStats(routine) : null;
-  const current = pageDay === "bank" ? { target: "bank" as Target, label: "Accessory bank" } : { target: { day: pageDay }, label: WEEKDAY_NAMES[pageDay] };
+  const labelOf = (t: Target) => (t === "bank" ? "Accessory bank" : WEEKDAY_NAMES[t.day]);
+  const current = desktop ? { target: addTo, label: labelOf(addTo) } : pageDay === "bank" ? { target: "bank" as Target, label: "Accessory bank" } : { target: { day: pageDay }, label: WEEKDAY_NAMES[pageDay] };
   const nameOf = (id: string) => info(id)?.name ?? id;
   const overlay = (() => {
     if (!drag || !routine) return null;
@@ -407,17 +415,20 @@ export function Routines({ profile }: { profile: Profile }) {
           </span>
         </>
       );
+    const label = labelOf(target);
     return (
-      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)} parked={parked} dragging={drag !== null}
+      <Column key={cid} target={target} label={label} title={title} ids={blocks.map((b) => b.id)} parked={parked} dragging={drag !== null} wide={desktop && target === "bank"}
         action={
-          selecting ? undefined : (
+          selecting !== null ? undefined : (
             <>
-              {desktop && !pickerOpen && <button className={f.quiet} onClick={() => setPickerOpen(true)}>Add exercise</button>}
-              {blocks.length >= 2 && <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button>}
+              {desktop && (
+                <button className={f.quiet} aria-label={`Add exercise to ${label}`} onClick={() => { setAddTo(target); setPickerOpen(true); }}>Add</button>
+              )}
+              {blocks.length >= 2 && <button className={f.quiet} onClick={() => setSelecting(cid)}>Select</button>}
             </>
           )
         }
-        foot={!desktop && !selecting ? <button className={`${f.button} ${s.addEnd}`} onClick={() => setPickerOpen(true)}>Add exercise</button> : undefined}>
+        foot={!desktop && selecting === null ? <button className={`${f.button} ${s.addEnd}`} onClick={() => setPickerOpen(true)}>Add exercise</button> : undefined}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
@@ -428,7 +439,7 @@ export function Routines({ profile }: { profile: Profile }) {
             parked={parked}
             info={info}
             actions={blockActions(b, target)}
-            selecting={selecting}
+            selecting={selecting === cid}
             selected={selected.has(b.id)}
             onToggle={() => toggle(b.id)}
             unit={profile.weight_unit}
@@ -546,7 +557,7 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       ) : (
         <DndContext sensors={sensors} collisionDetection={collide} autoScroll={!overChip} onDragStart={onDragStart} onDragMove={onDragMove} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={resetDrag}>
-          <div ref={pager} className={s.pager} role="tablist" aria-label="Day" onScroll={(e) => edges(e.currentTarget)}>
+          {!desktop && <div ref={pager} className={s.pager} role="tablist" aria-label="Day" onScroll={(e) => edges(e.currentTarget)}>
             {[...order, "bank" as const].map((d) => (
               <DayButton
                 key={d}
@@ -557,13 +568,20 @@ export function Routines({ profile }: { profile: Profile }) {
                 onSelect={() => setPageDay(d)}
               />
             ))}
-          </div>
+          </div>}
 
           {/* Desktop docks the picker beside the board (not a modal sheet) so exercises can still be dragged onto a day. */}
           <div className={desktop && pickerOpen ? s.boardSplit : undefined}>
-            <div ref={board} className={s.board} style={{ minHeight: boardMin }}>
-              {columns.map((t) => renderColumn(t, containerId(t) !== containerId(visible)))}
-            </div>
+            {desktop ? (
+              <div className={s.weekWrap}>
+                <div ref={week} className={s.week}>{order.map((d) => renderColumn({ day: d }, false))}</div>
+                <div className={s.bankLane}>{renderColumn("bank", false)}</div>
+              </div>
+            ) : (
+              <div ref={board} className={s.board} style={{ minHeight: boardMin }}>
+                {columns.map((t) => renderColumn(t, containerId(t) !== containerId(visible)))}
+              </div>
+            )}
             {desktop && pickerOpen && (
               <aside className={s.sidePicker} aria-label="Add exercise">
                 <div className={s.sheetTop}>
@@ -613,7 +631,7 @@ export function Routines({ profile }: { profile: Profile }) {
             )}
           </Sheet>
 
-          {selecting && (
+          {selecting !== null && (
             <div className={s.selectBar} role="region" aria-label="Link cards">
               <span className={s.selectCount} role="status">{selected.size} selected</span>
               {selected.size >= 2 && (
