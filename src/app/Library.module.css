@@ -5,6 +5,8 @@
 }
 
 .controls {
+  position: relative;
+  z-index: 1; /* the pinned category slides up underneath */
   display: flex;
   align-items: center;
   gap: 4px 8px;
@@ -98,9 +100,14 @@
 /* after .header so top wins: hangs below the controls without taking layout space */
 .pinned {
   top: 100%;
+  z-index: 0;
   height: 40px;
   padding-bottom: 8px;
   background: var(--ground);
+}
+
+.pinned[data-pushed]::after {
+  display: none;
 }
 
 /* Rows scroll out under a soft edge instead of a hard-cut band. */
