@@ -316,10 +316,10 @@
 /* Small unit in the bottom right corner of the box. */
 .unit {
   position: absolute;
-  right: 11px;
-  bottom: 5px;
-  font-size: 10px;
-  line-height: 12px;
+  right: 7px;
+  bottom: 3px;
+  font-size: 9px;
+  line-height: 10px;
   color: var(--ink-muted);
   pointer-events: none;
 }
@@ -340,6 +340,11 @@
   font: inherit;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+/* The number rides above the corner unit, so a long value never runs under it. */
+.field .num {
+  padding-bottom: 11px;
 }
 
 .num::placeholder {
