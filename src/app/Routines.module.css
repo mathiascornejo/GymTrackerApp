@@ -576,11 +576,6 @@
   margin-right: -12px;
 }
 
-/* The More label sits as far from the right edge as the name does from the left. */
-.overviewHead .menuWrap {
-  margin-right: 2px;
-}
-
 .menu {
   position: absolute;
   top: calc(100% + 4px);
@@ -627,8 +622,6 @@
   align-items: center;
   gap: 0 8px;
   margin: 0;
-  /* Same inset as the numbers in the stat cards below. */
-  padding-left: 14px;
   font: 700 1.375rem/1.2 var(--font-display);
 }
 
