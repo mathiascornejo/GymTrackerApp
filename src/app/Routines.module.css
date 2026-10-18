@@ -56,6 +56,13 @@
   mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent);
 }
 
+@media (min-width: 1024px) {
+  /* The pinned nav tray sits above the page body. */
+  .pager {
+    top: calc(16px + var(--nav-h) + 8px);
+  }
+}
+
 .pagerBtn {
   flex: none;
   scroll-margin-inline: 32px; /* clear of the edge fade when scrolled into view */
@@ -101,91 +108,6 @@
   font-weight: 600;
 }
 
-
-/* Desktop: all seven days side by side, scrolling sideways, with the accessory bank as a lane underneath. */
-.weekWrap {
-  min-width: 0;
-  margin-top: 16px;
-}
-
-.week {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(220px, 1fr));
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-
-.week .columnTop {
-  flex-wrap: wrap;
-}
-
-.week .columnHead {
-  flex: 1 1 100%;
-  padding-bottom: 4px;
-}
-
-.columnActions {
-  display: flex;
-  flex: none;
-}
-
-.week .columnActions {
-  flex: 1 1 100%;
-  justify-content: space-between;
-}
-
-/* Columns are about 220 px wide: names take the full row, with the rep range beneath, and the card gives back some padding. */
-.week .card,
-.bankLane .card {
-  gap: 8px;
-  padding: 10px;
-}
-
-.week .cardTop,
-.bankLane .cardTop {
-  gap: 0;
-}
-
-.week .editBtn,
-.bankLane .editBtn {
-  margin-right: -8px;
-  padding: 0 8px;
-}
-
-.week .itemName,
-.bankLane .itemName {
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  column-gap: 4px;
-}
-
-.week .itemLink,
-.bankLane .itemLink {
-  flex: 1 1 60px;
-  text-align: left;
-}
-
-.week .itemMeta,
-.bankLane .itemMeta {
-  flex-basis: 100%;
-}
-
-.week .iconBtn,
-.bankLane .iconBtn {
-  width: 32px;
-}
-
-.week .cardFoot,
-.bankLane .cardFoot {
-  flex-wrap: wrap;
-  gap: 0 4px;
-}
-
-.bankLane .columnBody {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-}
 
 .board {
   position: relative;

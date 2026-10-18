@@ -87,7 +87,7 @@ for (const scheme of ["light", "dark"] as const) {
       await page.keyboard.press("Escape");
       await card.getByRole("button", { name: "Done editing Barbell Curl" }).click();
 
-      await page.getByRole("button", { name: /^Add exercise/ }).first().click(); // desktop has one per day
+      await page.getByRole("button", { name: "Add exercise" }).click();
       await page.getByLabel("Search the picker").fill("Barbell Curl");
       await page.getByRole("button", { name: "Add Barbell Curl to another day" }).click();
       await expect(page.getByRole("menu")).toBeVisible();

@@ -169,20 +169,17 @@ test.describe("routine builder", () => {
     await page.getByRole("button", { name: "New routine" }).click();
     await page.getByLabel("Routine name").fill("New routine");
     await page.getByRole("button", { name: "Save routine" }).click();
-    await expect(page.getByRole("dialog")).toBeHidden(); // a second New routine would otherwise find this sheet still closing
     await expect(page.getByRole("region", { name: "Routine overview" }).getByRole("heading", { name: "New routine" })).toBeVisible();
   }
 
-  // Desktop shows every day at once; a phone shows one, chosen with the chips.
   const showDay = async (page: Page, day: string) => {
-    if (isPhone()) await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
+    await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
   };
-  // The picker is a side panel on desktop (opened from a day's own Add button) and a bottom sheet on phone (Add exercise at the end of the day viewed).
-  const openPicker = (page: Page, day: string) => page.getByRole("button", { name: isPhone() ? "Add exercise" : `Add exercise to ${day}` }).click();
 
+  // "Add exercise" opens the picker: a side panel that stays open on desktop, a bottom sheet on phone. Add puts the exercise on the day being viewed.
   async function addExercise(page: Page, name: string, to: string) {
     await showDay(page, to === "Accessory bank" ? "Bank" : to);
-    if (!isPhone() || (await page.getByLabel("Search the picker").isHidden())) await openPicker(page, to);
+    if (await page.getByLabel("Search the picker").isHidden()) await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill(name);
     await page.getByRole("button", { name: `Add ${name} to ${to}`, exact: true }).click();
     if (isPhone()) await page.getByRole("button", { name: "Done", exact: true }).click();
@@ -352,19 +349,7 @@ test.describe("routine builder", () => {
     await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(2);
   });
 
-  test("a card dragged to another day's column lands there", async ({ page }) => {
-    test.skip(isPhone(), "A phone shows one day at a time; it drops on the day chips.");
-    await importDay(page, 3, [CURL, BENCH, ROW]);
-    const target = page.getByRole("region", { name: "Monday" });
-    const d = await dragTo(page, page.getByRole("button", { name: "Reorder Barbell Curl" }), (b) => ({ x: b.x + b.width / 2, y: b.y + 60 }), target);
-    await d.release();
-    await expect(target.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Wednesday" }).getByRole("article")).toHaveCount(2);
-    await expect(page.getByRole("status").filter({ hasText: "Moved to Monday" })).toBeVisible();
-  });
-
   test("a card dragged to a day chip lands on that day even after the page scrolls", async ({ page }) => {
-    test.skip(!isPhone(), "Day chips are the phone's way to reach another day.");
     await importDay(page, 3, Array.from({ length: 12 }, (_, i) => [CURL, BENCH, ROW][i % 3]));
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const last = page.getByRole("region", { name: "Wednesday" }).getByRole("button", { name: /^Reorder / }).last();
@@ -422,7 +407,7 @@ test.describe("routine builder", () => {
   test("a picker drag draws a line where it will land and drops there", async ({ page }) => {
     test.skip(isPhone(), "Dragging from the picker is a desktop interaction.");
     await importDay(page, 1, [BENCH, ROW]);
-    await openPicker(page, "Monday");
+    await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill("Barbell Curl");
     const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
     const first = page.getByRole("article", { name: BENCH_NAME });
@@ -437,7 +422,7 @@ test.describe("routine builder", () => {
     test.skip(isPhone(), "Dragging from the picker is a desktop interaction.");
     await openBuilder(page);
     await showDay(page, "Tuesday");
-    await openPicker(page, "Tuesday");
+    await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill("Barbell Curl");
     const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
     const d = await dragTo(page, source, (b) => ({ x: b.x + b.width / 2, y: b.y + 60 }), page.getByRole("region", { name: "Tuesday" }));
@@ -458,13 +443,13 @@ test.describe("routine builder", () => {
     await showDay(page, "Tuesday");
     await expect(page.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
     await page.getByRole("button", { name: "Undo" }).click();
-    await expect(page.getByRole("region", { name: "Tuesday" }).getByRole("article")).toHaveCount(0);
+    await expect(page.getByRole("article", { name: "Barbell Curl" })).toBeHidden();
   });
 
   test("Add to another day puts a picker exercise on that day", async ({ page }) => {
     await openBuilder(page);
     await showDay(page, "Monday");
-    await openPicker(page, "Monday");
+    await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill("Barbell Curl");
     await page.getByRole("button", { name: "Add Barbell Curl to another day" }).click();
     await page.getByRole("menuitem", { name: "Wednesday" }).click();
@@ -473,7 +458,7 @@ test.describe("routine builder", () => {
     await showDay(page, "Wednesday");
     await expect(page.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
     await showDay(page, "Monday");
-    await expect(page.getByRole("region", { name: "Monday" }).getByRole("article")).toHaveCount(0);
+    await expect(page.getByRole("article")).toHaveCount(0);
   });
 
   test("Select links two cards as a superset and three as a circuit", async ({ page }) => {
@@ -531,7 +516,7 @@ test.describe("routine builder", () => {
 
   test("Add exercise sits at the end of the day on a phone and in the day's header on desktop", async ({ page }) => {
     await importDay(page, 1, [CURL]);
-    const add = page.getByRole("region", { name: "Monday" }).getByRole("button", { name: isPhone() ? "Add exercise" : "Add exercise to Monday" });
+    const add = page.getByRole("region", { name: "Monday" }).getByRole("button", { name: "Add exercise" });
     await expect(add).toBeVisible();
     const card = (await page.getByRole("article", { name: "Barbell Curl" }).boundingBox())!;
     const b = (await add.boundingBox())!;
@@ -542,11 +527,11 @@ test.describe("routine builder", () => {
   test("drags an exercise from the picker onto a day", async ({ page }) => {
     test.skip(isPhone(), "Drag from the docked picker is a desktop interaction; phone uses the Add to menu.");
     await openBuilder(page);
-    await openPicker(page, "Monday");
+    await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill("Barbell Curl");
+    await showDay(page, "Tuesday");
     const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
     const target = page.getByRole("region", { name: "Tuesday" });
-    await target.scrollIntoViewIfNeeded();
     const a = (await source.boundingBox())!;
     const b = (await target.boundingBox())!;
     await page.mouse.move(a.x + 20, a.y + a.height / 2);
