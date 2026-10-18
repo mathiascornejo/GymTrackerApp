@@ -53,6 +53,11 @@
   will-change: transform;
 }
 
+/* Touch scrollbar sits inside the panel; there is no side padding to put it in. */
+.panel[data-thumb] {
+  --th-edge: -9px;
+}
+
 .body {
   padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
 }

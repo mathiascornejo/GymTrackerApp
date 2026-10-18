@@ -64,7 +64,10 @@ button {
   }
 }
 
-/* Touch screens: hide the native bar; touchScrollbars.ts draws the accent one instead (iOS ignores scrollbar styling). */
+/* Touch screens: hide the native bar; touchScrollbars.ts draws the accent one instead (iOS ignores scrollbar styling).
+   The bar is a zero-footprint sticky ::before inside each [data-thumb] box: it is pinned to the top of the box's visible area,
+   offset by --th-y, so it travels and clips with the box. --th-edge is its distance past the content's right edge (negative = inside it).
+   Boxes using it must be block containers (a grid or flex gap would make the pseudo-element take up a row). */
 @media (hover: none) and (pointer: coarse) {
   * {
     scrollbar-width: none;
@@ -72,5 +75,23 @@ button {
 
   *::-webkit-scrollbar {
     display: none;
+  }
+
+  [data-thumb] {
+    --th-edge: 5px; /* set on every box so a box inside another one (the popup's list) does not inherit its parent's value */
+  }
+
+  [data-thumb]::before {
+    content: "";
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: block;
+    width: 4px;
+    height: var(--th-h, 0px);
+    margin: var(--th-y, 0px) 0 calc(-1 * (var(--th-h, 0px) + var(--th-y, 0px))) calc(100% + var(--th-edge, 5px));
+    border-radius: 4px;
+    background: var(--accent);
+    pointer-events: none;
   }
 }
