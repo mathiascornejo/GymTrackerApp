@@ -64,7 +64,7 @@ function Column({ target, label, title, children, ids, action }: { target: Targe
     <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""}`} aria-label={label}>
       <div className={s.columnTop}>
         <div className={s.columnHead}>{title}</div>
-        {action}
+        {action && <div className={s.columnActions}>{action}</div>}
       </div>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
@@ -268,7 +268,12 @@ export function Routines({ profile }: { profile: Profile }) {
       );
     return (
       <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)}
-        action={blocks.length >= 2 && !selecting ? <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button> : undefined}>
+        action={selecting || (desktop && pickerOpen) ? undefined : (
+          <>
+            {blocks.length >= 2 && <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button>}
+            <button className={f.button} onClick={() => setPickerOpen(true)}>Add exercise</button>
+          </>
+        )}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
@@ -419,7 +424,6 @@ export function Routines({ profile }: { profile: Profile }) {
             )}
           </div>
 
-          {!(desktop && pickerOpen) && !selecting && <button className={`${f.button} ${s.addFab}`} onClick={() => setPickerOpen(true)}>Add exercise</button>}
           {!desktop && (
             <>
               <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)} label="Add exercise">
