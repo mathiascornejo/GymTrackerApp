@@ -282,10 +282,11 @@
 
 .legend {
   grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
+  /* Eight tiers in two even rows of four. */
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
   justify-content: center;
-  gap: 4px 14px;
+  gap: 4px 10px;
   margin: 4px 0 0;
   padding: 0;
   list-style: none;
