@@ -63,6 +63,7 @@
   font-size: 15px;
 }
 
+
 .startPlan {
   margin: 12px 0 0;
   padding: 0;
@@ -72,6 +73,11 @@
   min-height: 88px;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+/* Rest day: no list, so no reserved height or margin between the day picker and the buttons. */
+.startPlan:empty {
+  display: none;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -91,6 +97,10 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-list);
   background: var(--surface);
+}
+
+.startPlan li:last-child {
+  margin-bottom: 0;
 }
 
 .startPlan li span:first-child {
