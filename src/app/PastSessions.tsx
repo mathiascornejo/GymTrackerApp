@@ -41,7 +41,7 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
           <h4 className={s.roundTitle}>{info(ref)?.name ?? ref}</h4>
           <div className={`${s.pastSet} ${s.pastHead}`} aria-hidden="true">
             <span />
-            <span>{cardio ? "level" : unit}</span>
+            <span>{cardio ? "lvl" : unit}</span>
             <span>{cardio ? "time" : "reps"}</span>
           </div>
           {sets

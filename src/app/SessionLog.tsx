@@ -97,7 +97,7 @@ function SetLine({ label, name, dataSlot, done, input, ghost, unit, warm, cardio
           placeholder={ghost ? showW(ghost.weight_kg) : undefined} onChange={(e) => onChange({ ...input, w: e.target.value.replace(",", ".") })}
           name="weight"
         />
-        <span className={s.unit} aria-hidden="true">{cardio ? "level" : unit}</span>
+        <span className={s.unit} aria-hidden="true">{cardio ? "lvl" : unit}</span>
       </label>
       {cardio ? (
         done ? (
@@ -496,7 +496,7 @@ export function SessionLog({
                 <div key={it.itemId} className={s.sideItem}>
                   <p className={s.blockTitle}>{nameOf(it.ref)}</p>
                   <p className={s.blockMeta}>
-                    {last.length ? `Last time: ${last.map((x) => cardio ? `level ${x.weight_kg} × ${mmss(x.reps)}` : `${fmt(x.weight_kg, unit)} × ${x.reps}`).join(", ")}` : "No earlier sets"}
+                    {last.length ? `Last time: ${last.map((x) => cardio ? `lvl ${x.weight_kg} × ${mmss(x.reps)}` : `${fmt(x.weight_kg, unit)} × ${x.reps}`).join(", ")}` : "No earlier sets"}
                   </p>
                   {rec && <p className={s.sideRec}>Suggested: {fmt(rec.weightKg, unit)} {unit} × {rec.reps}</p>}
                 </div>
