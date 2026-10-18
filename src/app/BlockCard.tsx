@@ -28,10 +28,12 @@ export type BlockActions = {
 };
 
 export function BlockCard({
-  block, bank, dragging, selecting, selected, onToggle, info, actions, unit,
+  block, bank, position, dragging, selecting, selected, onToggle, info, actions, unit,
 }: {
   block: Block;
   bank: boolean;
+  /** 1-based order within the day; absent in the bank, where order means nothing. */
+  position?: number;
   /** True while something else is being dragged, which reveals the superset drop strip. */
   dragging: boolean;
   /** Selection mode (to link cards into a superset): the grip gives way to a checkbox. */
@@ -53,6 +55,16 @@ export function BlockCard({
   const mode = block.weeklyTarget !== null && block.weekdays === null ? "week" : block.weekdays?.length === 7 ? "daily" : "days";
 
   const label = names.join(" and ");
+  // "Chest, Triceps · Barbell" per exercise; a superset joins its exercises with a slash.
+  const meta = block.items
+    .map((i) => {
+      const e = info(i.ref);
+      if (!e) return "";
+      const muscles = [...e.primary, ...e.secondary.slice(0, 2)].map(cap).join(", ");
+      return [muscles, e.equipment && cap(e.equipment)].filter(Boolean).join(" · ");
+    })
+    .filter(Boolean)
+    .join(" / ");
   const multi = block.items.length > 1;
 
   return (
@@ -68,6 +80,8 @@ export function BlockCard({
         else if (!open) setOpen(true);
       }}
     >
+      {!open && meta && <p className={`${s.note} ${s.cardMeta} ${position ? s.hasPos : ""}`}>{meta}</p>}
+
       <div className={s.cardTop}>
         {selecting ? (
           <label className={s.select}>
@@ -85,6 +99,7 @@ export function BlockCard({
           <ul className={s.items}>
             {block.items.map((item, i) => (
               <li key={item.id} className={s.itemName}>
+                {position && <span className={s.pos} aria-hidden="true">{position}{multi ? String.fromCharCode(97 + i) : ""}</span>}
                 <button type="button" className={s.itemLink} onClick={() => actions.onView(item.ref)}>{names[i]}</button>
                 {!open && <span className={s.itemMeta}>{item.repMin}–{item.repMax}</span>}
                 {open && multi && (
@@ -111,7 +126,7 @@ export function BlockCard({
       </div>
 
       {!open && (
-        <p className={`${s.note} ${s.cardNote}`}>
+        <p className={`${s.note} ${s.cardNote} ${position ? s.hasPos : ""}`}>
           {multi ? `${block.sets} rounds` : `${block.sets} sets`} · rest {mmss(block.restS)}
           {bank && block.weeklyTarget !== null && block.weekdays === null ? ` · ${block.weeklyTarget} a week` : ""}
           {bank && block.weekdays && block.weekdays.length < 7 ? ` · ${block.weekdays.map((d) => WEEKDAY_NAMES[d].slice(0, 3)).join(", ")}` : ""}

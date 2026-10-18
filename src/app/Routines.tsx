@@ -269,11 +269,12 @@ export function Routines({ profile }: { profile: Profile }) {
     const cid = containerId(target);
     return (
       <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} ids={blocks.map((b) => b.id)}>
-        {blocks.map((b) => (
+        {blocks.map((b, i) => (
           <BlockCard
             key={b.id}
             block={b}
             bank={target === "bank"}
+            position={target === "bank" ? undefined : i + 1}
             dragging={drag !== null && !keyboardDrag && !(drag.type === "block" && drag.id === b.id)}
             info={info}
             actions={blockActions(b)}

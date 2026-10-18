@@ -311,6 +311,33 @@
   padding-left: 30px;
 }
 
+/* Muscles and equipment mirror it in the upper track, one line. */
+.cardMeta {
+  grid-row: 1;
+  align-self: end;
+  padding-left: 30px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The position badge pushes the name right by its width plus the gap. */
+.hasPos {
+  padding-left: 62px;
+}
+
+.pos {
+  flex: none;
+  width: 24px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: var(--ground);
+  color: var(--ink-muted);
+  font: 600 12px/20px var(--font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;
