@@ -286,7 +286,7 @@
 
 .setRow {
   display: grid;
-  grid-template-columns: minmax(56px, 1fr) minmax(0, 104px) minmax(0, 96px) 40px;
+  grid-template-columns: minmax(56px, 1fr) minmax(0, 80px) minmax(0, 72px) 40px;
   align-items: center;
   gap: 8px;
   margin-top: 4px;
@@ -305,7 +305,18 @@
 
 /* Level box, then the time stepper (two 44px buttons and the time). */
 .cardioRow {
-  grid-template-columns: minmax(48px, 1fr) 80px auto 40px;
+  grid-template-columns: minmax(48px, 1fr) 56px auto 40px;
+}
+
+/* Desktop has room for roomier boxes. */
+@media (min-width: 1024px) {
+  .setRow {
+    grid-template-columns: minmax(56px, 1fr) minmax(0, 104px) minmax(0, 96px) 40px;
+  }
+
+  .cardioRow {
+    grid-template-columns: minmax(48px, 1fr) 80px auto 40px;
+  }
 }
 
 .field {
@@ -681,7 +692,7 @@
 
 /* A warm-up row has one more button: remove. */
 .setRow.warm {
-  grid-template-columns: minmax(56px, 1fr) minmax(0, 104px) minmax(0, 96px) 40px 40px;
+  grid-template-columns: minmax(56px, 1fr) minmax(0, 80px) minmax(0, 72px) 40px 40px;
 }
 
 .removeBtn {
