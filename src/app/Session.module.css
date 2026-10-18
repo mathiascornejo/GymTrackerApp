@@ -317,7 +317,7 @@
 .unit {
   position: absolute;
   right: 7px;
-  bottom: 3px;
+  bottom: 2px;
   font-size: 9px;
   line-height: 10px;
   color: var(--ink-muted);
@@ -342,9 +342,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The number rides above the corner unit, so a long value never runs under it. */
+/* Number stays centred; the small unit sits in the corner below its baseline, so a long value never touches it. */
 .field .num {
-  padding-bottom: 11px;
+  padding-bottom: 0;
 }
 
 .num::placeholder {
