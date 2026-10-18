@@ -10,7 +10,7 @@
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -80px -100vmax 0;
+  inset: -12px -100vmax 0;
   background: var(--ground);
 }
 

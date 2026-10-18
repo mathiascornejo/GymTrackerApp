@@ -26,7 +26,7 @@
 }
 
 /* Overview, day tabs and day header are one sticky block, so they can never overlap each other.
-   Its backdrop reaches past the block on top and both sides, so nothing scrolling shows around it. */
+   Its backdrop reaches past the block on both sides and 12px above (under the app header, but less than the 16px margin, so it never covers the routine picker), so nothing scrolling shows around it. */
 .sticky {
   position: sticky;
   top: calc(env(safe-area-inset-top) + var(--header-h));
@@ -40,7 +40,7 @@
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -80px -100vmax 0;
+  inset: -12px -100vmax 0;
   background: var(--ground);
 }
 
