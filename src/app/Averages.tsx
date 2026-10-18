@@ -2,9 +2,9 @@ import { averageOver } from "../ranking/stats";
 import s from "./Averages.module.css";
 
 const PERIODS = [
-  { label: "Past week", days: 7 },
-  { label: "Past month", days: 30 },
-  { label: "Past year", days: 365 },
+  { label: "Past 7 days", days: 7 },
+  { label: "Past 30 days", days: 30 },
+  { label: "Past 365 days", days: 365 },
 ] as const;
 
 /** Mean of the entries in the last week, month (30 days) and year, ending today. A period with no entries shows a dash. */
