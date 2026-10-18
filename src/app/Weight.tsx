@@ -34,52 +34,54 @@ export function Weight({ profile }: { profile: Profile }) {
   };
 
   return (
-    <div className={s.page}>
-      <section aria-label="Bodyweight trend" className={`${s.section} ${s.wide}`}>
-        <h2 className={s.h2}>Trend</h2>
-        {entries.length > 0 ? (
-          <LineChart points={points} unit={unit} label="Bodyweight" average={points.length >= 3 ? movingAverage(points) : undefined} />
-        ) : (
-          <p className={f.note}>No weights yet. Add one to start the trend.</p>
-        )}
-        <form onSubmit={add} className={s.inline}>
-          <label>
-            <span className={s.visuallyHidden}>Add bodyweight ({unit})</span>
-            <input className={f.input} inputMode="decimal" placeholder="Today's weight" value={value} onChange={(e) => setValue(e.target.value)} />
-          </label>
-          <button className={f.button} type="submit" disabled={actions.addBodyweight.isPending}>Add weight</button>
-        </form>
-        {(actions.addBodyweight.error || actions.deleteBodyweight.error) && (
-          <p className={f.error} role="alert">{(actions.addBodyweight.error ?? actions.deleteBodyweight.error)!.message}</p>
-        )}
-      </section>
+    <>
+      <div className={w.fit}>
+        <section aria-label="Bodyweight trend" className={`${s.section} ${s.wide}`}>
+          <h2 className={s.h2}>Trend</h2>
+          {entries.length > 0 ? (
+            <LineChart points={points} unit={unit} label="Bodyweight" average={points.length >= 3 ? movingAverage(points) : undefined} />
+          ) : (
+            <p className={f.note}>No weights yet. Add one to start the trend.</p>
+          )}
+          <form onSubmit={add} className={s.inline}>
+            <label>
+              <span className={s.visuallyHidden}>Add bodyweight ({unit})</span>
+              <input className={f.input} inputMode="decimal" placeholder="Today's weight" value={value} onChange={(e) => setValue(e.target.value)} />
+            </label>
+            <button className={f.button} type="submit" disabled={actions.addBodyweight.isPending}>Add weight</button>
+          </form>
+          {(actions.addBodyweight.error || actions.deleteBodyweight.error) && (
+            <p className={f.error} role="alert">{(actions.addBodyweight.error ?? actions.deleteBodyweight.error)!.message}</p>
+          )}
+        </section>
 
-      <section aria-label="Weight log" className={`${s.section} ${s.wide}`}>
-        <h2 className={s.h2}>Log</h2>
-        {entries.length === 0 ? (
-          <p className={f.note}>Nothing logged yet.</p>
-        ) : (
-          <ul className={w.list}>
-            {[...entries].reverse().map((b) => {
-              const date = new Date(`${b.measured_on}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
-              return (
-                <li key={b.id}>
-                  <span>{date}</span>
-                  <span className={w.value}>{fromKg(b.weight_kg, unit)} {unit}</span>
-                  <button
-                    className={f.iconBtn}
-                    aria-label={`Delete weight from ${date}`}
-                    disabled={actions.deleteBodyweight.isPending}
-                    onClick={() => setDeleting({ id: b.id, date, text: `${fromKg(b.weight_kg, unit)} ${unit}` })}
-                  >
-                    <TrashIcon />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+        <section aria-label="Weight log" className={`${s.section} ${w.logCard}`}>
+          <h2 className={s.h2}>Log</h2>
+          {entries.length === 0 ? (
+            <p className={f.note}>Nothing logged yet.</p>
+          ) : (
+            <ul className={w.list}>
+              {[...entries].reverse().map((b) => {
+                const date = new Date(`${b.measured_on}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+                return (
+                  <li key={b.id}>
+                    <span>{date}</span>
+                    <span className={w.value}>{fromKg(b.weight_kg, unit)} {unit}</span>
+                    <button
+                      className={f.iconBtn}
+                      aria-label={`Delete weight from ${date}`}
+                      disabled={actions.deleteBodyweight.isPending}
+                      onClick={() => setDeleting({ id: b.id, date, text: `${fromKg(b.weight_kg, unit)} ${unit}` })}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      </div>
       <ConfirmSheet
         open={deleting !== null}
         title="Delete this weight?"
@@ -92,6 +94,6 @@ export function Weight({ profile }: { profile: Profile }) {
           setDeleting(null);
         }}
       />
-    </div>
+    </>
   );
 }

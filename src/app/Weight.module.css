@@ -1,3 +1,30 @@
+.fit {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: var(--fit-h);
+  max-width: var(--content-w);
+  margin: 0 auto;
+}
+
+/* The trend stays put; only the log's entries scroll. */
+.fit > :not(.logCard) {
+  flex: none;
+}
+
+.logCard {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 160px;
+}
+
+.logCard .list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .list {
   margin: 0;
   padding: 0;

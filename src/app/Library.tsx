@@ -65,7 +65,7 @@ export function Library({ profile }: { profile: Profile }) {
       <div className={s.controls}>
         <label className={s.search}>
           <span className={s.visuallyHidden}>Search exercises</span>
-          <input className={f.input} type="search" placeholder="Search exercises" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input className={f.input} type="search" placeholder={dataset.isPending ? "Search exercises" : `Search ${resultCount} ${resultCount === 1 ? "exercise" : "exercises"}`} value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
         <button className={f.quiet} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
           {activeFilters ? `Filters (${activeFilters})` : "Filters"}
@@ -91,7 +91,7 @@ export function Library({ profile }: { profile: Profile }) {
       )}
 
       {custom.error && <p className={f.note}>Your custom exercises could not be loaded: {custom.error.message}</p>}
-      <p className={f.note} aria-live="polite" style={{ margin: "8px 0" }}>
+      <p className={s.visuallyHidden} aria-live="polite">
         {dataset.isPending ? "Loading exercises" : `${resultCount} ${resultCount === 1 ? "exercise" : "exercises"}`}
       </p>
 

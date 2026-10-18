@@ -14,8 +14,25 @@
 
 /* Start screen: one column on phone; on desktop the plan sits beside the controls. */
 .startPage {
+  display: flex;
+  flex-direction: column;
+  height: var(--fit-h);
   max-width: 560px;
   margin-inline: auto;
+}
+
+/* The start panel stays put; only the list of past sessions scrolls. */
+.pastSection {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.pastScroll {
+  flex: 1;
+  min-height: 160px;
+  overflow-y: auto;
 }
 
 @media (min-width: 1024px) {

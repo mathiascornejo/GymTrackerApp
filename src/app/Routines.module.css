@@ -520,6 +520,9 @@
 }
 
 .overview {
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + var(--header-h));
+  z-index: 4;
   margin: 16px 0 0;
   padding: 16px 16px 18px;
   background: var(--surface);
@@ -697,6 +700,11 @@
 
 .mostWork {
   margin: 14px 0 0;
+  text-align: center;
+}
+
+.savedNote {
+  margin: 6px 0 0;
   text-align: center;
 }
 

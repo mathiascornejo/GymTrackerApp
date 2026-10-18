@@ -115,13 +115,15 @@ export function PastSessions({ unit, info }: { unit: Unit; info: (ref: string) =
   if (past.isPending) return null;
   if (past.error) return <p className={f.error} role="alert">Could not load past sessions: {past.error.message}</p>;
   return (
-    <section aria-label="Past sessions">
+    <section aria-label="Past sessions" className={s.pastSection}>
       <h2 className={f.groupTitle}>Past sessions</h2>
-      {past.data.length === 0 ? (
-        <p className={f.note}>Finished sessions appear here, and you can correct any set.</p>
-      ) : (
-        past.data.map((p) => <PastItem key={p.session.id} past={p} unit={unit} info={info} />)
-      )}
+      <div className={s.pastScroll}>
+        {past.data.length === 0 ? (
+          <p className={f.note}>Finished sessions appear here, and you can correct any set.</p>
+        ) : (
+          past.data.map((p) => <PastItem key={p.session.id} past={p} unit={unit} info={info} />)
+        )}
+      </div>
     </section>
   );
 }

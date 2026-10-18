@@ -46,6 +46,8 @@
 }
 
 .main {
+  /* The space left for a screen that must not scroll the page: the viewport minus header, tab bar and padding. */
+  --fit-h: calc(100dvh - env(safe-area-inset-top) - var(--header-h) - 8px - var(--tabbar-h) - env(safe-area-inset-bottom) - 24px);
   max-width: var(--content-w);
   margin: 0 auto;
   padding-top: 8px;
@@ -74,6 +76,10 @@
 @media (min-width: 1024px) {
   .header {
     top: 0;
+  }
+
+  .main {
+    --fit-h: calc(100dvh - var(--header-h) - 8px - 24px);
   }
 
   /* The nav tray is pinned to the left edge, so the page keeps clear of it on both sides. */

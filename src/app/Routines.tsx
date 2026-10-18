@@ -334,7 +334,6 @@ export function Routines({ profile }: { profile: Profile }) {
         }}
       />
 
-      <p className={f.note} role="status" style={{ margin: "8px 0 0" }}>{actions.saving ? "Saving…" : "All changes saved"}</p>
       {actions.error && <p className={f.error} role="alert">Could not save your changes: {actions.error.message}. The routine was reloaded from your account.</p>}
       {importErrors.length > 0 && (
         <div className={f.error} role="alert">
@@ -376,6 +375,7 @@ export function Routines({ profile }: { profile: Profile }) {
             <div><dt>Sets per week</dt><dd>{stats!.weeklySets}</dd></div>
           </dl>
           {volume.length > 0 && <p className={`${f.note} ${s.mostWork}`}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
+          <p className={`${f.note} ${s.savedNote}`} role="status">{actions.saving ? "Saving…" : "All changes saved"}</p>
         </section>
       )}
 
