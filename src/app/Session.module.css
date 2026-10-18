@@ -72,10 +72,6 @@
   overflow-y: auto;
 }
 
-.startPlan li:last-child {
-  border-bottom: 0;
-}
-
 @media (hover: none) and (pointer: coarse) {
   .startPlan {
     padding-right: 14px;
@@ -84,10 +80,15 @@
 
 .startPlan li {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--hairline);
+  min-height: 52px;
+  margin-bottom: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-list);
+  background: var(--surface);
 }
 
 .startPlanMeta {
