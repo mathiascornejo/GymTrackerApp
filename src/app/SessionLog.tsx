@@ -60,7 +60,7 @@ function useWakeLock(enabled: boolean) {
 
 type RowProps = {
   label: string;
-  /** Visible label on its own line above the inputs (superset rows); `label` stays the accessible name. */
+  /** Visible label for superset rows, in place of `label`, which stays the accessible name. */
   name?: string;
   dataSlot: string;
   done: SetRow | undefined;
@@ -80,26 +80,27 @@ function SetLine({ label, name, dataSlot, done, input, ghost, unit, warm, pr, er
   const w = done ? fmt(done.weight_kg, unit) : input.w;
   const r = done ? String(done.reps) : input.r;
   return (
-    <div className={`${s.setRow} ${done ? s.setDone : ""} ${warm ? s.warm : ""} ${name ? s.named : ""}`} data-slot={dataSlot}>
+    <div className={`${s.setRow} ${done ? s.setDone : ""} ${warm ? s.warm : ""}`} data-slot={dataSlot}>
       <span className={s.setLabel}>
         {name ?? label}{pr && <span className={s.prBadge} title="Personal best estimated 1RM">PR</span>}
-        {ghost && !done && <span className={s.lastHint}>Last: {fmt(ghost.weight_kg, unit)} × {ghost.reps}</span>}
       </span>
-      <label>
+      <label className={s.field}>
         <span className={s.visuallyHidden}>{label} weight ({unit})</span>
         <input
           className={s.num} inputMode="decimal" autoComplete="off" disabled={Boolean(done)} value={w}
-          placeholder={ghost ? fmt(ghost.weight_kg, unit) : unit} onChange={(e) => onChange({ ...input, w: e.target.value.replace(",", ".") })}
+          placeholder={ghost ? fmt(ghost.weight_kg, unit) : undefined} onChange={(e) => onChange({ ...input, w: e.target.value.replace(",", ".") })}
           name="weight"
         />
+        <span className={s.unit} aria-hidden="true">{unit}</span>
       </label>
-      <label>
+      <label className={s.field}>
         <span className={s.visuallyHidden}>{label} reps</span>
         <input
           className={s.num} inputMode="numeric" autoComplete="off" disabled={Boolean(done)} value={r}
-          placeholder={ghost ? String(ghost.reps) : "reps"} onChange={(e) => onChange({ ...input, r: e.target.value.replace(/\D/g, "") })}
+          placeholder={ghost ? String(ghost.reps) : undefined} onChange={(e) => onChange({ ...input, r: e.target.value.replace(/\D/g, "") })}
           name="reps"
         />
+        <span className={s.unit} aria-hidden="true">reps</span>
       </label>
       <button
         type="button" className={`${s.doneBtn} ${done ? s.doneOn : ""}`} aria-pressed={Boolean(done)}

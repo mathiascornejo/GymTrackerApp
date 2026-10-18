@@ -293,36 +293,30 @@
 }
 
 .setLabel {
+  /* Centred on the inputs' row; long names wrap and stay left. */
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 15px;
   line-height: 20px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 
-/* Superset rows: the exercise name gets its own line; inputs keep their columns below it. */
-.named .setLabel {
-  grid-column: 1 / -1;
-  white-space: nowrap;
-  margin-bottom: -4px;
-}
-
-.named > label:first-of-type {
-  grid-column: 2;
-}
-
-.lastHint {
+.field {
+  position: relative;
   display: block;
-  font-size: 13px;
-  line-height: 16px;
-  color: var(--ink-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.named .lastHint {
-  display: inline;
-  margin-left: 8px;
+/* Small unit in the bottom right corner of the box. */
+.unit {
+  position: absolute;
+  right: 7px;
+  bottom: 3px;
+  font-size: 10px;
+  line-height: 12px;
+  color: var(--ink-muted);
+  pointer-events: none;
 }
 
 .warm .setLabel {
