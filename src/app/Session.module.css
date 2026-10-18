@@ -17,38 +17,14 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: var(--fit-h);
   max-width: 560px;
   margin-inline: auto;
 }
 
-/* The start panel stays put; only the list of past sessions scrolls. A long plan scrolls inside its own box so past sessions keep at least a third of the screen. */
+/* Nothing is pinned or scrolls on its own: the whole tab scrolls. */
 .start {
   display: flex;
-  flex: 0 1 auto;
   flex-direction: column;
-  min-height: 0;
-}
-
-.pastSection {
-  display: flex;
-  flex: 1 0 33.333%;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.pastScroll {
-  flex: 1;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-/* Touch: the bar is drawn inside the box (touchScrollbars.ts), so leave it room. */
-@media (hover: none) and (pointer: coarse) {
-  .pastScroll {
-    padding-right: 14px;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -69,31 +45,16 @@
   margin-bottom: 4px;
 }
 
-/* Lines the label up with the text inside the menu. */
-.startFieldLabel {
-  padding-left: 13px;
-}
-
 .startPlan {
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
   font-size: 15px;
-  flex: 1 1 auto;
-  min-height: 88px;
-  overflow-x: hidden;
-  overflow-y: auto;
 }
 
-/* Rest day: no list, so no reserved height or margin between the day picker and the buttons. */
+/* Rest day: no list, so no margin between the day picker and the buttons. */
 .startPlan:empty {
   display: none;
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .startPlan {
-    padding-right: 14px;
-  }
 }
 
 .startPlan li {

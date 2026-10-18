@@ -41,7 +41,7 @@ function StartPanel({ routine, info }: { routine: Routine | null; info: (ref: st
         <>
           <p className={f.lead}>Active routine: {routine.name}</p>
           <label className={s.startField}>
-            <span className={s.startFieldLabel}>Day</span>
+            Day
             <select className={f.input} value={day} onChange={(e) => setDay(Number(e.target.value))}>
               {routine.days.map((d) => {
                 const n = d.blocks.length;
