@@ -25,8 +25,7 @@ export function applyFilters(list: Exercise[], f: Filters): Exercise[] {
 /** Every query word must appear in the name, primary muscles or equipment. Name-prefix matches rank first. */
 export function search(list: Exercise[], query: string): Exercise[] {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const byCommon = (a: Exercise, b: Exercise) => commonness(a) - commonness(b) || a.name.localeCompare(b.name);
-  if (!words.length) return [...list].sort(byCommon);
+  if (!words.length) return list;
   const scored: [number, Exercise][] = [];
   for (const e of list) {
     const name = e.name.toLowerCase();
@@ -35,7 +34,7 @@ export function search(list: Exercise[], query: string): Exercise[] {
     const score = name.startsWith(words[0]) ? 0 : name.split(/[\s-]+/).some((t) => t.startsWith(words[0])) ? 1 : 2;
     scored.push([score, e]);
   }
-  return scored.sort((a, b) => a[0] - b[0] || byCommon(a[1], b[1])).map(([, e]) => e);
+  return scored.sort((a, b) => a[0] - b[0] || commonness(a[1]) - commonness(b[1]) || a[1].name.localeCompare(b[1].name)).map(([, e]) => e);
 }
 
 /** Grouped by primary muscle when browsing; a flat relevance list when searching. */

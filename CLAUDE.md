@@ -28,8 +28,6 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 - Weekdays are 0 = Sunday. Bank blocks are blocks with `routine_day_id = null`; bank schedule is `weekdays` (daily = all seven) or `weeklyTarget`.
 - Superset strips and keyboard drags: keyboard drags hide the strips because Arrow keys would target them. dnd-kit needs about 400 ms after pick-up before Arrow keys register (tests wait for it).
 
-- Builder drags: the day chips are sticky, so they are tested against the real pointer (`pointer` in `Routines.tsx`), because dnd-kit shifts its pointer by page scroll. dnd-kit swallows clicks for 50 ms after a drop, so e2e tests wait ~100 ms before clicking Undo or a chip. A superset needs a 600 ms hold over a card's middle; releasing over nothing cancels.
-
 ## Sessions
 - Completed sets go through an outbox (`src/data/sessions.ts`): written to localStorage first, then sent in order with backoff. Never write `session_sets` directly from a component. A rejected set (server error code) is dropped and surfaced; a network failure is kept and retried.
 - Typed-but-unlogged values, extra rounds, warm-ups, skips and ad hoc exercises live in a per-session draft (`src/session/draft.ts`). A logged set is a `session_sets` row; planned sets exist only in the UI.

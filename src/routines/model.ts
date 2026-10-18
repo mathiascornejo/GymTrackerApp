@@ -200,12 +200,6 @@ export function routineStats(r: Routine) {
   };
 }
 
-/** "1 training day · 5 exercises · 15 sets a week" */
-export function statsLine(st: ReturnType<typeof routineStats>) {
-  const n = (v: number, one: string, many: string) => `${v} ${v === 1 ? one : many}`;
-  return [n(st.trainingDays, "training day", "training days"), n(st.exercises, "exercise", "exercises"), n(st.weeklySets, "set a week", "sets a week")].join(" · ");
-}
-
 export type PairNote = "push-pull" | "same-muscle" | null;
 
 export function pairNote(b: Block, info: (ref: string) => { force: string | null; primary: string[] } | undefined): PairNote {
