@@ -30,11 +30,6 @@
   gap: 4px;
   margin: 16px 0 8px;
   overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.pager::-webkit-scrollbar {
-  display: none;
 }
 
 .pagerBtn {
