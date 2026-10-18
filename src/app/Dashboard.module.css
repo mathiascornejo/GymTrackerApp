@@ -320,6 +320,10 @@
   background: var(--surface);
 }
 
+.prompt > a {
+  margin-top: 12px;
+}
+
 .promptTitle {
   margin: 0 0 4px;
   font: 600 17px/22px var(--font-ui);

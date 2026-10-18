@@ -109,7 +109,7 @@ select.input {
 
 .stack label {
   display: grid;
-  gap: 4px;
+  gap: 8px;
   font-size: 15px;
   line-height: 20px;
 }
@@ -311,6 +311,11 @@ select.input {
 
 details[open] > .summary::after {
   transform: rotate(180deg);
+}
+
+/* Room for the focus ring between the open summary and the text under it. */
+details[open] > .summary {
+  margin-bottom: 12px;
 }
 
 details[open] > .summary {

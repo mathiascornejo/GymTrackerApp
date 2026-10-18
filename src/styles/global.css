@@ -38,6 +38,12 @@ body {
   }
 }
 
+/* A field's label sits clear of the control, so the focus ring never touches the words. :where keeps it a default: any class rule wins. */
+label:where(:has(> input:not([type="checkbox"], [type="radio"]), > select, > textarea)) {
+  display: grid;
+  gap: 8px;
+}
+
 a {
   color: var(--accent);
 }

@@ -60,7 +60,7 @@
 
 .filters label {
   display: grid;
-  gap: 4px;
+  gap: 8px;
 }
 
 /* Rows are absolutely positioned by the window virtualizer. */
@@ -282,7 +282,7 @@ img.thumb {
 
 .form label {
   display: grid;
-  gap: 4px;
+  gap: 8px;
 }
 
 .chips {

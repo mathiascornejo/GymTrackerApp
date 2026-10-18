@@ -22,7 +22,7 @@
   display: grid;
   flex: 1;
   min-width: 0;
-  gap: 4px;
+  gap: 8px;
 }
 
 /* Overview, day tabs and day header are one sticky block, so they can never overlap each other.
@@ -118,7 +118,7 @@
 .columnHead {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
   padding: 0 4px 12px;
   font: 700 22px/28px var(--font-display);
   letter-spacing: -0.01em;
@@ -340,7 +340,7 @@
 .schedule label,
 .cardFoot label {
   display: grid;
-  gap: 4px;
+  gap: 8px;
 }
 
 .schedule select,
@@ -676,6 +676,11 @@
   background: transparent;
   color: var(--ink-muted);
   cursor: pointer;
+}
+
+/* The 44px hit area overlaps the text beside it, so the ring stays inside it. */
+.pencil:focus-visible {
+  outline-offset: -4px;
 }
 
 /* Native selects draw their arrow hard against the edge; draw it ourselves with room to spare. */
