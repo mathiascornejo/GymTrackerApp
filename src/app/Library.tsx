@@ -18,6 +18,8 @@ const LABELS: Record<(typeof FILTERS)[number], string> = {
   equipment: "Equipment",
 };
 
+const FILTERS_OPEN_KEY = "tempered.library.filtersOpen";
+
 const HEADER_H = 34; // matches .header in Library.module.css
 const FADE_H = 10; // clear space under the title where rows fade out beneath a pinned title
 const GAP_H = 16; // space above every category title except the first
@@ -32,7 +34,20 @@ export function Library({ profile }: { profile: Profile }) {
 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>({});
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(() => {
+    try {
+      return localStorage.getItem(FILTERS_OPEN_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleFilters = () => {
+    const next = !showFilters;
+    setShowFilters(next);
+    try {
+      localStorage.setItem(FILTERS_OPEN_KEY, next ? "1" : "0");
+    } catch {} // private mode: the menu still works, it just forgets
+  };
   const [editing, setEditing] = useState<Exercise | "new" | null>(null);
 
   const all = useMemo(() => [...(dataset.data ?? []), ...(custom.data ?? [])], [dataset.data, custom.data]);
@@ -92,7 +107,7 @@ export function Library({ profile }: { profile: Profile }) {
           <span className={s.visuallyHidden}>Search exercises</span>
           <input className={f.input} type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
-        <button className={`${f.quiet} ${s.filtersBtn}`} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
+        <button className={`${f.quiet} ${s.filtersBtn}`} aria-expanded={showFilters} onClick={toggleFilters}>
           {activeFilters ? `Filters (${activeFilters})` : "Filters"}
         </button>
         <button className={`${f.button} ${s.newExercise}`} onClick={() => setEditing("new")}>New exercise</button>
