@@ -93,6 +93,11 @@
   color: var(--ink-muted);
 }
 
+.header .pinLabel {
+  font: inherit;
+  color: inherit;
+}
+
 .headerFirst {
   padding-bottom: 8px;
 }

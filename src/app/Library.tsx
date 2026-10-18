@@ -20,6 +20,8 @@ const LABELS: Record<(typeof FILTERS)[number], string> = {
 };
 
 const PINNED_H = 40; // matches .pinned in Library.module.css
+// The first header has no gap above it and is the same size as the pinned bar, so it never moves before the bar takes over.
+const rowSize = (rows: { type: string }[], i: number) => (rows[i].type === "header" ? (i === 0 ? PINNED_H : 56) : 68);
 const href = (ref: string) => `#/library/${encodeURIComponent(ref)}`;
 
 export function Library({ profile }: { profile: Profile }) {
@@ -44,35 +46,53 @@ export function Library({ profile }: { profile: Profile }) {
   const listRef = useRef<HTMLDivElement>(null);
   const virtual = useWindowVirtualizer({
     count: rows.length,
-    // The first header has no gap above it and is the same size as the pinned bar, so it never moves before the bar takes over.
-    estimateSize: (i) => (rows[i].type === "header" ? (i === 0 ? 40 : 56) : 68),
+    estimateSize: (i) => rowSize(rows, i),
     overscan: 8,
     scrollMargin: listRef.current?.offsetTop ?? 0,
   });
 
-  // The category label stays pinned under the controls; it swaps when the next header reaches it.
+  // The pinned category bar is driven straight from scroll events (never through React state, which lags behind a fast scroll): the current header's label shows at the controls, and the next one pushes it up under them until it takes over.
+  // Rows are fixed-size, so every header's offset in the list is known without measuring.
   const pinRef = useRef<HTMLDivElement>(null);
-  const headerIdx = useMemo(() => rows.flatMap((r, i) => (r.type === "header" ? [i] : [])), [rows]);
-  // Later header rows are 16px taller than the pinned bar (the gap above their label), so swap once the label reaches the bar's top: until then it hides under the bar.
-  const pinBottom = (pinRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY;
-  const passed = headerIdx.filter((i) => (virtual.measurementsCache[i]?.start ?? Infinity) <= pinBottom - (i === 0 ? 0 : 16)).pop();
-  const pinnedRow = passed === undefined ? undefined : rows[passed];
-  // The next header's label pushes the pinned bar up (under the controls) until it takes its place. The offset is written straight to the DOM on every scroll event, not through React state, so it never lags a frame behind the page.
   const pinnedRef = useRef<HTMLDivElement>(null);
-  const nextStart = useRef(Infinity);
-  const nextHeader = passed === undefined ? undefined : headerIdx.find((i) => i > passed);
-  nextStart.current = nextHeader === undefined ? Infinity : (virtual.measurementsCache[nextHeader]?.start ?? Infinity);
-  const applyPush = () => {
+  const pinLabel = useRef<HTMLSpanElement>(null);
+  const pinCount = useRef<HTMLSpanElement>(null);
+  const headers = useMemo(() => {
+    let off = 0;
+    const out: { off: number; label: string; count: number }[] = [];
+    rows.forEach((r, i) => {
+      if (r.type === "header") out.push({ off, label: cap(r.label), count: r.count });
+      off += rowSize(rows, i);
+    });
+    return out;
+  }, [rows]);
+  const applyPin = () => {
     const el = pinnedRef.current;
-    if (!el || !pinRef.current) return;
-    const push = Math.max(-PINNED_H, Math.min(0, nextStart.current - window.scrollY + 16 - (pinRef.current.getBoundingClientRect().bottom + PINNED_H)));
+    if (!el || !pinRef.current || !listRef.current) return;
+    const bar = pinRef.current.getBoundingClientRect().bottom;
+    const listTop = listRef.current.getBoundingClientRect().top;
+    // Later header rows are 16px taller than the bar (the gap above their label), so they take over once the label reaches the bar's top.
+    const at = (h: number) => listTop + headers[h].off + (h === 0 ? 0 : 16);
+    let cur = -1;
+    while (cur + 1 < headers.length && at(cur + 1) <= bar) cur++;
+    el.style.visibility = cur < 0 ? "hidden" : "visible";
+    if (cur < 0) return;
+    if (el.dataset.i !== String(cur)) {
+      el.dataset.i = String(cur);
+      pinLabel.current!.textContent = headers[cur].label;
+      pinCount.current!.textContent = String(headers[cur].count);
+    }
+    const push = cur + 1 < headers.length ? Math.max(-PINNED_H, Math.min(0, at(cur + 1) - bar - PINNED_H)) : 0;
     el.style.transform = `translateY(${push}px)`;
     el.toggleAttribute("data-pushed", push < 0);
   };
-  useLayoutEffect(applyPush);
+  useLayoutEffect(() => {
+    delete pinnedRef.current?.dataset.i; // the rows changed: refill the label
+    applyPin();
+  });
   useEffect(() => {
-    window.addEventListener("scroll", applyPush, { passive: true });
-    return () => window.removeEventListener("scroll", applyPush);
+    window.addEventListener("scroll", applyPin, { passive: true });
+    return () => window.removeEventListener("scroll", applyPin);
   });
 
   const selected = arg ? all.find((e) => e.ref === arg) : undefined;
@@ -100,9 +120,9 @@ export function Library({ profile }: { profile: Profile }) {
         </button>
         <button className={f.quiet} onClick={() => setEditing("new")}>New exercise</button>
       </div>
-      {pinnedRow?.type === "header" && (
-        <div ref={pinnedRef} className={`${s.header} ${s.pinned}`} aria-hidden="true">
-          {cap(pinnedRow.label)} <span>{pinnedRow.count}</span>
+      {headers.length > 0 && (
+        <div ref={pinnedRef} className={`${s.header} ${s.pinned}`} style={{ visibility: "hidden" }} aria-hidden="true">
+          <span ref={pinLabel} className={s.pinLabel} /> <span ref={pinCount} />
         </div>
       )}
       </div>
