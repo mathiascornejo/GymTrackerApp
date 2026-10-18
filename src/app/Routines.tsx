@@ -46,15 +46,11 @@ const collide: CollisionDetection = (args) => {
 
 type Drag = { type: "pick"; ref: string } | { type: "block"; id: string };
 
-function Column({ target, label, title, children, ids, action }: { target: Target; label: string; title: React.ReactNode; children: React.ReactNode; ids: string[]; action?: React.ReactNode }) {
+function Column({ target, label, children, ids }: { target: Target; label: string; children: React.ReactNode; ids: string[] }) {
   const id = containerId(target);
   const drop = useDroppable({ id });
   return (
     <section ref={drop.setNodeRef} className={`${s.column} ${drop.isOver ? s.columnOver : ""}`} aria-label={label}>
-      <div className={s.columnTop}>
-        <div className={s.columnHead}>{title}</div>
-        {action && <div className={s.columnActions}>{action}</div>}
-      </div>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <div className={s.columnBody}>{children}</div>
       </SortableContext>
@@ -112,18 +108,6 @@ export function Routines({ profile }: { profile: Profile }) {
   const [draft, setDraft] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
-  // The day tabs and the day header stick below the overview, so they need its current height.
-  const overviewRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const el = overviewRef.current;
-    if (!el) return;
-    const root = el.parentElement!;
-    const sync = () => root.style.setProperty("--overview-h", `${el.offsetHeight}px`);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [routine?.id]);
   const openNaming = (mode: "new" | "rename" | { day: number }) => {
     setDraft(mode === "new" ? "" : mode === "rename" ? routine?.name ?? "" : routine?.days.find((d) => d.weekday === mode.day)?.label ?? "");
     setNaming(mode);
@@ -240,10 +224,9 @@ export function Routines({ profile }: { profile: Profile }) {
     setPickedId(actions.addImported(out.routine));
   };
 
-  const renderColumn = (target: Target) => {
+  const renderHeader = (target: Target) => {
     if (!routine) return null;
     const blocks = containerBlocks(routine, target);
-    const cid = containerId(target);
     const day = target === "bank" ? null : routine.days.find((d) => d.weekday === target.day)!;
     const title =
       target === "bank" ? (
@@ -268,13 +251,24 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       );
     return (
-      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)}
-        action={selecting ? undefined : (
-          <>
+      <div className={s.columnTop}>
+        <div className={s.columnHead}>{title}</div>
+        {!selecting && (
+          <div className={s.columnActions}>
             {blocks.length >= 2 && <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button>}
             <button className={f.button} onClick={() => setPickerOpen(true)}>Add exercise</button>
-          </>
-        )}>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderColumn = (target: Target) => {
+    if (!routine) return null;
+    const blocks = containerBlocks(routine, target);
+    const cid = containerId(target);
+    return (
+      <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} ids={blocks.map((b) => b.id)}>
         {blocks.map((b) => (
           <BlockCard
             key={b.id}
@@ -354,43 +348,6 @@ export function Routines({ profile }: { profile: Profile }) {
         </div>
       )}
 
-      {routine && (
-        <section ref={overviewRef} className={s.overview} aria-label="Routine overview">
-          <div className={s.overviewHead}>
-            <h2 className={s.overviewName}>
-              {routine.name}
-              <button className={s.pencil} aria-label="Rename routine" onClick={() => openNaming("rename")}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                </svg>
-              </button>
-              {routine.isActive && <span className={s.badge}>Active</span>}
-              {routine.archivedAt && <span className={s.badge}>Archived</span>}
-            </h2>
-            <MoreMenu
-              label="More"
-              items={[
-                { label: "Duplicate", onSelect: () => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`))) },
-                { label: "Export JSON", onSelect: exportJson },
-                { label: "Import JSON", onSelect: () => fileInput.current?.click() },
-                { label: "Delete routine", onSelect: () => setConfirmDelete(true), destructive: true },
-              ]}
-            />
-          </div>
-          {!routine.isActive && !routine.archivedAt && (
-            <button className={`${f.quiet} ${s.makeActive}`} onClick={() => actions.setActive(routine.id)}>Make active</button>
-          )}
-          <dl className={s.stats}>
-            <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
-            <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>
-            <div><dt>Sets per week</dt><dd>{stats!.weeklySets}</dd></div>
-          </dl>
-          {volume.length > 0 && <p className={`${f.note} ${s.mostWork}`}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
-          <p className={`${f.note} ${s.savedNote}`} role="status">{actions.saving ? "Saving…" : "All changes saved"}</p>
-        </section>
-      )}
-
       {!routine ? (
         <>
           <p className={f.lead}>Create a routine to plan your week, or import one from a JSON file.</p>
@@ -398,6 +355,42 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       ) : (
         <DndContext sensors={sensors} collisionDetection={collide} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDrag(null)}>
+          <div className={s.sticky}>
+          <section className={s.overview} aria-label="Routine overview">
+            <div className={s.overviewHead}>
+              <h2 className={s.overviewName}>
+                {routine.name}
+                <button className={s.pencil} aria-label="Rename routine" onClick={() => openNaming("rename")}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                </button>
+                {routine.isActive && <span className={s.badge}>Active</span>}
+                {routine.archivedAt && <span className={s.badge}>Archived</span>}
+              </h2>
+              <MoreMenu
+                label="More"
+                items={[
+                  { label: "Duplicate", onSelect: () => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`))) },
+                  { label: "Export JSON", onSelect: exportJson },
+                  { label: "Import JSON", onSelect: () => fileInput.current?.click() },
+                  { label: "Delete routine", onSelect: () => setConfirmDelete(true), destructive: true },
+                ]}
+              />
+            </div>
+            {!routine.isActive && !routine.archivedAt && (
+              <button className={`${f.quiet} ${s.makeActive}`} onClick={() => actions.setActive(routine.id)}>Make active</button>
+            )}
+            <dl className={s.stats}>
+              <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
+              <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>
+              <div><dt>Sets per week</dt><dd>{stats!.weeklySets}</dd></div>
+            </dl>
+            {volume.length > 0 && <p className={`${f.note} ${s.mostWork}`}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
+            <p className={`${f.note} ${s.savedNote}`} role="status">{actions.saving ? "Saving…" : "All changes saved"}</p>
+          </section>
+      
           <div className={s.pager} role="tablist" aria-label="Day">
             {[...order, "bank" as const].map((d) => (
               <DayButton
@@ -409,6 +402,8 @@ export function Routines({ profile }: { profile: Profile }) {
                 onSelect={() => setPageDay(d)}
               />
             ))}
+          </div>
+          {renderHeader(pageDay === "bank" ? "bank" : { day: pageDay })}
           </div>
 
           <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>

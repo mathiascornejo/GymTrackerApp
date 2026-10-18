@@ -2,6 +2,16 @@
   position: sticky;
   top: calc(env(safe-area-inset-top) + var(--header-h)); /* just under the pinned page header */
   z-index: 4;
+  isolation: isolate;
+}
+
+/* A ground backdrop wider than the pinned row, so nothing scrolling shows beside or above it. */
+.pin::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -80px -100vmax 0;
+  background: var(--ground);
 }
 
 .controls {

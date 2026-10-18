@@ -25,18 +25,31 @@
   gap: 4px;
 }
 
-.pager {
-  /* Stays under the sticky overview (its height is measured into --overview-h). */
+/* Overview, day tabs and day header are one sticky block, so they can never overlap each other.
+   Its backdrop reaches past the block on top and both sides, so nothing scrolling shows around it. */
+.sticky {
   position: sticky;
-  top: calc(env(safe-area-inset-top) + var(--header-h) + var(--overview-h, 0px));
-  z-index: 3;
+  top: calc(env(safe-area-inset-top) + var(--header-h));
+  z-index: 4;
+  isolation: isolate;
+  margin-top: 16px;
+  padding-bottom: 12px;
+}
+
+.sticky::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -80px -100vmax 0;
+  background: var(--ground);
+}
+
+.pager {
   display: flex;
   gap: 4px;
   margin: 0;
-  /* The 12px above the buttons is padding, so the gap to the overview is the same stuck or not. */
   padding: 12px 0 0;
   overflow-x: auto;
-  background: var(--ground);
 }
 
 .pagerBtn {
@@ -532,10 +545,7 @@
 }
 
 .overview {
-  position: sticky;
-  top: calc(env(safe-area-inset-top) + var(--header-h));
-  z-index: 4;
-  margin: 16px 0 0;
+  margin: 0;
   padding: 16px 16px 18px;
   background: var(--surface);
   border-radius: 20px;
@@ -721,17 +731,11 @@
 }
 
 .columnTop {
-  /* 56px = the sticky pager: 44px buttons plus 12px padding. */
-  position: sticky;
-  top: calc(env(safe-area-inset-top) + var(--header-h) + var(--overview-h, 0px) + 56px);
-  z-index: 2;
   padding-top: 12px;
-  background: var(--ground);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
   border-bottom: 1px solid var(--hairline);
 }
 
