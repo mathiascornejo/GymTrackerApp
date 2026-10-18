@@ -68,8 +68,7 @@
   gap: 8px 10px;
   width: min(100%, 320px);
   margin: 0 auto;
-  /* Even air above (under the search row) and below (above the first category title, which brings its own). */
-  padding: 16px 0 8px;
+  padding: 8px 0;
   font-size: 14px;
   line-height: 18px;
 }
