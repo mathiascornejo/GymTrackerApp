@@ -717,10 +717,15 @@
 .dayLabelRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 4px;
   min-width: 0;
   font: 400 13px/18px var(--font-ui);
+}
+
+/* Icon sized to the label; the 44px hit area is kept and overlaps the row's edges. */
+.dayLabelRow .pencil {
+  flex: none;
+  margin: -13px -15px;
 }
 
 .dayLabelText {
