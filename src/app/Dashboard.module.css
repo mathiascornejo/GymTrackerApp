@@ -282,11 +282,10 @@
 
 .legend {
   grid-column: 1 / -1;
-  /* Eight tiers in two even rows of four. */
-  display: grid;
-  grid-template-columns: repeat(4, max-content);
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 10px;
+  gap: 4px 6px;
   margin: 4px 0 0;
   padding: 0;
   list-style: none;
@@ -299,6 +298,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+/* Eight tiers as five over three: a full-width break sits between the fifth and sixth. */
+.legend::after {
+  content: "";
+  order: 1;
+  flex-basis: 100%;
+  height: 0;
+}
+
+.legend li:nth-child(n + 6) {
+  order: 2;
 }
 
 .dot {
