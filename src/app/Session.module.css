@@ -327,8 +327,10 @@
 /* Small unit in the bottom right corner of the box. */
 .unit {
   position: absolute;
-  right: 12px;
-  bottom: 4px;
+  left: 0;
+  right: 0;
+  bottom: 3px;
+  text-align: center;
   font-size: 9px;
   line-height: 10px;
   color: var(--ink-muted);
