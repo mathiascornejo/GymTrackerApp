@@ -14,8 +14,8 @@ import { cap, facets } from "../exercises/query";
 import { defaultIncrementKg } from "../session/recommend";
 import { fromKg, toKg } from "../units";
 import {
-  addBlock, addItem, containerBlocks, duplicate, exportRoutine, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
-  removeItem, routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
+  addBlock, addItem, containerBlocks, duplicate, exportRoutine, extractItem, importRoutine, link, locate, moveBlock, newBlock, removeBlock,
+  routineStats, unlink, updateBlock, updateItem, weeklySets, type Block, type Routine, type Target,
 } from "../routines/model";
 import { BlockCard, WEEKDAY_NAMES, type BlockActions } from "./BlockCard";
 import { ExerciseDetail, Sheet } from "./ExerciseSheet";
@@ -160,7 +160,8 @@ export function Routines({ profile }: { profile: Profile }) {
     onRest: (v) => edit((r) => updateBlock(r, b.id, { restS: v })),
     onTransition: (v) => edit((r) => updateBlock(r, b.id, { transitionRestS: v })),
     onReps: (itemId, patch) => edit((r) => updateItem(r, b.id, itemId, patch)),
-    onRemoveItem: (itemId) => edit((r) => removeItem(r, b.id, itemId)),
+    // The exercise drops out of the superset into its own block just below it.
+    onRemoveItem: (itemId) => edit((r) => { const at = locate(r, b.id); return at ? extractItem(r, b.id, itemId, at.target) : r; }),
     onRemoveBlock: () => edit((r) => removeBlock(r, b.id)),
     onView: setViewing,
     onUnlink: () => edit((r) => unlink(r, b.id)),
