@@ -35,13 +35,16 @@
   min-width: 0;
 }
 
-.controls > button:last-child {
-  margin-right: -8px; /* its padding hangs past the margin, so the label ends where the page does */
-}
-
-.controls > button {
+.filtersBtn {
   flex: none;
   padding: 0 8px;
+  white-space: nowrap;
+}
+
+/* Same filled button as New routine in the routines tab. */
+.newExercise {
+  flex: none;
+  padding: 0 14px;
   white-space: nowrap;
 }
 

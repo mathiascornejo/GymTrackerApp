@@ -93,10 +93,10 @@ export function Library({ profile }: { profile: Profile }) {
           <span className={s.visuallyHidden}>Search exercises</span>
           <input className={f.input} type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
-        <button className={f.quiet} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
+        <button className={`${f.quiet} ${s.filtersBtn}`} aria-expanded={showFilters} onClick={() => setShowFilters((v) => !v)}>
           {activeFilters ? `Filters (${activeFilters})` : "Filters"}
         </button>
-        <button className={f.quiet} onClick={() => setEditing("new")}>New exercise</button>
+        <button className={`${f.button} ${s.newExercise}`} onClick={() => setEditing("new")}>New exercise</button>
       </div>
       </div>
 
