@@ -64,6 +64,16 @@
 }
 
 
+/* Sits tight under the title; the rest of the panel keeps its spacing. */
+.start .startTitle {
+  margin-bottom: 4px;
+}
+
+/* Lines the label up with the text inside the menu. */
+.startFieldLabel {
+  padding-left: 13px;
+}
+
 .startPlan {
   margin: 12px 0 0;
   padding: 0;
