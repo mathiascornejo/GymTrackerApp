@@ -51,7 +51,7 @@ export function RoutinePicker({
       <div className={s.pickerControls}>
         <label className={s.grow}>
           <span className={s.visuallyHidden}>Search the picker</span>
-          <input className={f.input} type="search" placeholder="Search exercises" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input className={f.input} type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
         <label>
           <span className={s.visuallyHidden}>Muscle</span>

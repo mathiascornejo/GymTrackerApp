@@ -14,7 +14,7 @@
 
 .logCard {
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
   flex-direction: column;
   min-height: 96px;
 }

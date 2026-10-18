@@ -159,6 +159,8 @@
 /* Profile: a small tray at the right end of the page header. */
 .profileDock {
   --gn-size: 44px;
+  /* The tray's soft edge is 4px past the tile you see; hang it so the tile meets the page margin. */
+  margin-right: -4px;
 }
 
 .profileInner {

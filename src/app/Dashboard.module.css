@@ -497,6 +497,11 @@
   align-items: flex-start;
 }
 
+/* Hangs into the sheet padding; 7px down centres its label on the title's first line. */
+.sheetHead > button {
+  margin: 7px -12px 0 0;
+}
+
 .sheetTitle {
   margin: 12px 0;
   font: 700 28px/34px var(--font-display);

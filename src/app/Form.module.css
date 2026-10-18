@@ -30,7 +30,7 @@
   justify-content: space-between;
   gap: 16px;
   min-height: 52px;
-  padding: 4px 16px;
+  padding: 8px 16px;
 }
 
 .row + .row {
@@ -187,6 +187,11 @@ select.input {
   background: transparent;
   color: var(--ink-muted);
   cursor: pointer;
+}
+
+/* A text button at the start of a row: its label lines up with the row's text edge, the padding hangs outside. */
+.hang {
+  margin-left: -12px;
 }
 
 /* Text buttons under a card: their label lines up with the card's edge, the padding hangs outside it. */

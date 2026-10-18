@@ -355,7 +355,6 @@ export function Routines({ profile }: { profile: Profile }) {
         </>
       ) : (
         <DndContext sensors={sensors} collisionDetection={collide} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDrag(null)}>
-          <div className={s.sticky}>
           <section className={s.overview} aria-label="Routine overview">
             <div className={s.overviewHead}>
               <h2 className={s.overviewName}>
@@ -388,7 +387,8 @@ export function Routines({ profile }: { profile: Profile }) {
             {volume.length > 0 && <p className={`${f.note} ${s.mostWork}`}>Most work: {volume.slice(0, 3).map(([m, n]) => `${cap(m)} (${n})`).join(", ")}</p>}
             <p className={`${f.note} ${s.savedNote}`} role="status">{actions.saving ? "Saving…" : "All changes saved"}</p>
           </section>
-      
+
+          <div className={s.sticky}>
           <div className={s.pager} role="tablist" aria-label="Day">
             {[...order, "bank" as const].map((d) => (
               <DayButton

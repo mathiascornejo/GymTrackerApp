@@ -509,6 +509,10 @@
   justify-content: space-between;
 }
 
+.sheetTop > button {
+  margin-right: -12px;
+}
+
 .sheetTitle {
   margin: 12px 0;
   font: 700 28px/34px var(--font-display);

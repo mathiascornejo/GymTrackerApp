@@ -16,7 +16,7 @@ export function AddExerciseSheet({ open, exercises, onAdd, onClose }: { open: bo
       </div>
       <label>
         <span className={s.visuallyHidden}>Search exercises to add</span>
-        <input className={f.input} type="search" placeholder="Search exercises" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input className={f.input} type="search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
       </label>
       <ul className={s.addList}>
         {shown.map((e) => (

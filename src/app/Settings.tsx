@@ -164,7 +164,7 @@ function AccountSection({ profile }: { profile: Profile }) {
       <div className={f.group}>
         <div className={f.stack}>
           <p className={f.note} style={{ margin: 0 }}>Weights are exported in kilograms, whatever unit you display.</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+          <div className={f.links} style={{ gap: 4 }}>
             <button className={f.quiet} disabled={busy !== ""} onClick={() => void run("sets", async () => { const d = await fetchFullExport(); download(`tempered-sets-${stamp}.csv`, "text/csv", setsCsv(d.sessions, d.sets, name)); })}>
               Export sets (CSV)
             </button>
@@ -307,7 +307,7 @@ export function Settings({ profile }: { profile: Profile }) {
         <h2 className={f.cardTitle}>Account</h2>
         <div className={f.group}>
           <div className={f.row}>
-            <button className={f.quiet} onClick={() => void auth.signOut()}>Sign out</button>
+            <button className={`${f.quiet} ${f.hang}`} onClick={() => void auth.signOut()}>Sign out</button>
           </div>
           <div className={f.row}>
             <a href="#/about">About Tempered</a>

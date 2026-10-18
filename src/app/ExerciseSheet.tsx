@@ -27,9 +27,9 @@ export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercis
         <button className={f.quiet} onClick={onClose}>Close</button>
       </div>
       <ExerciseDemo exercise={exercise} />
-      <h3 className={f.groupTitle}>Muscles</h3>
+      <h3 className={s.detailTitle}>Muscles</h3>
       <MuscleMap primary={exercise.primary} secondary={exercise.secondary} />
-      <div className={s.muscles} style={{ marginTop: 8 }}>
+      <div className={s.muscles} style={{ marginTop: 16 }}>
         {exercise.primary.map((m) => (
           <span key={m} className={s.musclePrimary}>{cap(m)}</span>
         ))}
@@ -39,7 +39,7 @@ export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercis
         {!exercise.primary.length && !exercise.secondary.length && <span className={f.note}>No muscles set.</span>}
       </div>
       {meta.length > 0 && <p className={f.note} style={{ marginTop: 12 }}>{meta.map((m) => cap(m as string)).join(" · ")}</p>}
-      <h3 className={f.groupTitle}>How to perform</h3>
+      <h3 className={s.detailTitle}>How to perform</h3>
       {exercise.instructions.length ? (
         <ol className={s.steps}>
           {exercise.instructions.map((step, i) => (
@@ -49,9 +49,9 @@ export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercis
       ) : (
         <p className={f.note}>No steps added.</p>
       )}
-      <h3 className={f.groupTitle}>Your history</h3>
+      <h3 className={s.detailTitle}>Your history</h3>
       <ExerciseHistory exercise={exercise} profile={profile} />
-      <h3 className={f.groupTitle}>Routine</h3>
+      <h3 className={s.detailTitle}>Routine</h3>
       <AddToRoutine exercise={exercise} profile={profile} />
       {exercise.custom && (
         <div className={s.actions}>
