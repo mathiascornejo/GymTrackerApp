@@ -80,7 +80,7 @@
 .board {
   display: grid;
   gap: 12px;
-  margin: 16px 0 0;
+  margin: 28px 0 0;
 }
 
 .column {
@@ -431,8 +431,6 @@
 }
 
 .pickList {
-  display: grid;
-  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -442,6 +440,7 @@
 }
 
 .pickRow {
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -713,6 +712,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--hairline);
 }
 
 .columnActions {

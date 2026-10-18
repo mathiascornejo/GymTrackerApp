@@ -65,24 +65,37 @@
   margin: 0;
 }
 
+/* A category starts with a gap and a bold, ink-coloured title with an accent tick, so it reads as a new section rather than a caption. */
 .header {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding: 0 4px 8px;
-  font: 600 13px/18px var(--font-ui);
-  color: var(--ink-muted);
+  padding: 0 4px 10px;
+  font: 700 18px/24px var(--font-display);
+  color: var(--ink);
   text-transform: none;
 }
 
+.header::before {
+  content: "";
+  align-self: flex-end;
+  width: 4px;
+  height: 20px;
+  margin: 0 2px 2px 0;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
 .header span {
-  font-weight: 400;
+  font: 400 15px/24px var(--font-ui);
+  color: var(--ink-muted);
 }
 
 /* after .header so top wins: hangs below the controls without taking layout space */
 .pinned {
   top: 100%;
-  height: 34px;
+  height: 40px;
+  padding-bottom: 8px;
   background: var(--ground);
 }
 

@@ -43,7 +43,7 @@ export function Library({ profile }: { profile: Profile }) {
   const listRef = useRef<HTMLDivElement>(null);
   const virtual = useWindowVirtualizer({
     count: rows.length,
-    estimateSize: (i) => (rows[i].type === "header" ? 34 : 68),
+    estimateSize: (i) => (rows[i].type === "header" ? 56 : 68),
     overscan: 8,
     scrollMargin: listRef.current?.offsetTop ?? 0,
   });

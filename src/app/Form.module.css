@@ -18,10 +18,10 @@
 }
 
 .groupTitle {
-  margin: 24px 0 8px;
+  margin: 32px 0 8px;
   padding: 0 4px;
-  font: 600 13px/18px var(--font-ui);
-  color: var(--ink-muted);
+  font: 700 17px/22px var(--font-display);
+  color: var(--ink);
 }
 
 .row {
