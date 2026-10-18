@@ -138,7 +138,7 @@ export function SignIn() {
         </div>
       </form>
       <div className={f.links}>
-        {mode !== "password" && <button className={f.quiet} onClick={() => switchMode("password")}>Use password</button>}
+        {mode !== "password" && <button className={f.quiet} onClick={() => switchMode("password")}>Sign in</button>}
         {mode === "password" && <button className={f.quiet} onClick={() => switchMode("forgot")}>Forgot password?</button>}
         {EMAIL_CODE && mode !== "code" && <button className={f.quiet} onClick={() => switchMode("code")}>Sign in with an email code</button>}
         {mode !== "create" && <button className={f.quiet} onClick={() => switchMode("create")}>Create account</button>}
