@@ -22,7 +22,7 @@
   margin-inline: auto;
 }
 
-/* The start panel stays put; only the list of past sessions scrolls. A long plan scrolls inside its own box so past sessions keep at least a third of the screen on phone and half on desktop. */
+/* The start panel stays put; only the list of past sessions scrolls. A long plan scrolls inside its own box so past sessions keep at least a third of the screen. */
 .start {
   display: flex;
   flex: 0 1 auto;
@@ -54,29 +54,6 @@
   .startPage {
     max-width: 880px;
   }
-
-  .pastSection {
-    flex-basis: 50%;
-  }
-
-  .start:has(.startPlan) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-    grid-template-rows: auto auto auto 1fr;
-    grid-template-areas:
-      "lead plan"
-      "field plan"
-      "actions plan"
-      ". plan";
-    column-gap: 40px;
-    align-items: start;
-  }
-
-  .start > .startPlan {
-    grid-area: plan;
-    max-height: calc(var(--fit-h) / 2 - 16px);
-    margin-top: 0;
-  }
 }
 
 .startField {
@@ -87,19 +64,22 @@
 
 .startPlan {
   margin: 12px 0 0;
-  padding: 4px 20px;
+  padding: 0;
   list-style: none;
   font-size: 15px;
   flex: 1 1 auto;
   min-height: 88px;
   overflow-y: auto;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-list);
-  background: var(--surface);
 }
 
 .startPlan li:last-child {
   border-bottom: 0;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .startPlan {
+    padding-right: 14px;
+  }
 }
 
 .startPlan li {

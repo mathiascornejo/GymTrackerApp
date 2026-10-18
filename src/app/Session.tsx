@@ -11,6 +11,7 @@ import { SessionLog } from "./SessionLog";
 import { SessionSummary, type SummaryData } from "./SessionSummary";
 import f from "./Form.module.css";
 import s from "./Session.module.css";
+import d from "./Dashboard.module.css";
 
 const weekdayName = (d: number) => new Date(2024, 0, 7 + d).toLocaleDateString(undefined, { weekday: "long" });
 
@@ -34,7 +35,8 @@ function StartPanel({ routine, info }: { routine: Routine | null; info: (ref: st
   };
 
   return (
-    <section className={s.start} aria-label="Start a session">
+    <section className={`${d.section} ${s.start}`} aria-label="Start a session">
+      <h2 className={d.h2}>Exercises</h2>
       {routine ? (
         <>
           <p className={f.lead}>Active routine: {routine.name}</p>

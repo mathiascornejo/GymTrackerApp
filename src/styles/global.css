@@ -65,8 +65,8 @@ button {
 }
 
 /* Touch screens: hide the native bar; touchScrollbars.ts draws the accent one instead (iOS ignores scrollbar styling).
-   The bar is a zero-footprint sticky ::before inside each [data-thumb] box: it is pinned to the top of the box's visible area,
-   offset by --th-y, so it travels and clips with the box. --th-edge is its distance past the content's right edge (negative = inside it).
+   The bar is a zero-footprint sticky ::before inside each [data-thumb] box: it sticks --th-y below the top of the box's visible
+   area (a sticky element ignores its own margin once stuck, so the offset must be the sticky top), so it travels and clips with the box. --th-edge is its distance past the content's right edge (negative = inside it).
    Boxes using it must be block containers (a grid or flex gap would make the pseudo-element take up a row). */
 @media (hover: none) and (pointer: coarse) {
   * {
@@ -84,12 +84,12 @@ button {
   [data-thumb]::before {
     content: "";
     position: sticky;
-    top: 0;
+    top: var(--th-y, 0px);
     z-index: 1;
     display: block;
     width: 4px;
     height: var(--th-h, 0px);
-    margin: var(--th-y, 0px) 0 calc(-1 * (var(--th-h, 0px) + var(--th-y, 0px))) calc(100% + var(--th-edge, 5px));
+    margin: 0 0 calc(-1 * var(--th-h, 0px)) calc(100% + var(--th-edge, 5px));
     border-radius: 4px;
     background: var(--accent);
     pointer-events: none;
