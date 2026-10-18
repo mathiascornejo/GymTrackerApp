@@ -220,7 +220,7 @@ export function BlockCard({
 
           <footer className={s.cardFoot}>
             {multi ? <button type="button" className={s.textBtn} onClick={actions.onUnlink}>Unlink</button> : <span />}
-            <button type="button" className={s.textBtn} aria-label={`Remove ${label}`} onClick={actions.onRemoveBlock}>
+            <button type="button" className={`${s.textBtn} ${s.textDanger}`} aria-label={`Remove ${label}`} onClick={actions.onRemoveBlock}>
               Remove
             </button>
           </footer>

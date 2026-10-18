@@ -449,6 +449,10 @@
   cursor: pointer;
 }
 
+.textBtn.textDanger {
+  color: var(--danger);
+}
+
 /* An overlay on the lower part of the card, so starting a drag never shifts the layout. */
 .join {
   position: absolute;
