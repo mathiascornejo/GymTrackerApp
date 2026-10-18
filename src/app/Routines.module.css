@@ -473,9 +473,18 @@
   gap: 8px;
 }
 
-/* Search gets its own row so the two selects fit beside each other on a phone. */
+/* Search gets its own row; the two selects split the next row evenly, so together they match the search width. */
 .pickerControls .grow {
   flex-basis: 100%;
+}
+
+.pickerControls label {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.pickerControls select {
+  width: 100%;
 }
 
 .grow {
