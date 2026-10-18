@@ -340,16 +340,18 @@ details[open] > .summary {
 .lift {
   min-width: 0;
   margin: 0;
-  padding: 16px 0;
+  padding: 0 0 16px;
   border: 0;
   border-bottom: 1px solid var(--hairline);
 }
 
-.lift:first-child {
-  padding-top: 4px;
+/* A fieldset's legend sits on its top edge, so top padding would not separate it from the line above: use margin. */
+.lift + .lift {
+  margin-top: 20px;
 }
 
 .lift:last-child {
+  padding-bottom: 0;
   border-bottom: 0;
 }
 
