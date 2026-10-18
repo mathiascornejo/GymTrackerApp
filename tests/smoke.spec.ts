@@ -642,6 +642,9 @@ test.describe("dashboard and ranks", () => {
     await open(page, seed, "settings");
     const height = page.getByLabel("Height", { exact: true });
     await expect(height).toHaveValue("");
+    await expect(page.getByRole("slider", { name: "Height wheel" })).toHaveCount(0);
+    await height.click();
+    await expect(page.getByRole("slider", { name: "Height wheel" })).toBeVisible();
     await profileSaved(page, async () => {
       await height.fill("180");
       await height.blur();
@@ -651,6 +654,8 @@ test.describe("dashboard and ranks", () => {
     // The wheel lists 100..250 cm, 36 px apart: scrolling to 185 cm saves it.
     await profileSaved(page, () => page.getByRole("slider", { name: "Height wheel" }).evaluate((el) => (el.scrollTop = 85 * 36)));
     await expect(height).toHaveValue("185 cm");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("slider", { name: "Height wheel" })).toHaveCount(0);
     await page.reload();
     await expect(page.getByLabel("Height", { exact: true })).toHaveValue("185 cm");
     await page.getByLabel("Height", { exact: true }).fill("12");

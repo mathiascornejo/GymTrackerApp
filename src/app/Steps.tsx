@@ -54,16 +54,6 @@ export function Steps({ profile }: { profile: Profile }) {
         <section aria-label="Steps trend" className={`${s.section} ${s.wide}`}>
           <h2 className={s.h2}>Trend</h2>
           <Averages points={points} format={(v) => `${fmt(v)} steps`} />
-          <h3 className={s.h3}>Calories burned, estimated</h3>
-          {kcalPoints.length > 0 ? (
-            <Averages points={kcalPoints} format={(v) => `${fmt(v)} kcal`} label="Calories burned averages" />
-          ) : (
-            <p className={f.note}>
-              {bodyweights.isPending
-                ? "Loading your bodyweight."
-                : <>Add your height in <a href="#/settings">Settings</a> and a bodyweight on the Weight tab to see an estimate.</>}
-            </p>
-          )}
           {entries.length > 0 ? (
             <LineChart points={points} unit="steps" label="Steps" average={points.length >= 3 ? movingAverage(points) : undefined} />
           ) : (
@@ -78,6 +68,22 @@ export function Steps({ profile }: { profile: Profile }) {
           </form>
           {(actions.addSteps.error || actions.deleteSteps.error) && (
             <p className={f.error} role="alert">{(actions.addSteps.error ?? actions.deleteSteps.error)!.message}</p>
+          )}
+        </section>
+
+        <section aria-label="Calories burned" className={`${s.section} ${s.wide}`}>
+          <h2 className={s.h2}>Calories burned</h2>
+          {kcalPoints.length > 0 ? (
+            <>
+              <Averages points={kcalPoints} format={(v) => `${fmt(v)} kcal`} label="Calories burned averages" />
+              <p className={f.note} style={{ margin: 0 }}>Estimated from your steps, height and bodyweight.</p>
+            </>
+          ) : (
+            <p className={f.note} style={{ margin: 0 }}>
+              {bodyweights.isPending
+                ? "Loading your bodyweight."
+                : <>Add your height in <a href="#/settings">Settings</a> and a bodyweight on the Weight tab to see an estimate.</>}
+            </p>
           )}
         </section>
 
