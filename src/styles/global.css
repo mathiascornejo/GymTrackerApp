@@ -40,8 +40,26 @@ button {
   }
 }
 
-/* Thin, faint scrollbars. Inner scroll areas keep a right-hand gutter so the bar sits beside the content, not over it. */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--ink-muted) 55%, transparent) transparent;
+/* Thin accent-blue scrollbars that stay visible. Styling the WebKit bar makes it a classic bar that takes its own space beside the content (and does not auto-hide on macOS). Firefox gets the standard properties. */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--accent);
+  background-clip: padding-box;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+  }
 }

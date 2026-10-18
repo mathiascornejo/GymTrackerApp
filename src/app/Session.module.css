@@ -39,7 +39,6 @@
 .pastScroll {
   flex: 1;
   min-height: 0;
-  padding-right: 10px;
   overflow-y: auto;
 }
 
@@ -88,7 +87,7 @@
 
 .startPlan {
   margin: 12px 0 0;
-  padding: 0 10px 0 0;
+  padding: 0;
   list-style: none;
   font-size: 15px;
   flex: 1 1 auto;
