@@ -6,7 +6,7 @@ import { cap } from "../exercises/query";
 import { useExercises } from "../exercises/useExercises";
 import { computeRanks, loadModelFor, progressOf, tierOf } from "../ranking/rank";
 import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
-import { e1rmSeries, frequencyGrid, prEvents, volumeBar, WEEKLY_SET_TARGET, weekStart, weeklyVolume } from "../ranking/stats";
+import { e1rmSeries, frequencyGrid, prEvents, volumeBar, weekStart, weeklyVolume } from "../ranking/stats";
 import { readableOn, TIER_COLORS } from "../ranking/tierColors";
 import { fromKg, toKg } from "../units";
 import { MATERIAL_IDS } from "./bodyMapArt";
@@ -280,7 +280,6 @@ export function Dashboard({ profile }: { profile: Profile }) {
                 );
               })}
             </ul>
-            <p className={f.note}>Shaded: {WEEKLY_SET_TARGET.min}–{WEEKLY_SET_TARGET.max} sets a week.</p>
           </>
         )}
       </section>
