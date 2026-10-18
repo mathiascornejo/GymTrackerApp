@@ -625,6 +625,39 @@ test.describe("dashboard and ranks", () => {
     await expect(page.getByText("No steps yet")).toBeVisible();
   });
 
+  test("shows estimated calories burned once height and bodyweight are set", async ({ page }) => {
+    const seed = await seededUser();
+    await rest(seed, "step_entries", "POST", { logged_on: new Date().toLocaleDateString("en-CA"), steps: 8000 });
+    await open(page, seed, "steps");
+    await expect(page.getByText("Add your height in")).toBeVisible();
+    await rest(seed, `profiles?id=eq.${seed.userId}`, "PATCH", { height_cm: 175 });
+    await page.reload();
+    // 8000 steps x 0.415 x 1.75 m = 5.8 km, x 80 kg x 0.5 kcal per kg per km
+    await expect(page.getByLabel("Calories burned averages")).toContainText("232 kcal");
+    await expect(page.getByRole("listitem")).toContainText("8,000 steps · 232 kcal");
+  });
+
+  test("sets height by typing or by the wheel", async ({ page }) => {
+    const seed = await seededUser();
+    await open(page, seed, "settings");
+    const height = page.getByLabel("Height", { exact: true });
+    await expect(height).toHaveValue("");
+    await profileSaved(page, async () => {
+      await height.fill("180");
+      await height.blur();
+    });
+    await expect(height).toHaveValue("180 cm");
+    await expect(page.getByRole("slider", { name: "Height wheel" })).toHaveAttribute("aria-valuenow", "180");
+    // The wheel lists 100..250 cm, 36 px apart: scrolling to 185 cm saves it.
+    await profileSaved(page, () => page.getByRole("slider", { name: "Height wheel" }).evaluate((el) => (el.scrollTop = 85 * 36)));
+    await expect(height).toHaveValue("185 cm");
+    await page.reload();
+    await expect(page.getByLabel("Height", { exact: true })).toHaveValue("185 cm");
+    await page.getByLabel("Height", { exact: true }).fill("12");
+    await page.getByLabel("Height", { exact: true }).blur();
+    await expect(page.getByLabel("Height", { exact: true })).toHaveValue("185 cm");
+  });
+
   test("edited standards persist", async ({ page }) => {
     const seed = await seededUser();
     await addSession(seed, [{ ref: BENCH, w: 100, reps: 5 }]);

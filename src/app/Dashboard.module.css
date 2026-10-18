@@ -51,6 +51,12 @@
   font: 700 22px/28px var(--font-display);
 }
 
+.h3 {
+  margin: 0 0 8px;
+  font: 600 15px/20px var(--font-display);
+  color: var(--ink-muted);
+}
+
 .hero {
   position: relative;
 }

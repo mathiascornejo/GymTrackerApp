@@ -68,6 +68,7 @@ Vite + React + TypeScript SPA, hash routing (`#/dashboard`, `#/log`, `#/routines
 
 ## Units and time
 - **Kilograms are canonical** (`numeric(8,4)`). Convert at the edges, round for display to 0.1. Never store pounds.
+- Height is `profiles.height_cm` (nullable, 100-250). The settings row shows cm for kg users and ft/in for lb users (`formatHeight`/`parseHeight` in `src/units.ts`). Steps calories are `stepCalories` in `src/calories.ts` (steps x 0.415 x height x bodyweight x 0.5 kcal/kg/km, both constants `// UNVERIFIED`), using the bodyweight logged on or before each day.
 - Timestamps UTC `timestamptz`; "today's weekday" is computed on-device. Default week start Monday.
 
 ## Security

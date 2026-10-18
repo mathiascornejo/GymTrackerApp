@@ -1,5 +1,9 @@
 import { useState } from "react";
+import { stepCalories } from "../calories";
+import { useDashboardData } from "../data/dashboard";
+import type { Profile } from "../data/profile";
 import { useStepActions, useSteps } from "../data/steps";
+import { bodyweightAt } from "../ranking/rank";
 import { movingAverage } from "../ranking/stats";
 import { Averages } from "./Averages";
 import { LineChart } from "./charts";
@@ -12,8 +16,9 @@ import w from "./Weight.module.css";
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
 /** Daily steps on their own tab, laid out like the weight tab: averages and trend, a way to log today, and every day with a delete. */
-export function Steps() {
+export function Steps({ profile }: { profile: Profile }) {
   const data = useSteps();
+  const bodyweights = useDashboardData();
   const actions = useStepActions();
   const [value, setValue] = useState("");
   const [deleting, setDeleting] = useState<{ id: string; date: string; text: string } | null>(null);
@@ -23,6 +28,18 @@ export function Steps() {
 
   const entries = data.data;
   const points = entries.map((e) => ({ t: new Date(`${e.logged_on}T12:00:00`).getTime(), v: e.steps }));
+
+  // Needs a height and a bodyweight; each day uses the weight logged on or before it.
+  const heightCm = profile.height_cm ?? null;
+  const weights = bodyweights.data?.bodyweights ?? [];
+  const kcalOf = (e: { logged_on: string; steps: number }) => {
+    const kg = bodyweightAt(e.logged_on, weights);
+    return heightCm === null || kg === null ? null : stepCalories(e.steps, heightCm, kg);
+  };
+  const kcalPoints = entries.flatMap((e, i) => {
+    const v = kcalOf(e);
+    return v === null ? [] : [{ t: points[i].t, v }];
+  });
 
   const add = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +54,16 @@ export function Steps() {
         <section aria-label="Steps trend" className={`${s.section} ${s.wide}`}>
           <h2 className={s.h2}>Trend</h2>
           <Averages points={points} format={(v) => `${fmt(v)} steps`} />
+          <h3 className={s.h3}>Calories burned, estimated</h3>
+          {kcalPoints.length > 0 ? (
+            <Averages points={kcalPoints} format={(v) => `${fmt(v)} kcal`} label="Calories burned averages" />
+          ) : (
+            <p className={f.note}>
+              {bodyweights.isPending
+                ? "Loading your bodyweight."
+                : <>Add your height in <a href="#/settings">Settings</a> and a bodyweight on the Weight tab to see an estimate.</>}
+            </p>
+          )}
           {entries.length > 0 ? (
             <LineChart points={points} unit="steps" label="Steps" average={points.length >= 3 ? movingAverage(points) : undefined} />
           ) : (
@@ -65,7 +92,9 @@ export function Steps() {
                 return (
                   <li key={e.id}>
                     <span>{date}</span>
-                    <span className={w.value}>{fmt(e.steps)} steps</span>
+                    <span className={w.value}>
+                      {fmt(e.steps)} steps{kcalOf(e) !== null && ` · ${fmt(kcalOf(e)!)} kcal`}
+                    </span>
                     <button
                       className={f.iconBtn}
                       aria-label={`Delete steps from ${date}`}

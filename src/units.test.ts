@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromKg, toKg } from "./units";
+import { formatHeight, fromKg, parseHeight, toKg } from "./units";
 
 describe("units", () => {
   it("passes kg through", () => {
@@ -15,5 +15,30 @@ describe("units", () => {
   });
   it("round-trips plate weights entered in lb", () => {
     for (const lb of [45, 95, 135, 185, 225, 315]) expect(fromKg(toKg(lb, "lb"), "lb")).toBe(lb);
+  });
+});
+
+describe("height", () => {
+  it("formats by unit", () => {
+    expect(formatHeight(175, "kg")).toBe("175 cm");
+    expect(formatHeight(175.3, "kg")).toBe("175.3 cm");
+    expect(formatHeight(175.26, "lb")).toBe("5 ft 9 in");
+  });
+  it("parses metric", () => {
+    expect(parseHeight("175", "kg")).toBe(175);
+    expect(parseHeight("175 cm", "kg")).toBe(175);
+    expect(parseHeight("1,75", "kg")).toBe(175);
+  });
+  it("parses feet and inches", () => {
+    expect(parseHeight("5 ft 9 in", "lb")).toBe(175.3);
+    expect(parseHeight("5'9", "lb")).toBe(175.3);
+    expect(parseHeight("69", "lb")).toBe(175.3);
+    expect(parseHeight("6", "lb")).toBe(182.9);
+    expect(parseHeight("175 cm", "lb")).toBe(175);
+    expect(parseHeight("5'9", "kg")).toBe(175.3);
+  });
+  it("rejects nonsense and out-of-range values", () => {
+    for (const t of ["", "tall", "50", "300", "0"]) expect(parseHeight(t, "kg")).toBeNull();
+    expect(parseHeight("12", "lb")).toBeNull();
   });
 });

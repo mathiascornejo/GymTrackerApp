@@ -1,0 +1,52 @@
+.wheelRow {
+  justify-content: center;
+  padding-block: 12px;
+}
+
+/* Five rows tall (5 x 36); the middle row is the selected one. */
+.wheel {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  height: 180px;
+}
+
+.band {
+  position: absolute;
+  inset-inline: 0;
+  top: 72px;
+  height: 36px;
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.box {
+  position: relative;
+  height: 100%;
+  padding-block: 72px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  border-radius: var(--radius-control);
+  mask-image: linear-gradient(transparent, #000 32%, #000 68%, transparent);
+}
+
+.box::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  height: 36px;
+  display: grid;
+  place-items: center;
+  scroll-snap-align: center;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+/* Distance from the middle reads through the fade (see .box), so every row keeps full-contrast text. */
+.item[data-on] {
+  font-weight: 700;
+}

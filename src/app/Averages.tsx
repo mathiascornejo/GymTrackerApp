@@ -8,14 +8,14 @@ const PERIODS = [
 ] as const;
 
 /** Mean of the entries in the last week, month (30 days) and year, ending today. A period with no entries shows a dash. */
-export function Averages({ points, format }: { points: { t: number; v: number }[]; format: (v: number) => string }) {
+export function Averages({ points, format, label = "Averages" }: { points: { t: number; v: number }[]; format: (v: number) => string; label?: string }) {
   return (
-    <dl className={s.row} aria-label="Averages">
-      {PERIODS.map(({ label, days }) => {
+    <dl className={s.row} aria-label={label}>
+      {PERIODS.map(({ label: period, days }) => {
         const v = averageOver(points, days);
         return (
-          <div key={label}>
-            <dt>{label}</dt>
+          <div key={period}>
+            <dt>{period}</dt>
             <dd>{v === null ? "–" : format(v)}</dd>
           </div>
         );

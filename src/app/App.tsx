@@ -78,7 +78,7 @@ function Authed() {
       case "weight":
         return <Weight profile={p} />;
       case "steps":
-        return <Steps />;
+        return <Steps profile={p} />;
       case "settings":
         return <Settings profile={p} />;
       case "about":

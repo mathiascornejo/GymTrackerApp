@@ -5,6 +5,8 @@ import { supabase } from "./client";
 export type Profile = {
   id: string;
   display_name: string;
+  /** Null until set; feeds the steps calorie estimate. */
+  height_cm: number | null;
   weight_unit: Unit;
   theme: "system" | "light" | "dark";
   standards_table: "male" | "female" | null;

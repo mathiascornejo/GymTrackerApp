@@ -8,6 +8,7 @@ import { useRoutines } from "../data/routines";
 import { useExercises } from "../exercises/useExercises";
 import { RANKING_LIFTS, thresholds, TIERS } from "../ranking/standards";
 import { AlarmSettings } from "./AlarmSettings";
+import { HeightPicker } from "./HeightPicker";
 import { RankingSetup } from "./RankingSetup";
 import f from "./Form.module.css";
 
@@ -237,6 +238,7 @@ export function Settings({ profile }: { profile: Profile }) {
           <span className={f.label}>Display name</span>
           <input className={f.input} defaultValue={profile.display_name} onBlur={(e) => e.target.value !== profile.display_name && set({ display_name: e.target.value.trim() })} />
         </label>
+        <HeightPicker valueCm={profile.height_cm ?? null} unit={profile.weight_unit} onCommit={(cm) => set({ height_cm: cm })} />
         <label className={f.row}>
           <span className={f.label}>Weight unit</span>
           <Select value={profile.weight_unit} onChange={(v) => set({ weight_unit: v as Profile["weight_unit"] })}>
