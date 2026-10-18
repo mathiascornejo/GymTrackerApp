@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: var(--fit-h);
+  /* At least the screen, so a short one scrolls the page instead of squeezing the log. */
+  min-height: var(--fit-h);
   max-width: var(--content-w);
   margin: 0 auto;
 }
@@ -14,9 +15,9 @@
 
 .logCard {
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   flex-direction: column;
-  min-height: 96px;
+  min-height: 240px;
 }
 
 /* Input and button share a row on phone; the chart is capped so the trend never outgrows a short screen. */
@@ -40,6 +41,7 @@
 .logCard .list {
   flex: 1;
   min-height: 0;
+  max-height: 50dvh;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -69,6 +71,14 @@
 .value {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+  text-align: right;
+}
+
+.sub {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-muted);
 }
 
 /* Touch: the bar is drawn inside the box (touchScrollbars.ts), so leave it room. */

@@ -634,7 +634,8 @@ test.describe("dashboard and ranks", () => {
     await page.reload();
     // 8000 steps x 0.415 x 1.75 m = 5.8 km, x 80 kg x 0.5 kcal per kg per km
     await expect(page.getByLabel("Calories burned averages")).toContainText("232 kcal");
-    await expect(page.getByRole("listitem")).toContainText("8,000 steps · 232 kcal");
+    await expect(page.getByRole("listitem")).toContainText("8,000 steps");
+    await expect(page.getByRole("listitem")).toContainText("232 kcal");
   });
 
   test("sets height by typing or by the wheel", async ({ page }) => {

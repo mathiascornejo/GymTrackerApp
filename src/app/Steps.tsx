@@ -99,7 +99,8 @@ export function Steps({ profile }: { profile: Profile }) {
                   <li key={e.id}>
                     <span>{date}</span>
                     <span className={w.value}>
-                      {fmt(e.steps)} steps{kcalOf(e) !== null && ` · ${fmt(kcalOf(e)!)} kcal`}
+                      {fmt(e.steps)} steps
+                      {kcalOf(e) !== null && <small className={w.sub}>{fmt(kcalOf(e)!)} kcal</small>}
                     </span>
                     <button
                       className={f.iconBtn}
