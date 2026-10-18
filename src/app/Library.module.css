@@ -254,7 +254,7 @@ img.thumb {
 }
 
 .detailTitle {
-  margin: 32px 0 8px;
+  margin: 28px 0 12px;
   font: 700 17px/22px var(--font-display);
   color: var(--ink);
 }
@@ -287,7 +287,7 @@ img.thumb {
   margin: 0;
   padding-left: 24px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   max-width: 70ch;
 }
 
@@ -365,13 +365,4 @@ img.thumb {
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 1px solid var(--hairline);
-}
-
-.addTo label {
-  display: grid;
-  gap: 8px;
-}
-
-.addLabel {
-  font-size: 15px;
 }

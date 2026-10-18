@@ -1,13 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useDashboardData } from "../data/dashboard";
 import type { Profile } from "../data/profile";
-import { useRoutineActions, useRoutines } from "../data/routines";
 import type { Exercise } from "../exercises/types";
 import { RANKING_LIFTS } from "../ranking/standards";
 import { e1rmSeries, prEvents } from "../ranking/stats";
-import { addBlock, newBlock } from "../routines/model";
 import { fromKg } from "../units";
-import { WEEKDAY_NAMES } from "./BlockCard";
 import { LineChart } from "./charts";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
@@ -33,7 +30,7 @@ export function ExerciseHistory({ exercise, profile }: { exercise: Exercise; pro
       {best && (
         <p style={{ margin: "0 0 8px" }}>
           Best estimated 1RM: <strong>{fromKg(best.e1rmKg, unit)} {unit}</strong>{" "}
-          <span className={f.note}>on {new Date(best.t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+          <span className={f.note} style={{ whiteSpace: "nowrap" }}>on {new Date(best.t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
         </p>
       )}
       {view.series.length > 1 && (
@@ -49,47 +46,6 @@ export function ExerciseHistory({ exercise, profile }: { exercise: Exercise; pro
           ))}
         </ul>
       )}
-    </div>
-  );
-}
-
-/** Puts the exercise on a day of the active routine, or in its accessory bank. */
-export function AddToRoutine({ exercise, profile }: { exercise: Exercise; profile: Profile }) {
-  const routines = useRoutines();
-  const actions = useRoutineActions();
-  const [added, setAdded] = useState("");
-  const active = (routines.data ?? []).find((r) => r.isActive && !r.archivedAt);
-
-  if (routines.isPending) return null;
-  if (!active)
-    return (
-      <p className={f.note}>
-        No active routine. <a href="#/routines">Create one in Routines</a> to add exercises to it.
-      </p>
-    );
-  return (
-    <div className={s.addTo}>
-      <label>
-        <span className={s.addLabel}>Add to {active.name}</span>
-        <select
-          className={f.input}
-          value=""
-          onChange={(e) => {
-            const v = e.target.value;
-            if (!v) return;
-            const target = v === "bank" ? ("bank" as const) : { day: Number(v) };
-            actions.update(active.id, (r) => addBlock(r, target, newBlock(exercise.ref, profile.default_rest_s)));
-            setAdded(v === "bank" ? "Added to the accessory bank" : `Added to ${WEEKDAY_NAMES[Number(v)]}`);
-          }}
-        >
-          <option value="">Choose a day</option>
-          {WEEKDAY_NAMES.map((d, i) => (
-            <option key={d} value={i}>{d}</option>
-          ))}
-          <option value="bank">Accessory bank</option>
-        </select>
-      </label>
-      <p className={f.note} role="status" style={{ margin: "4px 0 0" }}>{added}</p>
     </div>
   );
 }

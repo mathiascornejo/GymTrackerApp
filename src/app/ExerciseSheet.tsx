@@ -5,7 +5,7 @@ import type { Exercise } from "../exercises/types";
 import type { Profile } from "../data/profile";
 import { MuscleMap } from "./BodyMap";
 import { ExerciseDemo } from "./ExerciseDemo";
-import { AddToRoutine, ExerciseHistory } from "./ExerciseExtras";
+import { ExerciseHistory } from "./ExerciseExtras";
 import f from "./Form.module.css";
 import s from "./Library.module.css";
 
@@ -29,7 +29,7 @@ export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercis
       <ExerciseDemo exercise={exercise} />
       <h3 className={s.detailTitle}>Muscles</h3>
       <MuscleMap primary={exercise.primary} secondary={exercise.secondary} />
-      <div className={s.muscles} style={{ marginTop: 16 }}>
+      <div className={s.muscles} style={{ marginTop: 12 }}>
         {exercise.primary.map((m) => (
           <span key={m} className={s.musclePrimary}>{cap(m)}</span>
         ))}
@@ -38,7 +38,7 @@ export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercis
         ))}
         {!exercise.primary.length && !exercise.secondary.length && <span className={f.note}>No muscles set.</span>}
       </div>
-      {meta.length > 0 && <p className={f.note} style={{ marginTop: 12 }}>{meta.map((m) => cap(m as string)).join(" · ")}</p>}
+      {meta.length > 0 && <p className={f.note} style={{ marginTop: 10 }}>{meta.map((m) => cap(m as string)).join(" · ")}</p>}
       <h3 className={s.detailTitle}>How to perform</h3>
       {exercise.instructions.length ? (
         <ol className={s.steps}>
@@ -51,8 +51,6 @@ export function ExerciseDetail({ exercise, profile, onEdit, onClose }: { exercis
       )}
       <h3 className={s.detailTitle}>Your history</h3>
       <ExerciseHistory exercise={exercise} profile={profile} />
-      <h3 className={s.detailTitle}>Routine</h3>
-      <AddToRoutine exercise={exercise} profile={profile} />
       {exercise.custom && (
         <div className={s.actions}>
           <button className={f.button} onClick={onEdit}>Edit exercise</button>

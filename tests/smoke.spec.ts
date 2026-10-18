@@ -833,20 +833,15 @@ test.describe("polish and account", () => {
     ]);
   }
 
-  test("exercise sheet shows muscles on a figure, your history, and adds to the active routine", async ({ page }) => {
+  test("exercise sheet shows muscles on a figure and your history, with no routine controls", async ({ page }) => {
     const u = await user();
     await withHistory(u);
-    const rid = crypto.randomUUID();
-    await rest(u.token, "routines", "POST", { id: rid, name: "Plan", is_active: true });
-    await rest(u.token, "routine_days", "POST", Array.from({ length: 7 }, (_, d) => ({ id: crypto.randomUUID(), routine_id: rid, weekday: d, sort: d })));
     await login(page, u.email, "library/ds%3ABarbell_Curl");
     const sheet = page.getByRole("dialog", { name: "Barbell Curl" });
     await expect(sheet.getByRole("img", { name: /Muscles worked: Biceps \(primary\)/ })).toBeVisible();
     await expect(sheet.getByText(/Best estimated 1RM:/)).toBeVisible();
     await expect(sheet).toContainText("53.8 kg"); // 42.5 x 8 -> 53.8, above 40 x 10 -> 53.3
-    await sheet.getByLabel("Add to Plan").selectOption({ label: "Monday" });
-    await expect(sheet.getByText("Added to Monday")).toBeVisible();
-    await expect.poll(async () => (await (await rest(u.token, "routine_blocks?select=id,routine_day_id")).json()).length).toBe(1);
+    await expect(sheet.getByRole("heading", { name: "Routine" })).toHaveCount(0);
   });
 
   test("tells you when you are offline and what still works", async ({ page, context }) => {
