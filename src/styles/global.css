@@ -9,6 +9,13 @@ body {
   margin: 0;
 }
 
+/* No pinch zoom or sideways page pan on phones; iOS ignores user-scalable, touch-action holds. */
+html {
+  touch-action: pan-y;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
 body {
   background: var(--ground);
   /* clip, not hidden: hidden would break the sticky headers. */
