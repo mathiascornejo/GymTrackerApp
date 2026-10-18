@@ -618,6 +618,7 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-list);
   background: var(--surface);
+  position: relative;
 }
 
 .past > summary {
@@ -632,10 +633,15 @@
   margin-bottom: 8px;
 }
 
-/* Top right of the open session, so it is not at the foot of a long list of sets. */
+/* On the summary row of the open session, in place of the totals, so it is not down among the sets. */
 .pastDelete {
-  display: block;
-  margin: -4px -12px 0 auto;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.past[open] > summary .sub {
+  visibility: hidden;
 }
 
 .pastSet {
