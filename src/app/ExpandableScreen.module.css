@@ -59,8 +59,9 @@
   --th-edge: -9px;
 }
 
+/* The panel floats in the middle and never reaches the home indicator, so no safe-area padding: it only left a gap under the content. */
 .body {
-  padding: 8px 20px calc(24px + env(safe-area-inset-bottom));
+  padding: 8px 20px 24px;
 }
 
 .close {
