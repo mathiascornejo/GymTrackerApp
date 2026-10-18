@@ -372,6 +372,7 @@ export function Routines({ profile }: { profile: Profile }) {
               <MoreMenu
                 label="More"
                 items={[
+                  ...(!routine.isActive && !routine.archivedAt ? [{ label: "Make active", onSelect: () => actions.setActive(routine.id) }] : []),
                   { label: "Duplicate", onSelect: () => setPickedId(actions.addImported(duplicate(routine, `${routine.name} copy`))) },
                   { label: "Export JSON", onSelect: exportJson },
                   { label: "Import JSON", onSelect: () => fileInput.current?.click() },
@@ -379,9 +380,6 @@ export function Routines({ profile }: { profile: Profile }) {
                 ]}
               />
             </div>
-            {!routine.isActive && !routine.archivedAt && (
-              <button className={`${f.quiet} ${s.makeActive}`} onClick={() => actions.setActive(routine.id)}>Make active</button>
-            )}
             <dl className={s.stats}>
               <div><dt>Training days</dt><dd>{stats!.trainingDays}</dd></div>
               <div><dt>Exercises</dt><dd>{stats!.exercises}</dd></div>

@@ -257,7 +257,8 @@ test.describe("routine builder", () => {
     await openBuilder(page);
     await expect(page.getByLabel("Routine", { exact: true })).toContainText("(active)");
     await newRoutine(page);
-    await page.getByRole("button", { name: "Make active" }).click();
+    await page.getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Make active" }).click();
     await expect(page.getByText("All changes saved")).toBeVisible();
     await page.reload();
     await expect(page.getByLabel("Routine", { exact: true }).locator("option", { hasText: "(active)" })).toHaveCount(1);
@@ -345,7 +346,8 @@ test.describe("session log", () => {
   async function withRoutine(page: Page) {
     await signInAndSkipSetup(page, "routines");
     await page.locator('input[type="file"]').setInputFiles({ name: "r.json", mimeType: "application/json", buffer: Buffer.from(routineJson) });
-    await page.getByRole("button", { name: "Make active" }).click();
+    await page.getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Make active" }).click();
     await expect(page.getByText("All changes saved")).toBeVisible();
     await page.goto("#/log");
     await page.getByLabel("Day").selectOption("1");
