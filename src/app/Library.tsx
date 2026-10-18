@@ -48,6 +48,13 @@ export function Library({ profile }: { profile: Profile }) {
     scrollMargin: listRef.current?.offsetTop ?? 0,
   });
 
+  // The category label stays pinned under the controls; it swaps when the next header reaches it.
+  const pinRef = useRef<HTMLDivElement>(null);
+  const headerIdx = useMemo(() => rows.flatMap((r, i) => (r.type === "header" ? [i] : [])), [rows]);
+  const pinBottom = (pinRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY;
+  const passed = headerIdx.filter((i) => (virtual.measurementsCache[i]?.start ?? Infinity) <= pinBottom).pop();
+  const pinnedRow = passed === undefined ? undefined : rows[passed];
+
   const selected = arg ? all.find((e) => e.ref === arg) : undefined;
   const close = () => {
     location.hash = "#/library";
@@ -62,6 +69,7 @@ export function Library({ profile }: { profile: Profile }) {
 
   return (
     <div>
+      <div ref={pinRef} className={s.pin}>
       <div className={s.controls}>
         <label className={s.search}>
           <span className={s.visuallyHidden}>Search exercises</span>
@@ -71,6 +79,12 @@ export function Library({ profile }: { profile: Profile }) {
           {activeFilters ? `Filters (${activeFilters})` : "Filters"}
         </button>
         <button className={f.quiet} onClick={() => setEditing("new")}>New exercise</button>
+      </div>
+      {pinnedRow?.type === "header" && (
+        <div className={`${s.header} ${s.pinned}`} aria-hidden="true">
+          {cap(pinnedRow.label)} <span>{pinnedRow.count}</span>
+        </div>
+      )}
       </div>
 
       {showFilters && (

@@ -1,7 +1,10 @@
-.controls {
+.pin {
   position: sticky;
   top: calc(env(safe-area-inset-top) + var(--header-h)); /* just under the pinned page header */
   z-index: 4;
+}
+
+.controls {
   display: flex;
   align-items: center;
   gap: 4px 8px;
@@ -10,7 +13,7 @@
 }
 
 @media (min-width: 1024px) {
-  .controls {
+  .pin {
     top: var(--header-h);
   }
 }
@@ -74,6 +77,13 @@
 
 .header span {
   font-weight: 400;
+}
+
+/* after .header so top wins: hangs below the controls without taking layout space */
+.pinned {
+  top: 100%;
+  height: 34px;
+  background: var(--ground);
 }
 
 .row {
