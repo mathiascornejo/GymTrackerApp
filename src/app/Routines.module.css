@@ -521,6 +521,12 @@
   border-radius: var(--radius-list);
 }
 
+/* The shared group title carries a 32px top margin meant for a page; inside this card it only pushed the text down. */
+.volume h2 {
+  margin: 0 0 12px;
+  padding: 0;
+}
+
 .volume ul {
   display: flex;
   flex-wrap: wrap;
