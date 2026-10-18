@@ -169,6 +169,7 @@ test.describe("routine builder", () => {
     await page.getByRole("button", { name: "New routine" }).click();
     await page.getByLabel("Routine name").fill("New routine");
     await page.getByRole("button", { name: "Save routine" }).click();
+    await expect(page.getByRole("dialog")).toBeHidden(); // a second New routine would otherwise find this sheet still closing
     await expect(page.getByRole("region", { name: "Routine overview" }).getByRole("heading", { name: "New routine" })).toBeVisible();
   }
 
