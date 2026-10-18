@@ -99,6 +99,11 @@
     "title title title";
   align-items: center;
   column-gap: 12px;
+  position: sticky;
+  top: env(safe-area-inset-top);
+  z-index: 5;
+  padding-bottom: 4px;
+  background: var(--ground);
 }
 
 .exit {
@@ -122,6 +127,7 @@
   .logHead {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: "title finish";
+    top: calc(16px + var(--header-h));
   }
 
   .exit {
@@ -648,7 +654,7 @@
 
   .logSide {
     position: sticky;
-    top: 24px;
+    top: calc(16px + var(--header-h) + 16px);
     display: grid;
     gap: 12px;
   }

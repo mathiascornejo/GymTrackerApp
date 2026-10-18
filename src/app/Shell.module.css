@@ -2,12 +2,26 @@
   min-height: 100dvh;
 }
 
+/* Keeps content from showing through the notch area while the header is pinned. */
+.shell::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top);
+  z-index: 5;
+  background: var(--ground);
+}
+
 .body {
   padding: env(safe-area-inset-top) var(--gutter) calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px);
 }
 
-/* Title centred, profile button at the right end; both scroll with the page so the button never sits on content. */
+/* Title centred, profile button at the right end; pinned to the top, with a ground background so content scrolls beneath it. */
 .header {
+  position: sticky;
+  top: env(safe-area-inset-top);
+  z-index: 5;
+  background: var(--ground);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
@@ -55,6 +69,13 @@
 }
 
 @media (min-width: 1024px) {
+  /* Pinned in the band beside the nav tray; a fixed height lets sticky panels below clear it (--header-h). */
+  .header {
+    top: 16px;
+    min-height: var(--header-h);
+    box-sizing: border-box;
+  }
+
   /* The nav tray is pinned top left, so the page starts below it. */
   .body {
     padding: calc(16px + var(--nav-h) + 16px) clamp(40px, 8vw, 128px) 24px;
