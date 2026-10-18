@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { loadDataset } from "../exercises/dataset";
@@ -59,6 +59,21 @@ export function Library({ profile }: { profile: Profile }) {
   const resultCount = rows.filter((r) => r.type === "item").length;
   const activeFilters = FILTERS.filter((k) => filters[k]).length;
 
+  // The open filters sit in the pinned block, so category titles stick lower by their height (--filters-h, read in the CSS).
+  const rootRef = useRef<HTMLDivElement>(null);
+  const filtersRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    const el = filtersRef.current;
+    if (!root) return;
+    if (!el) return void root.style.removeProperty("--filters-h");
+    const set = () => root.style.setProperty("--filters-h", `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [showFilters, dataset.error]);
+
   const listRef = useRef<HTMLDivElement>(null);
   const virtual = useWindowVirtualizer({
     count: rows.length,
@@ -100,7 +115,7 @@ export function Library({ profile }: { profile: Profile }) {
     );
 
   return (
-    <div>
+    <div ref={rootRef}>
       <div className={s.pin}>
       <div className={`${s.controls} ${query.trim() ? s.searching : ""}`}>
         <label className={s.search}>
@@ -112,24 +127,24 @@ export function Library({ profile }: { profile: Profile }) {
         </button>
         <button className={`${f.button} ${s.newExercise}`} onClick={() => setEditing("new")}>New exercise</button>
       </div>
+      {showFilters && (
+          <div ref={filtersRef} className={s.filters}>
+            {FILTERS.map((k) => (
+              <label key={k}>
+                {LABELS[k]}
+                <select className={f.input} value={filters[k] ?? ""} onChange={(e) => setFilters({ ...filters, [k]: e.target.value || undefined })}>
+                  <option value="">Any</option>
+                  {options[k].map((o) => (
+                    <option key={o} value={o}>{cap(o)}</option>
+                  ))}
+                </select>
+              </label>
+            ))}
+            {activeFilters > 0 && <button className={f.quiet} onClick={() => setFilters({})}>Clear filters</button>}
+          </div>
+        )}
       </div>
 
-      {showFilters && (
-        <div className={s.filters}>
-          {FILTERS.map((k) => (
-            <label key={k}>
-              {LABELS[k]}
-              <select className={f.input} value={filters[k] ?? ""} onChange={(e) => setFilters({ ...filters, [k]: e.target.value || undefined })}>
-                <option value="">Any</option>
-                {options[k].map((o) => (
-                  <option key={o} value={o}>{cap(o)}</option>
-                ))}
-              </select>
-            </label>
-          ))}
-          {activeFilters > 0 && <button className={f.quiet} onClick={() => setFilters({})}>Clear filters</button>}
-        </div>
-      )}
 
       {custom.error && <p className={f.note}>Your custom exercises could not be loaded: {custom.error.message}</p>}
       <p className={s.visuallyHidden} aria-live="polite">
