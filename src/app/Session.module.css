@@ -303,6 +303,11 @@
   overflow-wrap: anywhere;
 }
 
+/* Level box, then the time stepper (two 44px buttons and the time). */
+.cardioRow {
+  grid-template-columns: minmax(48px, 1fr) 64px auto 40px;
+}
+
 .field {
   position: relative;
   display: block;

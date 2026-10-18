@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isCardio } from "../session/cardio";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Exercise } from "../exercises/types";
@@ -97,7 +98,7 @@ export function BlockCard({
               <li key={item.id} className={s.itemName}>
                 {position && <span className={s.pos} aria-hidden="true">{position}{multi ? String.fromCharCode(97 + i) : ""}</span>}
                 <button type="button" className={s.itemLink} onClick={() => actions.onView(item.ref)}>{names[i]}</button>
-                {!open && <span className={s.itemMeta}>{item.repMin}–{item.repMax}</span>}
+                {!open && !isCardio(info(item.ref)) && <span className={s.itemMeta}>{item.repMin}–{item.repMax}</span>}
                 {open && multi && (
                   <button type="button" className={s.iconBtn} aria-label={`Remove ${names[i]} from block`} onClick={() => actions.onRemoveItem(item.id)}>
                     ×
@@ -135,7 +136,7 @@ export function BlockCard({
           {block.items.map((item, i) => (
             <div key={item.id} className={s.itemEdit}>
               {multi && <p className={s.itemEditName}>{names[i]}</p>}
-              <div className={s.repRow}>
+              {!isCardio(info(item.ref)) && <div className={s.repRow}>
                 <Stepper caption="Min reps" label={`${names[i]} minimum reps`} value={item.repMin} min={1} max={100} onChange={(v) => actions.onReps(item.id, { repMin: v })} />
                 <Stepper caption="Max reps" label={`${names[i]} maximum reps`} value={item.repMax} min={1} max={100} onChange={(v) => actions.onReps(item.id, { repMax: v })} />
                 <label className={s.step}>
@@ -153,7 +154,7 @@ export function BlockCard({
                     }}
                   />
                 </label>
-              </div>
+              </div>}
             </div>
           ))}
 

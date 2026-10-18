@@ -4,6 +4,7 @@ import type { SessionRow, SetRow } from "../data/sessions";
 import { computeRanks, tierChanges } from "../ranking/rank";
 import type { Exercise } from "../exercises/types";
 import { cap } from "../exercises/query";
+import { isCardio } from "../session/cardio";
 import { findPRs, summarize } from "../session/summary";
 import { fromKg, type Unit } from "../units";
 import f from "./Form.module.css";
@@ -13,7 +14,7 @@ export type SummaryData = { session: SessionRow; sets: SetRow[]; prior: SetRow[]
 
 export function SessionSummary({ data, info, profile, onDone }: { data: SummaryData; info: (ref: string) => Exercise | undefined; profile: Profile; onDone: () => void }) {
   const { session, sets, prior, unit } = data;
-  const sum = summarize(sets);
+  const sum = summarize(sets, (ref) => isCardio(info(ref)));
   const prs = findPRs(sets, prior);
   const minutes = Math.max(1, Math.round((new Date(session.ended_at ?? Date.now()).getTime() - new Date(session.started_at).getTime()) / 60000));
   const exercises = [...new Set(sets.filter((x) => !x.is_warmup).map((x) => x.exercise_ref))];

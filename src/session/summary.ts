@@ -4,9 +4,10 @@ export type SetLike = { exercise_ref: string; weight_kg: number; reps: number; i
 
 export type Summary = { volumeKg: number; workingSets: number };
 
-export function summarize(sets: SetLike[]): Summary {
+/** `isCardio` sets count as sets but add no volume: their columns hold level and seconds. */
+export function summarize(sets: SetLike[], isCardio: (ref: string) => boolean = () => false): Summary {
   const working = sets.filter((s) => !s.is_warmup);
-  return { volumeKg: working.reduce((n, s) => n + s.weight_kg * s.reps, 0), workingSets: working.length };
+  return { volumeKg: working.reduce((n, s) => (isCardio(s.exercise_ref) ? n : n + s.weight_kg * s.reps), 0), workingSets: working.length };
 }
 
 const bestE1rm = (sets: SetLike[]) =>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isCardio } from "../session/cardio";
 import type { Profile } from "../data/profile";
 import { startSession, useOpenSession } from "../data/sessions";
 import { useRoutines } from "../data/routines";
@@ -59,7 +60,7 @@ function StartPanel({ routine, info }: { routine: Routine | null; info: (ref: st
               .flatMap((b) => b.items.map((i) => (
                 <li key={i.itemId}>
                   <span>{info(i.ref)?.name ?? i.ref.replace(/^\w+:/, "")}</span>
-                  <span className={s.startPlanMeta}>{b.rounds} × {i.repMin === i.repMax ? i.repMin : `${i.repMin}–${i.repMax}`}</span>
+                  <span className={s.startPlanMeta}>{b.rounds} × {isCardio(info(i.ref)) ? "time" : i.repMin === i.repMax ? i.repMin : `${i.repMin}–${i.repMax}`}</span>
                 </li>
               )))}
           </ul>

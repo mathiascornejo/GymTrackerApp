@@ -7,6 +7,7 @@ import type { Routine } from "../routines/model";
 import { clearDraft, loadDraft, saveDraft, type Draft } from "../session/draft";
 import { buildPlan, type PlanBlock, type PlanItem } from "../session/plan";
 import { defaultIncrementKg, recommend } from "../session/recommend";
+import { isCardio, parseTime } from "../session/cardio";
 import { mmss } from "../session/timer";
 import { fromKg, toKg, type Unit } from "../units";
 import { AddExerciseSheet } from "./AddExerciseSheet";
@@ -15,6 +16,7 @@ import { epley, rankable } from "../ranking/e1rm";
 import { findPRs } from "../session/summary";
 import type { SummaryData } from "./SessionSummary";
 import { ConfirmSheet } from "./ConfirmSheet";
+import { Stepper } from "./Stepper";
 import f from "./Form.module.css";
 import s from "./Session.module.css";
 
@@ -68,6 +70,8 @@ type RowProps = {
   ghost: { weight_kg: number; reps: number } | null;
   unit: Unit;
   warm?: boolean;
+  /** Cardio rows log a level and a time instead of weight and reps. */
+  cardio?: boolean;
   pr?: boolean;
   error?: string;
   onChange: (v: { w: string; r: string }) => void;
@@ -76,23 +80,32 @@ type RowProps = {
   onRemove?: () => void;
 };
 
-function SetLine({ label, name, dataSlot, done, input, ghost, unit, warm, pr, error, onChange, onDone, onRemove }: RowProps) {
-  const w = done ? fmt(done.weight_kg, unit) : input.w;
+function SetLine({ label, name, dataSlot, done, input, ghost, unit, warm, cardio, pr, error, onChange, onDone, onRemove }: RowProps) {
+  const showW = (kg: number) => (cardio ? String(kg) : fmt(kg, unit));
+  const w = done ? showW(done.weight_kg) : input.w;
   const r = done ? String(done.reps) : input.r;
+  const seconds = r !== "" ? Number(r) : ghost?.reps ?? 0;
   return (
-    <div className={`${s.setRow} ${done ? s.setDone : ""} ${warm ? s.warm : ""}`} data-slot={dataSlot}>
+    <div className={`${s.setRow} ${cardio ? s.cardioRow : ""} ${done ? s.setDone : ""} ${warm ? s.warm : ""}`} data-slot={dataSlot}>
       <span className={s.setLabel}>
         {name ?? label}{pr && <span className={s.prBadge} title="Personal best estimated 1RM">PR</span>}
       </span>
       <label className={s.field}>
-        <span className={s.visuallyHidden}>{label} weight ({unit})</span>
+        <span className={s.visuallyHidden}>{label} {cardio ? "level" : `weight (${unit})`}</span>
         <input
           className={s.num} inputMode="decimal" autoComplete="off" disabled={Boolean(done)} value={w}
-          placeholder={ghost ? fmt(ghost.weight_kg, unit) : undefined} onChange={(e) => onChange({ ...input, w: e.target.value.replace(",", ".") })}
+          placeholder={ghost ? showW(ghost.weight_kg) : undefined} onChange={(e) => onChange({ ...input, w: e.target.value.replace(",", ".") })}
           name="weight"
         />
-        <span className={s.unit} aria-hidden="true">{unit}</span>
+        <span className={s.unit} aria-hidden="true">{cardio ? "level" : unit}</span>
       </label>
+      {cardio ? (
+        done ? (
+          <input className={s.num} disabled aria-label={`${label} time`} value={mmss(done.reps)} />
+        ) : (
+          <Stepper label={`${label} time`} value={seconds} step={60} max={32000} format={mmss} parse={parseTime} onChange={(v) => onChange({ ...input, r: String(v) })} />
+        )
+      ) : (
       <label className={s.field}>
         <span className={s.visuallyHidden}>{label} reps</span>
         <input
@@ -102,6 +115,7 @@ function SetLine({ label, name, dataSlot, done, input, ghost, unit, warm, pr, er
         />
         <span className={s.unit} aria-hidden="true">reps</span>
       </label>
+      )}
       <button
         type="button" className={`${s.doneBtn} ${done ? s.doneOn : ""}`} aria-pressed={Boolean(done)}
         aria-label={done ? `Undo ${label}` : `Mark ${label} done`} onClick={onDone}
@@ -198,10 +212,12 @@ export function SessionLog({
     const input = draft.inputs[key] ?? { w: "", r: "" };
     const ghost = warm ? null : ghostFor(it.ref, r);
     const bodyOnly = info(it.ref)?.equipment === "body only";
-    const w = input.w !== "" ? Number(input.w) : ghost ? fromKg(ghost.weight_kg, unit) : bodyOnly ? 0 : NaN;
+    const cardio = isCardio(info(it.ref));
+    // Cardio: level is stored as typed (no unit) and may stay empty; reps holds seconds.
+    const w = input.w !== "" ? Number(input.w) : ghost ? (cardio ? ghost.weight_kg : fromKg(ghost.weight_kg, unit)) : bodyOnly || cardio ? 0 : NaN;
     const reps = input.r !== "" ? Number(input.r) : ghost ? ghost.reps : NaN;
     if (!Number.isFinite(w) || w < 0 || !Number.isInteger(reps) || reps < 1) {
-      setRowError({ key, msg: "Enter weight and reps." });
+      setRowError({ key, msg: cardio ? "Enter a time." : "Enter weight and reps." });
       return;
     }
     setRowError(null);
@@ -212,7 +228,7 @@ export function SessionLog({
       block_id: b.blockId,
       round_index: r,
       set_number: r + 1,
-      weight_kg: toKg(w, unit),
+      weight_kg: cardio ? w : toKg(w, unit),
       reps,
       rpe: null,
       is_warmup: warm,
@@ -325,7 +341,7 @@ export function SessionLog({
     const names = b.items.map((i) => nameOf(i.ref));
 
     const chip = (it: PlanItem) => {
-      const rec = recFor(it);
+      const rec = isCardio(info(it.ref)) ? null : recFor(it);
       if (!rec) return null;
       const lastText = rec.lastReps.join(", ");
       const reason =
@@ -349,7 +365,7 @@ export function SessionLog({
       const key = slot(b, it.itemId, warm ? `w${r}` : r);
       return (
         <SetLine
-          key={key} label={label} name={name} dataSlot={key} warm={warm} unit={unit}
+          key={key} label={label} name={name} dataSlot={key} warm={warm} unit={unit} cardio={isCardio(info(it.ref))}
           done={rowFor(b, it, r, warm)} pr={!warm && prRows.has(rowFor(b, it, r, warm)?.id ?? "")} input={draft.inputs[key] ?? { w: "", r: "" }} ghost={warm ? null : ghostFor(it.ref, r)}
           error={rowError?.key === key ? rowError.msg : undefined}
           onChange={(v) => setInput(key, v)} onDone={() => complete(b, itemIndex, r, warm)}
@@ -368,7 +384,7 @@ export function SessionLog({
             <p className={s.blockMeta}>
               {group ? `${b.kind === "superset" ? "Superset" : "Circuit"}, ${rounds} rounds` : `${rounds} sets`}
               {" · "}rest {mmss(b.restS)}
-              {b.items.length === 1 && ` · ${b.items[0].repMin}–${b.items[0].repMax} reps`}
+              {b.items.length === 1 && !isCardio(info(b.items[0].ref)) && ` · ${b.items[0].repMin}–${b.items[0].repMax} reps`}
               {b.weeklyTarget ? ` · ${bankCounts.get(b.blockId ?? "")?.size ?? 0} of ${b.weeklyTarget} this week` : ""}
             </p>
           </div>
@@ -474,12 +490,13 @@ export function SessionLog({
             <h3 className={s.sideLabel}>Up next</h3>
             {current.items.map((it) => {
               const last = lastSets(history.data, it.ref);
-              const rec = recFor(it);
+              const cardio = isCardio(info(it.ref));
+              const rec = cardio ? null : recFor(it);
               return (
                 <div key={it.itemId} className={s.sideItem}>
                   <p className={s.blockTitle}>{nameOf(it.ref)}</p>
                   <p className={s.blockMeta}>
-                    {last.length ? `Last time: ${last.map((x) => `${fmt(x.weight_kg, unit)} × ${x.reps}`).join(", ")}` : "No earlier sets"}
+                    {last.length ? `Last time: ${last.map((x) => cardio ? `level ${x.weight_kg} × ${mmss(x.reps)}` : `${fmt(x.weight_kg, unit)} × ${x.reps}`).join(", ")}` : "No earlier sets"}
                   </p>
                   {rec && <p className={s.sideRec}>Suggested: {fmt(rec.weightKg, unit)} {unit} × {rec.reps}</p>}
                 </div>

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { usePastSessionActions, usePastSessions, type PastSession } from "../data/sessions";
 import type { Exercise } from "../exercises/types";
+import { isCardio, parseTime } from "../session/cardio";
 import { summarize } from "../session/summary";
+import { mmss } from "../session/timer";
 import { fromKg, toKg, type Unit } from "../units";
 import { ConfirmSheet } from "./ConfirmSheet";
 import { TrashIcon } from "./icons";
@@ -15,7 +17,7 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
   const [confirming, setConfirming] = useState(false);
   const [deletingSet, setDeletingSet] = useState<{ id: string; label: string } | null>(null);
   const { session, sets } = past;
-  const sum = summarize(sets);
+  const sum = summarize(sets, (ref) => isCardio(info(ref)));
   const date = new Date(session.started_at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   const groups = [...new Set(sets.map((x) => x.exercise_ref))];
   const run = (p: Promise<void>) => p.then(() => setError(""), (e: Error) => setError(e.message));
@@ -32,13 +34,15 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
       >
         Delete session
       </button>
-      {groups.map((ref) => (
+      {groups.map((ref) => {
+        const cardio = isCardio(info(ref));
+        return (
         <div key={ref} className={s.pastGroup}>
           <h4 className={s.roundTitle}>{info(ref)?.name ?? ref}</h4>
           <div className={`${s.pastSet} ${s.pastHead}`} aria-hidden="true">
             <span />
-            <span>{unit}</span>
-            <span>reps</span>
+            <span>{cardio ? "level" : unit}</span>
+            <span>{cardio ? "time" : "reps"}</span>
           </div>
           {sets
             .filter((x) => x.exercise_ref === ref)
@@ -49,24 +53,25 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
                 <div key={x.id} className={s.pastSet}>
                   <span className={s.setLabel}>{label}</span>
                   <label>
-                    <span className={s.visuallyHidden}>{label} weight ({unit})</span>
+                    <span className={s.visuallyHidden}>{label} {cardio ? "level" : `weight (${unit})`}</span>
                     <input
-                      className={s.num} inputMode="decimal" defaultValue={fromKg(x.weight_kg, unit)}
+                      className={s.num} inputMode="decimal" defaultValue={cardio ? x.weight_kg : fromKg(x.weight_kg, unit)}
                       onBlur={(e) => {
                         const v = Number(e.target.value.replace(",", "."));
-                        if (Number.isFinite(v) && v >= 0 && toKg(v, unit) !== x.weight_kg) void run(actions.updateSet(x.id, { weight_kg: toKg(v, unit) }));
-                        else e.target.value = String(fromKg(x.weight_kg, unit));
+                        const kg = cardio ? v : toKg(v, unit);
+                        if (Number.isFinite(v) && v >= 0 && kg !== x.weight_kg) void run(actions.updateSet(x.id, { weight_kg: kg }));
+                        else e.target.value = String(cardio ? x.weight_kg : fromKg(x.weight_kg, unit));
                       }}
                     />
                   </label>
                   <label>
-                    <span className={s.visuallyHidden}>{label} reps</span>
+                    <span className={s.visuallyHidden}>{label} {cardio ? "time" : "reps"}</span>
                     <input
-                      className={s.num} inputMode="numeric" defaultValue={x.reps}
+                      className={s.num} inputMode={cardio ? "text" : "numeric"} defaultValue={cardio ? mmss(x.reps) : x.reps}
                       onBlur={(e) => {
-                        const v = Number(e.target.value);
-                        if (Number.isInteger(v) && v >= 1 && v !== x.reps) void run(actions.updateSet(x.id, { reps: v }));
-                        else e.target.value = String(x.reps);
+                        const v = cardio ? parseTime(e.target.value) : Number(e.target.value);
+                        if (v !== null && Number.isInteger(v) && v >= 1 && v !== x.reps) void run(actions.updateSet(x.id, { reps: v }));
+                        else e.target.value = cardio ? mmss(x.reps) : String(x.reps);
                       }}
                     />
                   </label>
@@ -81,7 +86,8 @@ function PastItem({ past, unit, info }: { past: PastSession; unit: Unit; info: (
               );
             })}
         </div>
-      ))}
+        );
+      })}
       {error && <p className={f.error} role="alert">{error}</p>}
       <ConfirmSheet
         open={deletingSet !== null}
