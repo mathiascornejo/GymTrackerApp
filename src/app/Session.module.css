@@ -43,6 +43,13 @@
   overflow-y: auto;
 }
 
+/* Touch: the bar is drawn inside the box (touchScrollbars.ts), so leave it room. */
+@media (hover: none) and (pointer: coarse) {
+  .pastScroll {
+    padding-right: 14px;
+  }
+}
+
 @media (min-width: 1024px) {
   .startPage {
     max-width: 880px;

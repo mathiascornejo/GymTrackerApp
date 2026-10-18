@@ -69,3 +69,10 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+
+/* Touch: the bar is drawn inside the box (touchScrollbars.ts), so leave it room. */
+@media (hover: none) and (pointer: coarse) {
+  .logCard .list {
+    padding-right: 14px;
+  }
+}

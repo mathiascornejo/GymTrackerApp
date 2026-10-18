@@ -758,3 +758,10 @@
 .selectCount {
   flex: 1;
 }
+
+/* Touch: the bar is drawn inside the box (touchScrollbars.ts), so leave it room. */
+@media (hover: none) and (pointer: coarse) {
+  .pickList {
+    padding-right: 14px;
+  }
+}
