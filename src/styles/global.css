@@ -39,3 +39,14 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Phone: scroll areas still scroll, but their bars are hidden so they never cover content while you drag. */
+@media (max-width: 1023px) {
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
