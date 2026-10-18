@@ -467,28 +467,6 @@
   color: var(--done);
 }
 
-.boardSplit {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 16px;
-  align-items: start;
-}
-
-.sidePicker {
-  position: sticky;
-  /* Clear the pinned nav and profile trays. */
-  top: calc(16px + var(--nav-h) + 16px);
-  max-height: calc(100vh - var(--nav-h) - 64px);
-  overflow-y: auto;
-  padding: 4px 16px 16px;
-  border-radius: var(--radius-list);
-  background: var(--surface);
-}
-
-.sidePicker .picker {
-  margin-top: 0;
-}
-
 .pickName {
   display: grid;
   flex: 1;

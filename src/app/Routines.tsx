@@ -4,7 +4,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCustomExercises } from "../data/customExercises";
 import type { Profile } from "../data/profile";
 import { useUpdateProfile } from "../data/profile";
@@ -24,17 +24,6 @@ import { MoreMenu } from "./MoreMenu";
 import { RoutinePicker } from "./RoutinePicker";
 import f from "./Form.module.css";
 import s from "./Routines.module.css";
-
-const desktopQuery = "(min-width: 1024px)";
-const useIsDesktop = () =>
-  useSyncExternalStore(
-    (cb) => {
-      const m = window.matchMedia(desktopQuery);
-      m.addEventListener("change", cb);
-      return () => m.removeEventListener("change", cb);
-    },
-    () => window.matchMedia(desktopQuery).matches,
-  );
 
 const containerId = (t: Target) => (t === "bank" ? "bank" : `day:${t.day}`);
 const targetOf = (id: string): Target | null => (id === "bank" ? "bank" : id.startsWith("day:") ? { day: Number(id.slice(4)) } : null);
@@ -91,7 +80,6 @@ export function Routines({ profile }: { profile: Profile }) {
   const updateProfile = useUpdateProfile();
   const dataset = useQuery({ queryKey: ["dataset"], queryFn: loadDataset, staleTime: Infinity });
   const custom = useCustomExercises();
-  const desktop = useIsDesktop();
 
   const all = useMemo(() => [...(dataset.data ?? []), ...(custom.data ?? [])], [dataset.data, custom.data]);
   const byRef = useMemo(() => new Map(all.map((e) => [e.ref, e])), [all]);
@@ -269,7 +257,7 @@ export function Routines({ profile }: { profile: Profile }) {
       );
     return (
       <Column key={cid} target={target} label={target === "bank" ? "Accessory bank" : WEEKDAY_NAMES[target.day]} title={title} ids={blocks.map((b) => b.id)}
-        action={selecting || (desktop && pickerOpen) ? undefined : (
+        action={selecting ? undefined : (
           <>
             {blocks.length >= 2 && <button className={f.quiet} onClick={() => setSelecting(true)}>Select</button>}
             <button className={f.button} onClick={() => setPickerOpen(true)}>Add exercise</button>
@@ -411,31 +399,15 @@ export function Routines({ profile }: { profile: Profile }) {
             ))}
           </div>
 
-          {/* Desktop docks the picker beside the board (not a modal sheet) so exercises can still be dragged onto a day. */}
-          <div className={desktop && pickerOpen ? s.boardSplit : undefined}>
-            <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>
-            {desktop && pickerOpen && (
-              <aside className={s.sidePicker} aria-label="Add exercise">
-                <div className={s.sheetTop}>
-                  <h2 className={s.sheetTitle}>Add exercise</h2>
-                  <button className={f.quiet} onClick={() => setPickerOpen(false)}>Close</button>
-                </div>
-                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
-              </aside>
-            )}
-          </div>
+          <div className={s.board}>{renderColumn(pageDay === "bank" ? "bank" : { day: pageDay })}</div>
 
-          {!desktop && (
-            <>
-              <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)} label="Add exercise">
-                <div className={s.sheetTop}>
-                  <h2 className={s.sheetTitle}>Add exercise</h2>
-                  <button className={f.quiet} onClick={() => setPickerOpen(false)}>Done</button>
-                </div>
-                <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
-              </Sheet>
-            </>
-          )}
+          <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)} label="Add exercise">
+            <div className={s.sheetTop}>
+              <h2 className={s.sheetTitle}>Add exercise</h2>
+              <button className={f.quiet} onClick={() => setPickerOpen(false)}>Done</button>
+            </div>
+            <RoutinePicker exercises={all} muscles={muscles} current={current} onAdd={(ref, t) => add(ref, t)} />
+          </Sheet>
 
           <section className={s.volume} aria-label="Weekly sets per muscle">
             <h2 className={f.groupTitle}>Weekly sets per muscle</h2>

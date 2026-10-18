@@ -127,7 +127,7 @@
   .logHead {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: "title finish";
-    top: calc(16px + var(--header-h));
+    top: var(--header-h);
   }
 
   .exit {
@@ -654,7 +654,7 @@
 
   .logSide {
     position: sticky;
-    top: calc(16px + var(--header-h) + 16px);
+    top: calc(var(--header-h) + 16px);
     display: grid;
     gap: 12px;
   }

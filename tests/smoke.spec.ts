@@ -158,7 +158,6 @@ test.describe("exercise library", () => {
 });
 
 test.describe("routine builder", () => {
-  const isPhone = () => test.info().project.name === "phone";
 
   async function openBuilder(page: Page) {
     await signInAndSkipSetup(page, "routines");
@@ -176,13 +175,13 @@ test.describe("routine builder", () => {
     await page.getByRole("tab", { name: day.slice(0, 3) === "Ban" ? "Bank" : day.slice(0, 3) }).click();
   };
 
-  // "Add exercise" opens the picker: a side panel that stays open on desktop, a bottom sheet on phone. Add puts the exercise on the day being viewed.
+  // "Add exercise" opens the picker as a popup. Add puts the exercise on the day being viewed.
   async function addExercise(page: Page, name: string, to: string) {
     await showDay(page, to === "Accessory bank" ? "Bank" : to);
-    if (await page.getByLabel("Search the picker").isHidden()) await page.getByRole("button", { name: "Add exercise" }).click();
+    await page.getByRole("button", { name: "Add exercise" }).click();
     await page.getByLabel("Search the picker").fill(name);
     await page.getByRole("button", { name: `Add ${name} to ${to}`, exact: true }).click();
-    if (isPhone()) await page.getByRole("button", { name: "Done", exact: true }).click();
+    await page.getByRole("button", { name: "Done", exact: true }).click();
   }
 
   test("adds an exercise, edits sets, and keeps it after reload", async ({ page }) => {
@@ -330,23 +329,6 @@ test.describe("routine builder", () => {
     await page.getByRole("button", { name: "Cancel" }).click();
     await expect(page.getByRole("checkbox")).toHaveCount(0);
     await expect(page.getByRole("article")).toHaveCount(2);
-  });
-
-  test("drags an exercise from the picker onto a day", async ({ page }) => {
-    test.skip(isPhone(), "Drag from the docked picker is a desktop interaction; phone uses the Add to menu.");
-    await openBuilder(page);
-    await page.getByRole("button", { name: "Add exercise" }).click();
-    await page.getByLabel("Search the picker").fill("Barbell Curl");
-    const source = page.getByRole("listitem").filter({ hasText: "Barbell Curl" }).first().locator("div").first();
-    const target = page.getByRole("region", { name: "Tuesday" });
-    const a = (await source.boundingBox())!;
-    const b = (await target.boundingBox())!;
-    await page.mouse.move(a.x + 20, a.y + a.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(a.x + 40, a.y + a.height / 2 - 20, { steps: 5 });
-    await page.mouse.move(b.x + b.width / 2, b.y + 60, { steps: 12 });
-    await page.mouse.up();
-    await expect(target.getByRole("article", { name: "Barbell Curl" })).toBeVisible();
   });
 });
 

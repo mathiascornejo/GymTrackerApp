@@ -184,10 +184,15 @@
   }
 }
 
-/* Desktop: the same tray, pinned to the top left. */
+/* Desktop: the same tray stood on end, pinned to the left and centred vertically. */
 @media (min-width: 1024px) {
   .dock {
-    inset: 16px auto auto 16px;
+    inset: 0 auto 0 16px;
+    align-items: center;
     justify-content: flex-start;
+  }
+
+  .nav {
+    flex-direction: column;
   }
 }

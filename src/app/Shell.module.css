@@ -69,15 +69,15 @@
 }
 
 @media (min-width: 1024px) {
-  /* Pinned in the band beside the nav tray; a fixed height lets sticky panels below clear it (--header-h). */
+  /* A fixed height lets sticky panels below clear the header (--header-h). */
   .header {
-    top: 16px;
+    top: 0;
     min-height: var(--header-h);
     box-sizing: border-box;
   }
 
-  /* The nav tray is pinned top left, so the page starts below it. */
+  /* The nav tray is pinned to the left edge, so the page keeps clear of it on both sides. */
   .body {
-    padding: calc(16px + var(--nav-h) + 16px) clamp(40px, 8vw, 128px) 24px;
+    padding: 0 max(clamp(40px, 8vw, 128px), 108px) 24px;
   }
 }
