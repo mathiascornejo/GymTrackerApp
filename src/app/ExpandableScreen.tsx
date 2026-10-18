@@ -35,6 +35,23 @@ if (typeof document !== "undefined")
     true,
   );
 
+// The modal dialog makes the page behind it inert but does not stop it scrolling (iOS most of all), so the page is
+// frozen while any popup is open. Counted, because a confirm popup can open over another one.
+let locks = 0;
+function lockScroll() {
+  if (locks++ > 0) return;
+  const root = document.documentElement;
+  // Hiding a classic scrollbar would shift the page sideways by its width; pad the same amount.
+  const bar = window.innerWidth - root.clientWidth;
+  root.style.overflow = "hidden";
+  if (bar > 0) root.style.paddingRight = `${bar}px`;
+}
+function unlockScroll() {
+  if (--locks > 0) return;
+  document.documentElement.style.overflow = "";
+  document.documentElement.style.paddingRight = "";
+}
+
 export function ExpandableScreen({
   children,
   expanded,
@@ -124,6 +141,12 @@ export function ExpandableScreenContent({
   useEffect(() => {
     const d = dialog.current;
     if (isExpanded && d && !d.open) d.showModal();
+  }, [isExpanded]);
+
+  useEffect(() => {
+    if (!isExpanded) return;
+    lockScroll();
+    return unlockScroll;
   }, [isExpanded]);
 
   const from = { opacity: 0, x: origin.current?.x ?? 0, y: origin.current?.y ?? 0, scale: origin.current?.scale ?? 0.92, borderRadius: "999px" };

@@ -28,6 +28,9 @@
   background: transparent;
   color: var(--ink);
   overflow: hidden;
+  /* Dragging the blurred backdrop must not scroll the page behind; the panel below opts back in. */
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .screen[open] {
@@ -48,6 +51,8 @@
   max-height: min(80dvh, 680px);
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain; /* reaching the end of a long popup does not hand the scroll to the page */
+  touch-action: pan-y;
   background: var(--surface);
   box-shadow: 0 8px 40px rgb(0 0 0 / 0.25);
   transform-origin: center;
