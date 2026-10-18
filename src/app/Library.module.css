@@ -1,8 +1,19 @@
 .controls {
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + var(--header-h)); /* just under the pinned page header */
+  z-index: 4;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
+  padding: 8px 0;
+  background: var(--ground);
+}
+
+@media (min-width: 1024px) {
+  .controls {
+    top: var(--header-h);
+  }
 }
 
 .search {

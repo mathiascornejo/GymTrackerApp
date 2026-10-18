@@ -29,6 +29,8 @@
   max-width: var(--content-w);
   margin: 0 auto;
   padding: 12px 0 8px;
+  min-height: var(--header-h); /* fixed so sticky bars below can clear it */
+  box-sizing: border-box;
 }
 
 .header > :last-child {
@@ -61,6 +63,7 @@
 @media (max-width: 1023px) {
   .shell:has([data-session-open]) .header {
     padding: 0;
+    min-height: 0;
   }
 
   .shell:has([data-session-open]) .body {
@@ -69,11 +72,8 @@
 }
 
 @media (min-width: 1024px) {
-  /* A fixed height lets sticky panels below clear the header (--header-h). */
   .header {
     top: 0;
-    min-height: var(--header-h);
-    box-sizing: border-box;
   }
 
   /* The nav tray is pinned to the left edge, so the page keeps clear of it on both sides. */
