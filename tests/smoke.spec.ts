@@ -654,6 +654,9 @@ test.describe("dashboard and ranks", () => {
     // The wheel lists 100..250 cm, 36 px apart: scrolling to 185 cm saves it.
     await profileSaved(page, () => page.getByRole("slider", { name: "Height wheel" }).evaluate((el) => (el.scrollTop = 85 * 36)));
     await expect(height).toHaveValue("185 cm");
+    await page.getByText("185 cm", { exact: true }).click();
+    await expect(page.getByRole("slider", { name: "Height wheel" })).toHaveCount(0);
+    await height.click();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("slider", { name: "Height wheel" })).toHaveCount(0);
     await page.reload();

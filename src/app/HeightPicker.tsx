@@ -17,8 +17,8 @@ function options(unit: Unit): number[] {
 
 const nearest = (opts: number[], cm: number) => opts.reduce((best, v, i) => (Math.abs(v - cm) < Math.abs(opts[best] - cm) ? i : best), 0);
 
-/** The snapping wheel. It reports each item as it passes (onPreview) and saves once it stops moving (onCommit). */
-function Wheel({ opts, idx, unit, set, onPreview, onCommit }: { opts: number[]; idx: number; unit: Unit; set: boolean; onPreview: (cm: number) => void; onCommit: (cm: number) => void }) {
+/** The snapping wheel. Pressing the middle item picks it and closes the pop-up. It reports each item as it passes (onPreview) and saves once it stops moving (onCommit). */
+function Wheel({ opts, idx, unit, set, onPreview, onCommit, onClose }: { opts: number[]; idx: number; unit: Unit; set: boolean; onPreview: (cm: number) => void; onCommit: (cm: number) => void; onClose: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const shown = useRef(idx); // the item the wheel last reported
   const moving = useRef(false); // true from the first item change by hand until the wheel settles
@@ -78,7 +78,7 @@ function Wheel({ opts, idx, unit, set, onPreview, onCommit }: { opts: number[]; 
         }}
       >
         {opts.map((cm, i) => (
-          <div key={cm} className={h.item} data-on={i === idx && set ? "" : undefined} aria-hidden="true" onClick={() => choose(i)}>
+          <div key={cm} className={h.item} data-on={i === idx && set ? "" : undefined} aria-hidden="true" onClick={() => (i === idx ? (choose(i), onClose()) : choose(i))}>
             {formatHeight(cm, unit)}
           </div>
         ))}
@@ -146,7 +146,7 @@ export function HeightPicker({ valueCm, unit, onCommit }: { valueCm: number | nu
       />
       {open && (
         <div ref={pop} className={h.pop} role="dialog" aria-label="Pick your height">
-          <Wheel opts={opts} idx={nearest(opts, draft ?? DEFAULT_CM)} unit={unit} set={draft !== null} onPreview={setDraft} onCommit={onCommit} />
+          <Wheel opts={opts} idx={nearest(opts, draft ?? DEFAULT_CM)} unit={unit} set={draft !== null} onPreview={setDraft} onCommit={onCommit} onClose={() => setOpen(false)} />
         </div>
       )}
     </div>
