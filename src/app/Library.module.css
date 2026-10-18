@@ -99,6 +99,16 @@
   background: var(--ground);
 }
 
+/* Rows scroll out under a soft edge instead of a hard-cut band. */
+.pinned::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 12px;
+  background: linear-gradient(var(--ground), transparent);
+  pointer-events: none;
+}
+
 .row {
   display: flex;
   align-items: center;

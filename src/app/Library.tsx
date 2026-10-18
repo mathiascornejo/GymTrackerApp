@@ -51,7 +51,8 @@ export function Library({ profile }: { profile: Profile }) {
   // The category label stays pinned under the controls; it swaps when the next header reaches it.
   const pinRef = useRef<HTMLDivElement>(null);
   const headerIdx = useMemo(() => rows.flatMap((r, i) => (r.type === "header" ? [i] : [])), [rows]);
-  const pinBottom = (pinRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY;
+  // A header row is 16px taller than the pinned bar (the gap above its label), so swap once its label reaches the bar's top: until then it hides under the bar.
+  const pinBottom = (pinRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY - 16;
   const passed = headerIdx.filter((i) => (virtual.measurementsCache[i]?.start ?? Infinity) <= pinBottom).pop();
   const pinnedRow = passed === undefined ? undefined : rows[passed];
 
