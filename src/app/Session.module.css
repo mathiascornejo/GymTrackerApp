@@ -40,6 +40,7 @@
 .pastScroll {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -69,6 +70,7 @@
   font-size: 15px;
   flex: 1 1 auto;
   min-height: 88px;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -89,6 +91,11 @@
   border: 1px solid var(--hairline);
   border-radius: var(--radius-list);
   background: var(--surface);
+}
+
+.startPlan li span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .startPlanMeta {

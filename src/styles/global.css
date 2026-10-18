@@ -11,6 +11,8 @@ body {
 
 body {
   background: var(--ground);
+  /* clip, not hidden: hidden would break the sticky headers. */
+  overflow-x: clip;
   color: var(--ink);
   font: 400 17px/22px var(--font-ui);
   -webkit-text-size-adjust: 100%;
